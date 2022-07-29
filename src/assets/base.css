@@ -4,10 +4,18 @@
 
 @layer base {
     html {
-        @apply text-gray-800;
+        @apply h-full text-gray-800;
     } 
+
+    body {
+        @apply h-full bg-main;
+    }
 
     h1 {
         @apply text-3xl font-bold;
+    }
+
+    a {
+        @apply text-sky-500 underline;
     }
 }

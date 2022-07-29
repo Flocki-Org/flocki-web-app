@@ -50,6 +50,12 @@
           type="submit"
         ) SIGN IN
 
+    .mt-12.text-center
+      | Don't have an account?
+      |
+      a(href="#") Sign-up
+      | .
+
   .two.bg-no-repeat.bg-cover(class="bg-[url('@/assets/signin-background.jpg')] w-3/5")
 </template>
 
