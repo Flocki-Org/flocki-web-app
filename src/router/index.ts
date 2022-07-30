@@ -1,13 +1,16 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: "/",
-            name: "home",
-            component: HomeView,
+            name: "dashboard",
+            components: {
+                default: () => import("@/views/DashboardView.vue"),
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
         },
         {
             path: "/about",
@@ -25,7 +28,67 @@ const router = createRouter({
         {
             path: "/people",
             name: "people",
-            component: () => import("../views/PeopleView.vue"),
+            components: {
+                default: () => import("@/views/PeopleView.vue"),
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
+        },
+        {
+            path: "/households",
+            name: "households",
+            components: {
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
+        },
+        {
+            path: "/people/settings",
+            name: "people-settings",
+            components: {
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
+        },
+        {
+            path: "/sermons",
+            name: "sermons",
+            components: {
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
+        },
+        {
+            path: "/ministries",
+            name: "ministries",
+            components: {
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
+        },
+        {
+            path: "/events",
+            name: "events",
+            components: {
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
+        },
+        {
+            path: "/giving",
+            name: "giving",
+            components: {
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
+        },
+        {
+            path: "/website",
+            name: "website",
+            components: {
+                MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+            }
         },
     ],
 });
