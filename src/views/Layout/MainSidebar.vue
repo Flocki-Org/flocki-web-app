@@ -16,7 +16,7 @@ aside.h-full.bg-white.absolute(class="w-[300px] shadow-[0px_0px_30px_rgba(0,0,0,
           :is="item.to ? 'router-link' : 'button'"
           :class="menuItemClass"
           :to="item.to ? item.to : ''"
-          :exact-active-class="item.subMenu ? '' : 'text-sky-500 bg-main'"
+          :exact-active-class="item.subMenu ? '' : '!text-sky-500 bg-main'"
         )
           svg.h-6.w-6(
             viewBox="0 0 24 24"
@@ -40,7 +40,7 @@ aside.h-full.bg-white.absolute(class="w-[300px] shadow-[0px_0px_30px_rgba(0,0,0,
           li(v-for="subItem in item.subMenu")
             router-link.flex.items-center.px-8.text-gray-800.no-underline.py-4.hover_bg-main(
               :to="subItem.to"
-              exact-active-class="text-sky-500 bg-main"
+              active-class="!text-sky-500 bg-main"
             )
               span.ml-8 {{ subItem.name }}
 </template>
@@ -73,13 +73,15 @@ const menu = [
         name: "All people",
         to: {
           name: 'people'
-        }
+        },
+        openForPath: '/people',
       },
       {
         name: "Households",
         to: {
           name: 'households'
-        }
+        },
+        openForPath: '/households',
       },
       {
         name: "Settings",
@@ -127,7 +129,7 @@ const menu = [
 ]
 
 const checkIfSubmenuShouldDisplay = (menuItem, route) => {
-  return menuItem.subMenu.some(item => item.to.name === route.name) || currentSubmenu.value === menuItem.name
+  return menuItem.subMenu.some(item => item.to.name === route.name || (item.openForPath && route.path.startsWith(item.openForPath))) || currentSubmenu.value === menuItem.name
 }
 
 const setCurrentSubmenu = (name) => {

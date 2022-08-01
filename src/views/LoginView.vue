@@ -14,7 +14,7 @@
     h1.mt-20.text-center Sign In
 
     .mt-12.mb-5.text-center
-      buttond.rounded-lg.px-4.py-1.inline-flex.items-center.cursor-pointer.text-sm.transition-all(
+      button.rounded-lg.px-4.py-1.inline-flex.items-center.cursor-pointer.text-sm.bg-white.transition-all(
         class="shadow-[0_1px_4px_rgb(0,0,0,15%)] hover_shadow-[0_2px_16px_rgb(0,0,0,15%)]"
       )
         img.mr-2(
@@ -25,7 +25,7 @@
         | Sign in with Google
 
     .border-b.border-slate-300.text-center.mb-8
-      span.relative.top-3.bg-white.px-5.cursor-default or
+      span.relative.top-3.bg-main.px-5.cursor-default or
 
     form.mx-20
       .mb-4

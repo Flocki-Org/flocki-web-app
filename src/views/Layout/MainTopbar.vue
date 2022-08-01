@@ -37,7 +37,7 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
         leave-from-class="transform scale-100 opacity-100"
         leave-to-class="transform scale-95 opacity-0"
       )
-        MenuItems.absolute.right-0.mt-2.w-40.origin-top-right.divide-y.divide-gray-100.rounded-md.bg-white.shadow-lg.ring-1.ring-black.ring-opacity-5.focus_outline-none
+        MenuItems.absolute.right-0.mt-2.w-40.origin-top-right.divide-y.divide-gray-100.rounded-md.bg-white.shadow-lg.ring-1.ring-black.ring-opacity-5.focus_outline-none.divide-y.divide-gray-300
           .px-1.py-1
             MenuItem(v-slot="{ active }")
               button.group.flex.w-full.items-center.rounded-md.px-2.py-2(
@@ -47,6 +47,11 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
               button.group.flex.w-full.items-center.rounded-md.px-2.py-2(
                 :class="[active ? 'bg-sky-500 text-white' : 'text-gray-900']"
               ) Settings
+          .px-1.py-1
+            MenuItem(v-slot="{ active }")
+              button.group.flex.w-full.items-center.rounded-md.px-2.py-2(
+                :class="[active ? 'bg-sky-500 text-white' : 'text-gray-900']"
+              ) Log out
 
     button.inline-flex.relative.items-center.px-3.rounded-lg.mr-4.hover_bg-gray-50.transition-all
       svg(

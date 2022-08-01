@@ -134,7 +134,7 @@
           td.py-3 23 March '22, 11:13pm
           td.py-3
           td.py-3.w-main-lr
-        tr.hover_bg-sky-100
+        tr.group.hover_bg-sky-100
           td.py-3.w-main-lr
             .flex.items-center.justify-around
               input.form-check-input.appearance-none.w-4.h-4.bg-gray-100.checked_bg-sky-500.rounded.border.border-gray-300.hover_border-sky-500.transition-all.align-top.bg-no-repeat.bg-center.bg-contain.checked_bg-check(
@@ -145,13 +145,15 @@
             img.w-8.h-8.mr-2.rounded-full(
               src="@/assets/temp/user-profile-pic.png"
             )
-            | Andrew 
+            router-link.no-underline.group-hover_underline.text-current.group-hover_text-sky-500(
+              :to="{ name: 'person', params: { id: '9d95d3ac-acdc-4a55-977c-533e8be32bdb' } }"
+            ) Andrew 
           td.py-3 Levinsohn
           td.py-3 andrew.levinsohn@gmail.com
           td.py-3 0815972198
           td.py-3 12 Dec '21, 08:48pm
           td.py-3.w-8.text-right
-            button.w-8.h-7.inline-flex.justify-center.items-center.rounded-md.border.border-transparent.text-sky-400.hover_bg-gray-50
+            button.hidden.group-hover_inline-flex.w-8.h-7.justify-center.items-center.rounded-md.border.border-transparent.text-sky-400.hover_bg-gray-50
               svg(
                 style="width:16px;height:16px"
                 viewBox="0 0 24 24"

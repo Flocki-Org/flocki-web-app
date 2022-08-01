@@ -27,12 +27,31 @@ const router = createRouter({
         },
         {
             path: "/people",
-            name: "people",
             components: {
-                default: () => import("@/views/PeopleView.vue"),
+                default: () => import("@/views/People/PeopleView.vue"),
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
+            },
+            children: [
+                {
+                    path: "",
+                    name: "people",
+                    components: {
+                        default: () => import("@/views/People/PeopleListView.vue"),
+                        MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                        MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+                    }
+                },
+                {
+                    path: ":id",
+                    name: "person",
+                    components: {
+                        default: () => import("@/views/People/PersonView.vue"),
+                        MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                        MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+                    }
+                },
+            ]
         },
         {
             path: "/households",
