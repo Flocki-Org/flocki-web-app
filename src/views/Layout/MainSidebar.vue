@@ -1,6 +1,6 @@
 <template lang="pug">
-aside.h-full.bg-white.absolute(class="w-[300px] shadow-[0px_0px_30px_rgba(0,0,0,0.15)]")
-  .h-full.overflow-y-auto
+.bg-white.fixed.top-0.left-0.bottom-0(class="w-[300px] shadow-[0px_0px_30px_rgba(0,0,0,0.15)]")
+  .h-full.overflow-y-auto.w-full
     .logo.px-8.flex.items-center(class="h-[76px]")
       router-link(
         to="/"

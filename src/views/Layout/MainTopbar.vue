@@ -1,5 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import { useAuth } from '@websanova/vue-auth'
+
+const auth = useAuth()
+
+const logout = () => {
+  auth.logout({
+    redirect: {
+      name: 'login'
+    }
+  })
+}
 </script>
 
 <template lang="pug">
@@ -12,7 +23,7 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
     )
 
   .grow.flex.flex-row-reverse
-    Menu.relative.inline-block(
+    Menu.relative.inline-block.z-50(
       as="div"
     )
       MenuButton
@@ -51,6 +62,7 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
             MenuItem(v-slot="{ active }")
               button.group.flex.w-full.items-center.rounded-md.px-2.py-2(
                 :class="[active ? 'bg-sky-500 text-white' : 'text-gray-900']"
+                @click="logout()"
               ) Log out
 
     button.inline-flex.relative.items-center.px-3.rounded-lg.mr-4.hover_bg-gray-50.transition-all

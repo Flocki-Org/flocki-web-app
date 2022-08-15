@@ -10,15 +10,10 @@ const router = createRouter({
                 default: () => import("@/views/DashboardView.vue"),
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
-        },
-        {
-            path: "/about",
-            name: "about",
-            // route level code-splitting
-            // this generates a separate chunk (About.[hash].js) for this route
-            // which is lazy-loaded when the route is visited.
-            component: () => import("../views/AboutView.vue"),
+            },
+            meta: {
+                auth: true
+            },
         },
         {
             path: "/login",
@@ -51,7 +46,10 @@ const router = createRouter({
                         MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
                     }
                 },
-            ]
+            ],
+            meta: {
+                auth: true
+            },
         },
         {
             path: "/households",
@@ -59,7 +57,10 @@ const router = createRouter({
             components: {
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
+            },
+            meta: {
+                auth: true
+            },
         },
         {
             path: "/people/settings",
@@ -67,7 +68,10 @@ const router = createRouter({
             components: {
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
+            },
+            meta: {
+                auth: true
+            },
         },
         {
             path: "/sermons",
@@ -75,7 +79,10 @@ const router = createRouter({
             components: {
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
+            },
+            meta: {
+                auth: true
+            },
         },
         {
             path: "/ministries",
@@ -83,7 +90,10 @@ const router = createRouter({
             components: {
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
+            },
+            meta: {
+                auth: true
+            },
         },
         {
             path: "/events",
@@ -91,7 +101,10 @@ const router = createRouter({
             components: {
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
+            },
+            meta: {
+                auth: true
+            },
         },
         {
             path: "/giving",
@@ -99,7 +112,10 @@ const router = createRouter({
             components: {
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
+            },
+            meta: {
+                auth: true
+            },
         },
         {
             path: "/website",
@@ -107,7 +123,10 @@ const router = createRouter({
             components: {
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
-            }
+            },
+            meta: {
+                auth: true
+            },
         },
     ],
 });

@@ -14,9 +14,12 @@
     },
     "dependencies": {
         "@headlessui/vue": "^1.6.7",
+        "@websanova/vue-auth": "^4.1.13",
+        "axios": "^0.27.2",
         "leaflet": "^1.8.0",
         "pinia": "^2.0.14",
         "vue": "^3.2.36",
+        "vue-axios": "^3.4.1",
         "vue-router": "^4.1.1"
     },
     "devDependencies": {
