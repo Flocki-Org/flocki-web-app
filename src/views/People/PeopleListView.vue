@@ -1,9 +1,33 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
+import Button from '@/components/Forms/Button.vue'
+
+const isOpenAddPersonDialog = ref(false)
+
+const toggleAddPersonDialog = (val) => {
+  isOpenAddPersonDialog.value = val
+}
+</script>
+
 <template lang="pug">
 #people-list.ml-menu.py-main-tb
   .flex.items-center.px-main-lr.mb-10
     h1.grow All People
 
-    button.text-white.bg-sky-500.hover_bg-sky-400.font-medium.rounded-lg.px-5.py-2.inline-flex.items-center.cursor-pointer.transition-all
+    Button(
+      @click="toggleAddPersonDialog(true)"
+    )
+      svg.mr-2(
+        style="width:16px;height:16px"
+        viewBox="0 0 24 24"
+      )
+        path(
+          fill="currentColor"
+          d="M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z"
+        )
+      | Add person
+    //button.inline-flex.items-center.text-white.bg-sky-500.hover_bg-sky-400.font-medium.rounded-lg.px-5.py-2.cursor-pointer.transition-all
       svg.mr-2(
         style="width:16px;height:16px"
         viewBox="0 0 24 24"
@@ -181,4 +205,44 @@
           td.py-3 1 Feb '22, 12:05pm
           td.py-3
           td.py-3.w-main-lr
+
+TransitionRoot(
+  appear
+  :show="isOpenAddPersonDialog"
+  as="template"
+)
+  Dialog.relative.z-50(
+    as="div"
+    @close="toggleAddPersonDialog(false)"
+  )
+    TransitionChild(
+      enter="duration-300 ease-out"
+      enter-from="opacity-0"
+      enter-to="opacity-100"
+      leave="duration-200 ease-in"
+      leave-from="opacity-100"
+      leave-to="opacity-0"
+    )
+      .fixed.inset-0.bg-black.bg-opacity-40
+
+    .fixed.inset-0.overflow-y-auto
+      .flex.min-h-full.items-center.justify-center.p-4.text-center
+        TransitionChild(
+          enter="duration-300 ease-out"
+          enter-from="opacity-0 scale-95"
+          enter-to="opacity-100 scale-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100 scale-100"
+          leave-to="opacity-0 scale-95"
+        )
+          DialogPanel.w-full.max-w-md.transform.overflow-hidden.rounded-2xl.bg-white.p-6.text-left.align-middle.shadow-xl.transition-all
+            DialogTitle.text-lg.font-medium.leading-6.text-gray-900(
+              as="h3"
+            ) Add Person
+            .mt-2
+              p.text-sm.text-gray-500 Here will be a form to add a person.
+            .mt-4
+              Button(
+                @click="toggleAddPersonDialog(false)"
+              ) Close
 </template>

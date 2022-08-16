@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useAuth } from '@websanova/vue-auth'
+import Button from '@/components/Forms/Button.vue'
 
 const auth = useAuth()
 
@@ -98,7 +99,11 @@ const login = () => {
         )
 
       .text-center
-        button.inline-flex.items-center.text-white.bg-sky-500.hover_bg-sky-400.font-medium.rounded-lg.px-5.py-2.transition-all(
+        //button.inline-flex.items-center.text-white.bg-sky-500.hover_bg-sky-400.font-medium.rounded-lg.px-5.py-2.transition-all(
+          type="submit"
+          :class="{ 'bg-sky-300 hover_bg-sky-300 cursor-default': isLoggingIn }"
+          )
+        Button(
           type="submit"
           :class="{ 'bg-sky-300 hover_bg-sky-300 cursor-default': isLoggingIn }"
         )

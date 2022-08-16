@@ -23,7 +23,7 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
     )
 
   .grow.flex.flex-row-reverse
-    Menu.relative.inline-block.z-50(
+    Menu.relative.inline-block.z-40(
       as="div"
     )
       MenuButton
