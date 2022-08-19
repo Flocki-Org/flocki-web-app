@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import { createORM } from 'pinia-orm';
 import App from "./App.vue";
 import router from "./router";
 import axios from 'axios';
@@ -37,9 +38,11 @@ const auth = createAuth({
 
 axios.defaults.baseURL = 'http://localhost:8000';
 
+const pinia = createPinia().use(createORM());
+
 const app = createApp(App);
 
-app.use(createPinia());
+app.use(pinia);
 app.use(router);
 app.use(VueAxios, axios);
 app.use(auth);

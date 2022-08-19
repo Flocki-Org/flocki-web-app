@@ -2,6 +2,8 @@
 import { ref, reactive } from 'vue'
 import { useAuth } from '@websanova/vue-auth'
 import Button from '@/components/Forms/Button.vue'
+import Label from '@/components/Forms/Label.vue'
+import Input from '@/components/Forms/Input.vue'
 
 const auth = useAuth()
 
@@ -80,19 +82,22 @@ const login = () => {
       @submit.prevent="login"
     )
       .mb-4
-        label.block.mb-1.pl-3.text-gray-900(
-          for="email"
+        Label.pl-3(
+          for-id="email"
         ) Email
-        input.outline-none.bg-gray-50.border.border-gray-300.text-gray-900.rounded-lg.focus_border-blue-300.focus-visible_border-blue-300.block.w-full.p-3(
+        Input(
+          id="email"
           type="email"
           placeholder="Your email address"
           v-model="credentials.email"
         )
+
       .mb-6
-        label.block.mb-1.pl-3.text-gray-900(
-          for="password"
+        Label.pl-3(
+          for-id="password"
         ) Password
-        input.outline-none.bg-gray-50.border.border-gray-300.text-gray-900.rounded-lg.focus_border-sky-500.focus-visible_border-sky-500.block.w-full.p-3(
+        Input(
+          id="password"
           type="password"
           placeholder="Your password"
           v-model="credentials.password"

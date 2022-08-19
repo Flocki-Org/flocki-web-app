@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import Button from '@/components/Forms/Button.vue'
+import Label from '@/components/Forms/Label.vue'
+import Input from '@/components/Forms/Input.vue'
+import Dialog from '@/components/Widgets/Dialog.vue'
 
 const isOpenAddPersonDialog = ref(false)
 
-const toggleAddPersonDialog = (val) => {
+const toggleAddPersonDialog = (val: boolean) => {
   isOpenAddPersonDialog.value = val
 }
 </script>
@@ -196,43 +198,44 @@ const toggleAddPersonDialog = (val) => {
           td.py-3
           td.py-3.w-main-lr
 
-TransitionRoot(
-  appear
+Dialog(
   :show="isOpenAddPersonDialog"
-  as="template"
+  title="Add Person"
+  @close="toggleAddPersonDialog(false)"
 )
-  Dialog.relative.z-50(
-    as="div"
-    @close="toggleAddPersonDialog(false)"
+  form(
+    @submit.prevent=""
   )
-    TransitionChild(
-      enter="duration-300 ease-out"
-      enter-from="opacity-0"
-      enter-to="opacity-100"
-      leave="duration-200 ease-in"
-      leave-from="opacity-100"
-      leave-to="opacity-0"
-    )
-      .fixed.inset-0.bg-black.bg-opacity-40
-
-    .fixed.inset-0.overflow-y-auto
-      .flex.min-h-full.items-center.justify-center.p-4.text-center
-        TransitionChild(
-          enter="duration-300 ease-out"
-          enter-from="opacity-0 scale-95"
-          enter-to="opacity-100 scale-100"
-          leave="duration-200 ease-in"
-          leave-from="opacity-100 scale-100"
-          leave-to="opacity-0 scale-95"
-        )
-          DialogPanel.w-full.max-w-md.transform.overflow-hidden.rounded-2xl.bg-white.p-6.text-left.align-middle.shadow-xl.transition-all
-            DialogTitle.text-lg.font-medium.leading-6.text-gray-900(
-              as="h3"
-            ) Add Person
-            .mt-2
-              p.text-sm.text-gray-500 Here will be a form to add a person.
-            .mt-4
-              Button(
-                @click="toggleAddPersonDialog(false)"
-              ) Close
+    .mb-4
+      Label(
+        for-id="first_name"
+      ) First name
+      Input.w-80(
+        id="first_name"
+      )
+    .mb-4
+      Label(
+        for-id="last_name"
+      ) Last name
+      Input.w-80(
+        id="last_name"
+      )
+    .mb-4
+      Label(
+        for-id="email"
+      ) Email
+      Input.w-80(
+        id="email"
+      )
+    .mb-4
+      Label(
+        for-id="phone_number"
+      ) Phone number
+      Input.w-80(
+        id="phone_number"
+      )
+  .mt-4
+    Button(
+      @click="toggleAddPersonDialog(false)"
+    ) Create
 </template>
