@@ -1,14 +1,36 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive, inject } from 'vue'
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
 import Input from '@/components/Forms/Input.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 
+const axios = inject('axios')
+
 const isOpenAddPersonDialog = ref(false)
+const isCreatingPerson = ref(false)
+
+const newPerson = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  mobileNumber: ''
+})
 
 const toggleAddPersonDialog = (val: boolean) => {
   isOpenAddPersonDialog.value = val
+}
+
+const createPerson = () => {
+  if (!isCreatingPerson.value) {
+    isCreatingPerson.value = true
+
+    axios
+      .post('/people', newPerson)
+      .then(response => {
+        console.log(response)
+      })
+  }
 }
 </script>
 
@@ -204,7 +226,7 @@ Dialog(
   @close="toggleAddPersonDialog(false)"
 )
   form(
-    @submit.prevent=""
+    @submit.prevent="createPerson"
   )
     .mb-4
       Label(
@@ -212,6 +234,8 @@ Dialog(
       ) First name
       Input.w-80(
         id="first_name"
+        type="text"
+        v-model="newPerson.firstName"
       )
     .mb-4
       Label(
@@ -219,6 +243,8 @@ Dialog(
       ) Last name
       Input.w-80(
         id="last_name"
+        type="text"
+        v-model="newPerson.lastName"
       )
     .mb-4
       Label(
@@ -226,6 +252,8 @@ Dialog(
       ) Email
       Input.w-80(
         id="email"
+        type="email"
+        v-model="newPerson.email"
       )
     .mb-4
       Label(
@@ -233,9 +261,12 @@ Dialog(
       ) Phone number
       Input.w-80(
         id="phone_number"
+        type="text"
+        v-model="newPerson.mobileNumber"
       )
-  .mt-4
-    Button(
-      @click="toggleAddPersonDialog(false)"
-    ) Create
+    .mt-4
+      Button(
+        type="submit"
+        :show-loader="isCreatingPerson"
+      ) Create
 </template>

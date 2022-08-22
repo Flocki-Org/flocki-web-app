@@ -8,8 +8,8 @@ export default {
   response: function (res) {
     const httpData = this.drivers.http.httpData(res);
 
-    if (httpData.hasOwnProperty('access_token')) {
-      return httpData['access_token'];
+    if (httpData.hasOwnProperty('accessToken')) {
+      return httpData['accessToken'];
     }
   }
 };
