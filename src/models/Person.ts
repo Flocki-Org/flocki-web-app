@@ -1,7 +1,7 @@
 import { Model, Attr, Str } from 'pinia-orm'
 
-export default class User extends Model {
-  static entity = 'users'
+export default class Person extends Model {
+  static entity = 'people'
 
   @Attr(null)
   id!: number | null

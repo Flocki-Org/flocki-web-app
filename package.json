@@ -22,7 +22,8 @@
         "pinia-orm": "^1.0.0-rc.5",
         "vue": "^3.2.36",
         "vue-axios": "^3.4.1",
-        "vue-router": "^4.1.1"
+        "vue-router": "^4.1.1",
+        "vue-skeletor": "^1.0.6"
     },
     "devDependencies": {
         "@rushstack/eslint-patch": "^1.1.0",

@@ -9,8 +9,10 @@ import driverAuthBearer from '@/drivers/auth/bearer.js';
 import driverHttpAxios from '@websanova/vue-auth/dist/drivers/http/axios.1.x.esm.js';
 import driverRouterVueRouter from '@websanova/vue-auth/dist/drivers/router/vue-router.2.x.esm.js';
 import driverOAuth2Google from '@websanova/vue-auth/dist/drivers/oauth2/google.esm.js';
+import { Skeletor } from 'vue-skeletor'
 
 import "@/assets/base.css";
+import 'vue-skeletor/dist/vue-skeletor.css';
 
 const auth = createAuth({
   plugins: {
@@ -44,5 +46,6 @@ app.use(router);
 app.use(VueAxios, axios);
 app.provide('axios', app.config.globalProperties.axios);
 app.use(auth);
+app.component(Skeletor.name, Skeletor);
 
 app.mount("#app");

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
 import Input from '@/components/Forms/Input.vue'
@@ -7,8 +8,11 @@ import Dialog from '@/components/Widgets/Dialog.vue'
 
 const axios = inject('axios')
 
+const router = useRouter()
+
 const isOpenAddPersonDialog = ref(false)
 const isCreatingPerson = ref(false)
+const initialFocusRef = ref(null)
 
 const newPerson = reactive({
   firstName: '',
@@ -29,6 +33,13 @@ const createPerson = () => {
       .post('/people', newPerson)
       .then(response => {
         console.log(response)
+
+        router.push({
+          name: 'person',
+          params: {
+            id: response.data.id
+          }
+        })
       })
   }
 }
@@ -223,11 +234,12 @@ const createPerson = () => {
 Dialog(
   :show="isOpenAddPersonDialog"
   title="Add Person"
+  :is-form="true"
+  :initial-focus="initialFocusRef"
   @close="toggleAddPersonDialog(false)"
+  @submit="createPerson"
 )
-  form(
-    @submit.prevent="createPerson"
-  )
+  template(#default)
     .mb-4
       Label(
         for-id="first_name"
@@ -236,6 +248,7 @@ Dialog(
         id="first_name"
         type="text"
         v-model="newPerson.firstName"
+        ref="initialFocusRef"
       )
     .mb-4
       Label(
@@ -264,7 +277,13 @@ Dialog(
         type="text"
         v-model="newPerson.mobileNumber"
       )
-    .mt-4
+  template(#controls)
+    .flex.items-center
+      .grow
+        Button(
+          stealth
+          @click="toggleAddPersonDialog(false)"
+        ) cancel
       Button(
         type="submit"
         :show-loader="isCreatingPerson"

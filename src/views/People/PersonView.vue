@@ -1,7 +1,45 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, reactive, watch, inject, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useRepo } from 'pinia-orm'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import Toaster from '@/components/Widgets/Toaster.vue'
+import Person from '@/models/Person'
+
+const axios = inject('axios')
+
+const route = useRoute()
+const personRepo = useRepo(Person)
+
+const isLoadingPerson = ref(true)
+const showLoadingError = ref(false)
+const person = ref(null)
+
+const loadPerson = (id) => {
+  console.log(id)
+
+  axios
+    .get('/people/' + id)
+    .then(response => {
+      console.log(response)
+
+      useRepo(Person).save(response.data)
+      person.value = useRepo(Person).find(+id)
+
+      // TODO: remove timeout later
+      setTimeout(() => {
+        isLoadingPerson.value = false
+      }, 2000)
+    })
+    .catch((err) => {
+      console.log(err)
+
+      showLoadingError.value = true
+    })
+}
+
+loadPerson(route.params.id)
 
 onMounted(() => {
   let map = L.map('map', {
@@ -17,6 +55,12 @@ onMounted(() => {
 </script>
 
 <template lang="pug">
+Toaster(
+  message="Couldn't retrieve the user. Please try again later."
+  type="error"
+  :show="showLoadingError"
+  @close="showLoadingError = false"
+)
 #person.ml-menu.py-main-tb
   .flex.items-center.px-main-lr.mb-10.relative
     router-link.absolute.-ml-8.no-underline.text-gray-600.font-bold.text-lg.hover_pr-2.hover_-ml-9.transition-all(
@@ -30,7 +74,12 @@ onMounted(() => {
           fill="currentColor"
           d="M21,11H6.83L10.41,7.41L9,6L3,12L9,18L10.41,16.58L6.83,13H21V11Z"
         )
-    h1.grow.text-gray-600 Andrew Levinsohn
+    h1.grow.text-gray-600
+      Skeletor(
+        v-if="isLoadingPerson"
+        width="350"
+      )
+      template(v-else) {{ person.fullName }}
 
     button.w-10.h-8.inline-flex.justify-center.items-center.rounded-md.border.border-sky-400.hover_border-sky-300.text-sky-400.bg-transparent.hover_bg-sky-50.transition-all
       svg(
