@@ -9,7 +9,8 @@ import driverAuthBearer from '@/drivers/auth/bearer.js';
 import driverHttpAxios from '@websanova/vue-auth/dist/drivers/http/axios.1.x.esm.js';
 import driverRouterVueRouter from '@websanova/vue-auth/dist/drivers/router/vue-router.2.x.esm.js';
 import driverOAuth2Google from '@websanova/vue-auth/dist/drivers/oauth2/google.esm.js';
-import { Skeletor } from 'vue-skeletor'
+import { Skeletor } from 'vue-skeletor';
+import moment from 'moment';
 
 import "@/assets/base.css";
 import 'vue-skeletor/dist/vue-skeletor.css';
@@ -40,6 +41,12 @@ const auth = createAuth({
 const pinia = createPinia().use(createORM());
 
 const app = createApp(App);
+
+app.config.globalProperties.$filters = {
+  shortDateTime(date) {
+    return moment(date).format('D MMM \'YY, hh:mma');
+  }
+}
 
 app.use(pinia);
 app.use(router);

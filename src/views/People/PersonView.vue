@@ -1,5 +1,5 @@
-<script setup>
-import { ref, reactive, watch, inject, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, inject, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRepo } from 'pinia-orm'
 import L from 'leaflet'

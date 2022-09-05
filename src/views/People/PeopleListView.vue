@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import { ref, reactive, inject } from 'vue'
+import { ref, reactive, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useRepo } from 'pinia-orm'
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
 import Input from '@/components/Forms/Input.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
+import Toaster from '@/components/Widgets/Toaster.vue'
+import Person from '@/models/Person'
 
 const axios = inject('axios')
 
 const router = useRouter()
+const personRepo = useRepo(Person)
 
 const isOpenAddPersonDialog = ref(false)
 const isCreatingPerson = ref(false)
+const isLoadingPeople = ref(false)
+const showPeopleLoadingError = ref(false)
 const initialFocusRef = ref(null)
 
 const newPerson = reactive({
@@ -20,6 +26,26 @@ const newPerson = reactive({
   email: '',
   mobileNumber: ''
 })
+
+const people = computed(() => {
+  return useRepo(Person).all()
+})
+
+const loadPeople = () => {
+  isLoadingPeople.value = true
+
+  axios
+    .get('/people')
+    .then(response => {
+      useRepo(Person).save(response.data)
+      isLoadingPeople.value = false
+    })
+    .catch((err) => {
+      showPeopleLoadingError.value = true
+    })
+}
+
+loadPeople()
 
 const toggleAddPersonDialog = (val: boolean) => {
   isOpenAddPersonDialog.value = val
@@ -46,6 +72,12 @@ const createPerson = () => {
 </script>
 
 <template lang="pug">
+Toaster(
+  message="Couldn't retrieve people. Please try again later."
+  type="error"
+  :show="showPeopleLoadingError"
+  @close="showPeopleLoadingError = false"
+)
 #people-list.ml-menu.py-main-tb
   .flex.items-center.px-main-lr.mb-10
     h1.grow All People
@@ -63,7 +95,14 @@ const createPerson = () => {
         )
       | Add person
 
-  .bg-white.w-full
+  .px-main-lr(v-if="!isLoadingPeople && people.length === 0")
+    .bg-white.w-full.flex.items-center.py-8
+      .grow.flex.justify-center
+        img(
+          src="@/assets/no-list-found.svg"
+        )
+      .grow No people added yet
+  .bg-white.w-full(v-if="!isLoadingPeople && people.length > 0")
     .flex.py-2.px-main-lr.items-center.border-b.border-gray-100
       .grow
         button.w-8.h-8.mr-2.inline-flex.justify-center.items-center.rounded-md.border.border-gray-300.text-gray-400
@@ -165,25 +204,7 @@ const createPerson = () => {
           th.py-3 Created at
           th.py-3.w-main-lr
       tbody
-        tr
-          td.py-3.w-main-lr
-            .flex.items-center.justify-around
-              input.form-check-input.appearance-none.w-4.h-4.bg-gray-100.checked_bg-sky-500.rounded.border.border-gray-300.hover_border-sky-500.transition-all.align-top.bg-no-repeat.bg-center.bg-contain.checked_bg-check(
-                type="checkbox"
-                value=""
-              )
-          td.py-3.flex.items-center
-            img.w-8.h-8.mr-2.rounded-full(
-              src="@/assets/temp/user-profile-pic.png"
-            )
-            | Alisa 
-          td.py-3 Newton
-          td.py-3 alisa0929@yahoo.com
-          td.py-3 0792340927
-          td.py-3 23 March '22, 11:13pm
-          td.py-3
-          td.py-3.w-main-lr
-        tr.group.hover_bg-sky-100
+        tr.group.hover_bg-sky-100(v-for="person in people")
           td.py-3.w-main-lr
             .flex.items-center.justify-around
               input.form-check-input.appearance-none.w-4.h-4.bg-gray-100.checked_bg-sky-500.rounded.border.border-gray-300.hover_border-sky-500.transition-all.align-top.bg-no-repeat.bg-center.bg-contain.checked_bg-check(
@@ -195,12 +216,12 @@ const createPerson = () => {
               src="@/assets/temp/user-profile-pic.png"
             )
             router-link.no-underline.group-hover_underline.text-current.group-hover_text-sky-500(
-              :to="{ name: 'person', params: { id: '9d95d3ac-acdc-4a55-977c-533e8be32bdb' } }"
-            ) Andrew 
-          td.py-3 Levinsohn
-          td.py-3 andrew.levinsohn@gmail.com
-          td.py-3 0815972198
-          td.py-3 12 Dec '21, 08:48pm
+              :to="{ name: 'person', params: { id: person.id } }"
+            ) {{ person.firstName }} 
+          td.py-3 {{ person.lastName }} 
+          td.py-3 {{ person.email }}
+          td.py-3 {{ person.mobileNumber }}
+          td.py-3 {{ $filters.shortDateTime(person.registeredDate) }}
           td.py-3.w-8.text-right
             button.hidden.group-hover_inline-flex.w-8.h-7.justify-center.items-center.rounded-md.border.border-transparent.text-sky-400.hover_bg-gray-50
               svg(
@@ -211,24 +232,6 @@ const createPerson = () => {
                   fill="currentColor"
                   d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
                 )
-          td.py-3.w-main-lr
-        tr
-          td.py-3.w-main-lr
-            .flex.items-center.justify-around
-              input.form-check-input.appearance-none.w-4.h-4.bg-gray-100.checked_bg-sky-500.rounded.border.border-gray-300.hover_border-sky-500.transition-all.align-top.bg-no-repeat.bg-center.bg-contain.checked_bg-check(
-                type="checkbox"
-                value=""
-              )
-          td.py-3.flex.items-center
-            img.w-8.h-8.mr-2.rounded-full(
-              src="@/assets/temp/user-profile-pic.png"
-            )
-            | Ashton 
-          td.py-3 Anderson
-          td.py-3 andersona@bigcorporate.com
-          td.py-3 0674896555
-          td.py-3 1 Feb '22, 12:05pm
-          td.py-3
           td.py-3.w-main-lr
 
 Dialog(

@@ -15,6 +15,12 @@ export default class Person extends Model {
   @Str('')
   email!: string
 
+  @Str('')
+  mobileNumber!: string
+
+  @Str('')
+  registeredDate!: string
+
   get fullName() {
     return `${this.firstName} ${this.lastName}`
   }
