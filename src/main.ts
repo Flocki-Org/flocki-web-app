@@ -43,8 +43,31 @@ const pinia = createPinia().use(createORM());
 const app = createApp(App);
 
 app.config.globalProperties.$filters = {
+  humanize(date) {
+    let today = new moment()
+    let momentDate = moment(date)
+    return moment.duration(today.diff(momentDate)).humanize()
+  },
   shortDateTime(date) {
     return moment(date).format('D MMM \'YY, hh:mma');
+  },
+  fullDateTime(date) {
+    return moment(date).format('D MMMM YYYY, hh:mma');
+  },
+  humanDate(date) {
+    return moment(date).format('D MMMM YYYY');
+  },
+  durationInYearsOrMonths(date) {
+    let today = new moment()
+    let momentDate = moment(date)
+    let diffInMonths = today.diff(momentDate, 'months')
+    let diffInYears = today.diff(momentDate, 'years')
+
+    if (diffInMonths < 12) {
+      return moment.duration(today.diff(momentDate)).months() + ' month' + (diffInMonths === 1 ? '' : 's');
+    } else {
+      return moment.duration(today.diff(momentDate)).years() + ' year' + (diffInYears === 1 ? '' : 's');
+    }
   }
 }
 
