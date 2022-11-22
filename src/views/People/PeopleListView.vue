@@ -37,7 +37,7 @@ const loadPeople = () => {
   axios
     .get('/people')
     .then(response => {
-      useRepo(Person).save(response.data)
+      useRepo(Person).save(response.data.items)
       isLoadingPeople.value = false
     })
     .catch((err) => {
