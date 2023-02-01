@@ -1,16 +1,16 @@
 <template lang="pug">
 .bg-white.fixed.top-0.left-0.bottom-0(class="w-[300px] shadow-[0px_0px_30px_rgba(0,0,0,0.15)]")
   .h-full.overflow-y-auto.w-full
-    .logo.px-8.flex.items-center(class="h-[76px]")
+    .logo.px-8.mt-2.flex.items-center(class="h-[76px]")
       router-link(
         to="/"
       )
         img.hover_opacity-80.transition-all(
-          src="@/assets/lsbc-logo.svg"
-          width="185"
+          src="https://flocki-api.onrender.com/church/logo"
+          width="60"
         )
 
-    ul.flex.flex-col.mt-6
+    ul.flex.flex-col.mt-4
       li(v-for="item in menu")
         component(
           :is="item.to ? 'router-link' : 'button'"

@@ -54,8 +54,8 @@ const login = () => {
         to="/"
       )
         img.hover_opacity-80.transition-all(
-          src="@/assets/lsbc-logo.svg"
-          width="185"
+          src="https://flocki-api.onrender.com/church/logo"
+          width="80"
         )
 
     h1.mt-20.text-center Sign In
@@ -119,4 +119,5 @@ const login = () => {
 </template>
 
 <style>
+
 </style>
