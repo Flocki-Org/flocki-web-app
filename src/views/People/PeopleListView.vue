@@ -56,7 +56,7 @@ const createPerson = () => {
     isCreatingPerson.value = true
 
     axios
-      .post('/people', newPerson)
+      .post('/people', newPerson, {params: {create_login: false}})
       .then(response => {
         console.log(response)
 
