@@ -20,7 +20,7 @@ const transformData = (data: any, func: any) => {
   }
 }
 
-axios.defaults.baseURL = 'https://flocki-api.onrender.com'
+axios.defaults.baseURL = 'http://localhost:8000'
 
 axios.interceptors.request.use(config => {
   if (config.data) {

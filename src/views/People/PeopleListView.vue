@@ -1,7 +1,9 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import { ref, reactive, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepo } from 'pinia-orm'
+import { getPersonImageUrl } from '@/imageUtils';
+
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
 import Input from '@/components/Forms/Input.vue'
@@ -213,7 +215,7 @@ Toaster(
               )
           td.py-3.flex.items-center
             img.w-8.h-8.mr-2.rounded-full(
-              src="@/assets/temp/user-profile-pic.png"
+              :src="getPersonImageUrl(person, 'assets/temp/user-profile-pic.png')"
             )
             router-link.no-underline.group-hover_underline.text-current.group-hover_text-sky-500(
               :to="{ name: 'person', params: { id: person.id } }"

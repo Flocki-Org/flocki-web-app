@@ -6,6 +6,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
+import { getPersonImageUrl } from '@/imageUtils';
 
 const axios = inject('axios')
 
@@ -291,7 +292,7 @@ Toaster(
 
     .flex.flex-col.gap-5(class="w-2/5")
       img.rounded-lg.w-full(
-        src="@/assets/temp/person-andrew-levinsohn.jpg"
+        :src="getPersonImageUrl(person, 'assets/temp/person-andrew-levinsohn.jpg')"
       )
 
       .rounded-lg.bg-white.relative.overflow-hidden(

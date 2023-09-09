@@ -6,7 +6,7 @@
         to="/"
       )
         img.hover_opacity-80.transition-all(
-          src="https://flocki-api.onrender.com/church/logo"
+          :src="getFullImageUrl('/church/logo')"
           width="60"
         )
 
@@ -48,6 +48,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { getFullImageUrl } from '@/imageUtils';
 
 const route = useRoute()
 const currentSubmenu = ref('')
@@ -139,4 +140,5 @@ const setCurrentSubmenu = (name) => {
 setCurrentSubmenu(route.name)
 
 watch(route, () => setCurrentSubmenu(route.name)) 
+
 </script>

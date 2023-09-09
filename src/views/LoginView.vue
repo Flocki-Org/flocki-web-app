@@ -4,6 +4,7 @@ import { useAuth } from '@websanova/vue-auth'
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
 import Input from '@/components/Forms/Input.vue'
+import { getFullImageUrl } from '@/imageUtils';
 
 const auth = useAuth()
 
@@ -19,6 +20,7 @@ const login = () => {
     isLoggingIn.value = true
     //error.value = ''
 
+    
     const params = new URLSearchParams({
       username: credentials.email,
       password: credentials.password
@@ -54,7 +56,7 @@ const login = () => {
         to="/"
       )
         img.hover_opacity-80.transition-all(
-          src="https://flocki-api.onrender.com/church/logo"
+          :src="getFullImageUrl('/church/logo')"
           width="80"
         )
 
