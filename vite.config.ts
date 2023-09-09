@@ -11,4 +11,7 @@ export default defineConfig({
             "@": fileURLToPath(new URL("./src", import.meta.url)),
         },
     },
+    build: {
+        target: 'es2020', // or 'es2015' for compatibility with modern browsers
+    },
 });
