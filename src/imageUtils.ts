@@ -12,6 +12,8 @@ export function getPersonImageUrl(person: Person, defaultImageAssetPath:string):
       return getFullImageUrl('/people/'+person.id+'/profile_image')
     } else {
       console.log('using default profile image')
+      console.log('defaultImageAssetPath: ' + defaultImageAssetPath)
+      console.log('import.meta.url: ' + import.meta.url)
       return new URL(defaultImageAssetPath, import.meta.url).href
     }
 }
