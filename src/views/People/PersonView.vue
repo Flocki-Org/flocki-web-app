@@ -292,9 +292,11 @@ Toaster(
 
     .flex.flex-col.gap-5(class="w-2/5")
       img.rounded-lg.w-full(
-        :src="getPersonImageUrl(person, 'assets/temp/person-andrew-levinsohn.jpg')"
+        v-if="person.profileImage" :src="getPersonImageUrl(person, 'assets/temp/person-andrew-levinsohn.jpg')"
       )
-
+      img.rounded-lg.w-full(
+        v-else src="@/assets/temp/person-andrew-levinsohn.jpg"
+      )
       .rounded-lg.bg-white.relative.overflow-hidden(
         class="shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
       )

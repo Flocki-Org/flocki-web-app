@@ -215,7 +215,10 @@ Toaster(
               )
           td.py-3.flex.items-center
             img.w-8.h-8.mr-2.rounded-full(
-              :src="getPersonImageUrl(person, 'assets/temp/user-profile-pic.png')"
+              v-if="person && person.profileImage" :src="getPersonImageUrl(person)"
+            )
+            img.w-8.h-8.mr-2.rounded-full(
+              v-else src="@/assets/temp/user-profile-pic.png"
             )
             router-link.no-underline.group-hover_underline.text-current.group-hover_text-sky-500(
               :to="{ name: 'person', params: { id: person.id } }"

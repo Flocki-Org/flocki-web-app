@@ -6,16 +6,24 @@ export function getFullImageUrl(path: string): string {
   return `${baseURL}${path}`;
 }
 
-export function getPersonImageUrl(person: Person, defaultImageAssetPath:string): string {
+export function getPersonImageUrl(person: Person): string {
     if(person && person.profileImage) {
       console.log('using profile image of person id: ' + person.id)
       return getFullImageUrl('/people/'+person.id+'/profile_image')
     } else {
-      console.log('using default profile image')
-      console.log('defaultImageAssetPath: ' + defaultImageAssetPath)
-      console.log('import.meta.url: ' + import.meta.url)
-      return new URL(defaultImageAssetPath, import.meta.url).href
+      console.log("person is null or doesnt have a profile image")
+      return "";
     }
+}
+
+function getBaseUrl(url) {
+  try {
+    const parsedUrl = new URL(url);
+    return `${parsedUrl.origin}/`;
+  } catch (error) {
+    console.error(`Invalid URL: ${url}`);
+    return "";
+  }
 }
 
 export default getPersonImageUrl;
