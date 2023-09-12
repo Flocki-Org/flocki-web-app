@@ -34,7 +34,10 @@ const auth = createAuth({
     },
     fetchData: {
       url: 'users'
-    }
+    },
+    refreshToken: {
+      autoRefreshToken: false, // Disable automatic token refreshing
+    },
   }
 });
 

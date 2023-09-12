@@ -57,6 +57,7 @@ const login = () => {
       )
         img.hover_opacity-80.transition-all(
           :src="getFullImageUrl('/church/logo')"
+          onerror="this.src = ''"
           width="80"
         )
 

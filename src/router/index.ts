@@ -1,4 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { inject } from 'vue'
+import axios from 'axios';
+
+//const axios = inject('axios')
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -6,6 +10,8 @@ const router = createRouter({
         {
             path: "/",
             name: "dashboard",
+            //When the user enters the dashboard we check if the church entity has been created already.  
+            beforeEnter: checkIfChurchExists(),
             components: {
                 default: () => import("@/views/DashboardView.vue"),
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
@@ -13,12 +19,17 @@ const router = createRouter({
             },
             meta: {
                 auth: true
-            },
+            }
         },
         {
             path: "/login",
             name: "login",
             component: () => import("../views/LoginView.vue"),
+        },
+        {
+            path: "/setup",
+            name: "setup",
+            component: () => import("../views/SetupChurchWizard.vue"),
         },
         {
             path: "/people",
@@ -132,3 +143,17 @@ const router = createRouter({
 });
 
 export default router;
+
+function checkIfChurchExists() {
+    return (to, from, next) => {
+        // Make an API call to check if the entity exists;
+        axios.get('/church')
+            .then(response => {
+                next();
+             })
+            .catch((err) => {
+                console.log(err);
+                next('setup');
+            });
+    }
+}
