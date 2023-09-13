@@ -187,6 +187,13 @@ export default {
                   createChurch.call(this);
             }).catch(error => {
               console.error('Error uploading logo:', error);
+              this.isLoading = false;
+              this.error = 'An error occurred while uploading the logo. Please try again';
+              setTimeout(() => {
+                // Navigate to the dashboard route after the delay
+                this.isLoading = false;
+                this.error = null;
+              }, 2000); // 2000 milliseconds = 2 seconds
             });
           } else {
             createChurch.call(this);
@@ -198,7 +205,6 @@ export default {
     },
  
     handleFileSelect(event) {
-      console.log('Got here in handleFileSelect')
       this.file = event.target.files[0];
       this.previewImage(this.file);
     },
