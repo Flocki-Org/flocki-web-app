@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type Person from './models/Person'
+import type Household from "@/models/Household";
 
 export function getFullImageUrl(path: string): string {
   const baseURL = axios.defaults.baseURL;
@@ -16,7 +17,16 @@ export function getPersonImageUrl(person: Person): string {
     }
 }
 
-function getBaseUrl(url) {
+export function getHouseholdImageUrl(household: Household): string {
+  console.log('getting household image')
+  if(household && household.householdImage) {
+    return getFullImageUrl('/images/'+household.householdImage.id)
+  } else {
+    return "";
+  }
+}
+
+function getBaseUrl(url: string) {
   try {
     const parsedUrl = new URL(url);
     return `${parsedUrl.origin}/`;

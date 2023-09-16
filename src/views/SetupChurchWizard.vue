@@ -117,7 +117,7 @@ function createChurch() {
             // Navigate to the dashboard route after the delay
             this.isLoading = false;
             this.$router.push({name: 'dashboard'});
-          }, 2000); // 2000 milliseconds = 2 seconds
+          }, 1000); // 2000 milliseconds = 2 seconds
         } else {
           console.log("error creating church");
           this.error = 'Failed to create church.';

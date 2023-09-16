@@ -56,6 +56,8 @@ const toggleAddPersonDialog = (val: boolean) => {
 const createPerson = () => {
   if (!isCreatingPerson.value) {
     isCreatingPerson.value = true
+    if (newPerson.email == '')
+      newPerson.email=null;
 
     axios
       .post('/people', newPerson, {params: {create_login: false}})

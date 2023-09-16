@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 import { ref, inject, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRepo } from 'pinia-orm'
@@ -6,7 +7,9 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
-import { getPersonImageUrl } from '@/imageUtils';
+import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
+import defaultHouseholdImage from '@/assets/temp/levinsohn-household.jpg';
+
 
 const axios = inject('axios')
 
@@ -27,7 +30,7 @@ const loadPerson = (id) => {
 
       useRepo(Person).save(response.data)
       person.value = useRepo(Person).find(+id)
-
+      console.log(person);
       // TODO: remove timeout later
       setTimeout(() => {
         isLoadingPerson.value = false
@@ -53,6 +56,8 @@ onMounted(() => {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 })
+
+
 </script>
 
 <template lang="pug">
@@ -292,7 +297,7 @@ Toaster(
 
     .flex.flex-col.gap-5(class="w-2/5")
       img.rounded-lg.w-full(
-        v-if="person.profileImage" :src="getPersonImageUrl(person, 'assets/temp/person-andrew-levinsohn.jpg')"
+        v-if="person.profileImage" :src="getPersonImageUrl(person)"
       )
       img.rounded-lg.w-full(
         v-else src="@/assets/temp/person-andrew-levinsohn.jpg"
@@ -301,7 +306,7 @@ Toaster(
         class="shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
       )
         .flex.items-center.px-10.py-8
-          h2.grow.text-gray-700 Levinsohn Household
+          h2.grow.text-gray-700 {{person.lastName}} Household
 
           button.w-8.h-8.inline-flex.justify-center.items-center.rounded-md.border.border-gray-300.hover_border-gray-200.text-gray-400.bg-transparent.hover_bg-gray-50.transition-all
             svg(
@@ -314,7 +319,7 @@ Toaster(
               )
 
         img.w-full(
-          src="@/assets/temp/levinsohn-household.jpg"
+          :src="person.households && person.households[0] ? getHouseholdImageUrl(person.households[0]) : defaultHouseholdImage"
         )
 
         div
