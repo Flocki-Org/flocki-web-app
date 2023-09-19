@@ -8,9 +8,10 @@ export function getFullImageUrl(path: string): string {
 }
 
 export function getPersonImageUrl(person: Person): string {
+    console.log(person)
     if(person && person.profileImage) {
       console.log('using profile image of person id: ' + person.id)
-      return getFullImageUrl('/people/'+person.id+'/profile_image')
+      return getFullImageUrl('/images/'+person.profileImage.id)
     } else {
       console.log("person is null or doesnt have a profile image")
       return "";

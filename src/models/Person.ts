@@ -16,7 +16,7 @@ export default class Person extends Model {
   @Str('') declare marriageDate: string | null
   @Str('') declare maritalStatus: string | null
   @Str('') declare registeredDate: string | null
-  @Attr(null) declare households: Household[] | null
+  @Attr([]) declare households: Household[] | []
   @Attr(null) declare profileImage: EntityImage | null
 
 
@@ -34,4 +34,13 @@ export default class Person extends Model {
   get fullName() {
     return `${this.firstName} ${this.lastName}`
   }
+
+
+  getPersonHousehold() {
+    if(this.person && this.person.households && this.person.households[0])
+      return this.person.households[0];
+    else
+      return null;
+  }
+
 }
