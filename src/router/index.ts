@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, } from "vue-router";
 import { inject } from 'vue'
 import axios from 'axios';
 
@@ -140,6 +140,15 @@ const router = createRouter({
             },
         },
     ],
+    scrollBehavior(to, from, savedPosition) {
+        if (to.hash) {
+            // Scroll to the element with the corresponding ID in the hash
+            return { el: to.hash }
+        } else {
+            // Scroll to the top of the page
+            return { top: 0 }
+        }
+    },
 });
 
 export default router;

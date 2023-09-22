@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
-import { ref, inject, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, inject, onMounted} from 'vue'
+import { useRoute, onBeforeRouteUpdate } from 'vue-router'
 import { useRepo } from 'pinia-orm'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -26,22 +26,22 @@ const loadPerson = (id) => {
   console.log(id)
 
   axios
-    .get('/people/' + id)
-    .then(response => {
-      console.log(response)
+      .get('/people/' + id)
+      .then(response => {
+        console.log(response)
 
-      useRepo(Person).save(response.data)
-      person.value = useRepo(Person).find(+id)
-      // TODO: remove timeout later
-      setTimeout(() => {
-        isLoadingPerson.value = false
-      }, 2000)
-    })
-    .catch((err) => {
-      console.log(err)
+        useRepo(Person).save(response.data)
+        person.value = useRepo(Person).find(+id)
+        // TODO: remove timeout later
+        setTimeout(() => {
+          isLoadingPerson.value = false
+        }, 2000)
+      })
+      .catch((err) => {
+        console.log(err)
 
-      showLoadingError.value = true
-    })
+        showLoadingError.value = true
+      })
 }
 
 loadPerson(route.params.id)
@@ -58,12 +58,16 @@ onMounted(() => {
   }).addTo(map);
 })
 
+onBeforeRouteUpdate((to, from) => {
+  loadPerson(to.params.id)
+})
 
 </script>
 
-<template>  
+<template>
   <Toaster message="Couldn't retrieve the user. Please try again later." type="error" :show="showLoadingError" @close="showLoadingError = false"></Toaster>
-  <div class="ml-menu py-main-tb" id="person2">
+
+  <div class="ml-menu py-main-tb" id="person">
     <div class="flex items-center px-main-lr mb-10 relative">
       <router-link class="absolute -ml-8 no-underline text-gray-600 font-bold text-lg hover_pr-2 hover_-ml-9 transition-all" :to="{ name: 'people' }">
         <svg style="width:24px;height:24px" viewBox="0 0 24 24">
@@ -113,7 +117,7 @@ onMounted(() => {
                   <Skeletor v-if="isLoadingPerson" width="200"></Skeletor>
                   <template v-else>{{ person?.maritalStatus }}
                     <template v-if="!!person.marriageDate">
-                       
+
                       ({{ $filters.humanDate(person.marriageDate) }} - {{ $filters.durationInYearsOrMonths(person.marriageDate) }})
                     </template>
                   </template>
@@ -249,11 +253,11 @@ onMounted(() => {
                 <template v-if="person.households[0].people">
                   <!--each householdPerson in person.householdsArray[0].people-->
                   <div>
-                    <div v-for="householdPerson, index in person.households[0].people" :key="householdPerson.id">
+                    <div v-for="(householdPerson, index) in person.households[0].people" :key="householdPerson.id">
                       <div class="flex shrink items-center p-4 gap-3 odd_bg-gray-50 even_bg-white"><img class="rounded-lg" :src="getPersonImageUrl(householdPerson)" width="82">
                         <div class="flex flex-col">
                           <div class="inline-flex items-center" title="Primary contact">
-                            <router-link class="mr-2" to="#">{{ householdPerson.firstName + " " + householdPerson.lastName }}</router-link>
+                            <router-link  class="mr-2" @click="scrollToTop"  :to="{name: 'person', params: {id: householdPerson.id} }">{{ householdPerson.firstName + " " + householdPerson.lastName }}</router-link>
                             <svg v-if="householdPerson.id == person.households[0].leader.id" class="text-sky-500" style="width:16px;height:16px" viewBox="0 0 24 24">
                               <path fill="currentColor" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"></path>
                             </svg>
