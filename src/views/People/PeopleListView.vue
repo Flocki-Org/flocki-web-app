@@ -160,7 +160,7 @@ const createPerson = () => {
                 <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked_bg-sky-500 rounded border border-gray-300 hover_border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked_bg-check" type="checkbox" value="">
               </div>
             </td>
-            <td class="py-3 flex items-center"><img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/temp/user-profile-pic.png">
+            <td class="py-3 flex items-center"><img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
               <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">{{ person.firstName }} </router-link>
             </td>
             <td class="py-3">{{ person.lastName }} </td>
