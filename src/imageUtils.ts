@@ -8,18 +8,18 @@ export function getFullImageUrl(path: string): string {
 }
 
 export function getPersonImageUrl(person: Person): string {
-    console.log(person)
+    //console.log(person)
     if(person && person.profileImage) {
-      console.log('using profile image of person id: ' + person.id)
+      //console.log('using profile image of person id: ' + person.id)
       return getFullImageUrl('/images/'+person.profileImage.id)
     } else {
-      console.log("person is null or doesnt have a profile image")
+      //console.log("person is null or doesnt have a profile image")
       return "";
     }
 }
 
 export function getHouseholdImageUrl(household: Household): string {
-  console.log('getting household image')
+  //console.log('getting household image')
   if(household && household.householdImage) {
     return getFullImageUrl('/images/'+household.householdImage.id)
   } else {

@@ -9,7 +9,6 @@ import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
 
 import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
-import defaultHouseholdImage from '@/assets/temp/levinsohn-household.jpg';
 import Household from "@/models/Household";
 
 
@@ -22,13 +21,19 @@ const isLoadingPerson = ref(true)
 const showLoadingError = ref(false)
 const person = ref(null)
 
+const hovered = ref(false);
+const dropdownVisible = ref(false);
+const profileImageViewVisible = ref(false)
+
+const toggleDropdown = () => {
+  dropdownVisible.value = !dropdownVisible.value;
+};
+
 const loadPerson = (id) => {
-  console.log(id)
 
   axios
       .get('/people/' + id)
       .then(response => {
-        console.log(response)
 
         useRepo(Person).save(response.data)
         person.value = useRepo(Person).find(+id)
@@ -61,6 +66,23 @@ onMounted(() => {
 onBeforeRouteUpdate((to, from) => {
   loadPerson(to.params.id)
 })
+
+const viewProfileImage = () => {
+  profileImageViewVisible.value=true;
+  // Prevent scrolling
+  document.body.style.overflow = 'hidden';
+};
+
+const closeProfileImageView = () => {
+  profileImageViewVisible.value = false;
+
+  // Allow scrolling again
+  document.body.style.overflow = 'auto';
+}
+
+const chooseProfileImage = () => {
+  console.log("ChooseProfileImage")
+};
 
 </script>
 
@@ -237,7 +259,29 @@ onBeforeRouteUpdate((to, from) => {
           <div class="text-sm text-gray-500 px-10 mb-6">Please pray for my grandmother that she may be saved, pray for my family for strength and comfort in this difficult time.</div>
         </div>
       </div>
-      <div class="flex flex-col gap-5 w-2/5"><img class="rounded-lg w-full" v-if="person.profileImage" :src="getPersonImageUrl(person)"><img class="rounded-lg w-full" v-else src="@/assets/default-user-profile.png">
+      <div class="flex flex-col gap-5 w-2/5">
+        <div class="relative inline-block flex items-center justify-center">
+          <div @click="toggleDropdown" class="relative"
+               @mouseenter="hovered = true"
+               @mouseleave="hovered=false, dropdownVisible = false ">
+            <img class="rounded-lg reduce-height-in-panel  cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
+                 v-if="person.profileImage"
+                 :src="getPersonImageUrl(person)">
+            <img class="rounded-lg w-full cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
+                 v-else
+                 src="@/assets/default-user-profile.png">
+            <div v-if="dropdownVisible" class="absolute top-0 right-0 mt-2">
+              <ul class="custom-hover bg-white border rounded shadow-lg">
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewProfileImage">View Profile Image</a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="chooseProfileImage">Choose Profile Image</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
         <div v-if="person.households && person.households[0]" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
             <h2 class="grow text-gray-700">{{person.lastName}} Household</h2>
@@ -257,7 +301,7 @@ onBeforeRouteUpdate((to, from) => {
                       <div class="flex shrink items-center p-4 gap-3 odd_bg-gray-50 even_bg-white"><img class="rounded-lg" :src="getPersonImageUrl(householdPerson)" width="82">
                         <div class="flex flex-col">
                           <div class="inline-flex items-center" title="Primary contact">
-                            <router-link  class="mr-2" @click="scrollToTop"  :to="{name: 'person', params: {id: householdPerson.id} }">{{ householdPerson.firstName + " " + householdPerson.lastName }}</router-link>
+                            <router-link  class="mr-2" :to="{name: 'person', params: {id: householdPerson.id} }">{{ householdPerson.firstName + " " + householdPerson.lastName }}</router-link>
                             <svg v-if="householdPerson.id == person.households[0].leader.id" class="text-sky-500" style="width:16px;height:16px" viewBox="0 0 24 24">
                               <path fill="currentColor" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"></path>
                             </svg>
@@ -307,4 +351,35 @@ onBeforeRouteUpdate((to, from) => {
       </div>
     </div>
   </div>
+  <!-- Profile Image View -->
+  <div v-if="profileImageViewVisible" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
+    <div class="bg-white p-4 rounded-lg shadow-lg relative max-w-3xl overflow-hidden">
+      <button @click="closeProfileImageView" class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl">×</button>
+      <div class="flex items-center justify-center">
+        <img :src="getPersonImageUrl(person)" class="w-auto reduce-height" alt="Profile Image">
+      </div>
+    </div>
+  </div>
 </template>
+
+
+<style>
+.hover-brightness:hover {
+  filter: brightness(1.1); /* Adjust the value to control brightness on hover */
+}
+
+/* Style the list items within the dropdown */
+ul.custom-hover li:hover {
+  background-color: lightgrey; /* Change to the desired hover background color */
+  cursor: pointer;
+}
+
+img.reduce-height {
+  max-height: 720px;
+}
+
+img.reduce-height-in-panel {
+  max-height: 580px;
+}
+
+</style>
