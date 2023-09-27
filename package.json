@@ -17,6 +17,7 @@
     "@types/leaflet": "^1.9.4",
     "@websanova/vue-auth": "^4.1.13",
     "axios": "^0.27.2",
+    "cropperjs": "^1.6.1",
     "leaflet": "^1.8.0",
     "lodash-es": "^4.17.21",
     "moment": "^2.29.4",
@@ -24,8 +25,10 @@
     "pinia-orm": "^1.0.0-rc.5",
     "vue": "^3.2.36",
     "vue-axios": "^3.4.1",
+    "vue-cropperjs": "^5.0.0",
     "vue-router": "^4.1.1",
-    "vue-skeletor": "^1.0.6"
+    "vue-skeletor": "^1.0.6",
+    "vue2-dropzone": "^3.6.0"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.1.0",

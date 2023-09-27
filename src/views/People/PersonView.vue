@@ -7,6 +7,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
+import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
 
 import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
 import Household from "@/models/Household";
@@ -24,9 +25,15 @@ const person = ref(null)
 const hovered = ref(false);
 const dropdownVisible = ref(false);
 const profileImageViewVisible = ref(false)
+const uploadProfileImage = ref(false)
+const croppedImage = ref(null);
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
+};
+
+const handleCroppedImage = (dataUrl) => {
+  croppedImage.value = dataUrl;
 };
 
 const loadPerson = (id) => {
@@ -52,16 +59,19 @@ const loadPerson = (id) => {
 loadPerson(route.params.id)
 
 onMounted(() => {
-  let map = L.map('map', {
-    center: [51.505, -0.09],
-    zoom: 13
-  });
+  // Check if the map element already has a map associated with it
+  if (document.getElementById('map') && !document.getElementById('map')._leaflet_id) {
+    let map = L.map('map', {
+      center: [51.505, -0.09],
+      zoom: 13
+    });
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-})
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+  }
+});
 
 onBeforeRouteUpdate((to, from) => {
   loadPerson(to.params.id)
@@ -80,10 +90,26 @@ const closeProfileImageView = () => {
   document.body.style.overflow = 'auto';
 }
 
-const chooseProfileImage = () => {
-  console.log("ChooseProfileImage")
+const viewUploadProfileImage = () => {
+  uploadProfileImage.value=true;
+  // Prevent scrolling
+  document.body.style.overflow = 'hidden';
 };
 
+const closeUploadProfileImageView = () => {
+  uploadProfileImage.value = false;
+
+  // Allow scrolling again
+  document.body.style.overflow = 'auto';
+}
+
+const handleImageUploadedSuccess = () => {
+  uploadProfileImage.value = false;
+
+  if(person && person.value)
+    loadPerson(person.value.id)
+
+}
 </script>
 
 <template>
@@ -260,10 +286,11 @@ const chooseProfileImage = () => {
         </div>
       </div>
       <div class="flex flex-col gap-5 w-2/5">
-        <div class="relative inline-block flex items-center justify-center">
+        <div class="flex items-center justify-center">
           <div @click="toggleDropdown" class="relative"
                @mouseenter="hovered = true"
                @mouseleave="hovered=false, dropdownVisible = false ">
+
             <img class="rounded-lg reduce-height-in-panel  cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
                  v-if="person.profileImage"
                  :src="getPersonImageUrl(person)">
@@ -272,11 +299,11 @@ const chooseProfileImage = () => {
                  src="@/assets/default-user-profile.png">
             <div v-if="dropdownVisible" class="absolute top-0 right-0 mt-2">
               <ul class="custom-hover bg-white border rounded shadow-lg">
-                <li>
+                <li v-if="person.profileImage">
                   <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewProfileImage">View Profile Image</a>
                 </li>
                 <li>
-                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="chooseProfileImage">Choose Profile Image</a>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewUploadProfileImage">Choose Profile Image</a>
                 </li>
               </ul>
             </div>
@@ -360,6 +387,14 @@ const chooseProfileImage = () => {
       </div>
     </div>
   </div>
+  <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800 bg-opacity-75">
+    <ImageCropperUploader @cropped="handleCroppedImage" :profileId="person.id" @imageCropperCancelled="closeUploadProfileImageView" @imageCropperUploadedSuccess="handleImageUploadedSuccess"/>
+
+    <div v-if="croppedImage">
+      <h2>Cropped Image Preview</h2>
+      <img :src="croppedImage" alt="Cropped Image" />
+    </div>
+  </div>
 </template>
 
 
@@ -372,6 +407,10 @@ const chooseProfileImage = () => {
 ul.custom-hover li:hover {
   background-color: lightgrey; /* Change to the desired hover background color */
   cursor: pointer;
+}
+
+div.reduce-height {
+  max-height: 720px;
 }
 
 img.reduce-height {
