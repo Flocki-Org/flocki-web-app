@@ -7,7 +7,10 @@ const fileInput = ref(null);
 const dropZone = ref(null);
 const hiddenFileInput = ref(null);
 const showCropper = ref(false);
+const imageUploadWrapper = ref(null);
 const imgSrc = ref('');
+const isUploading = ref(false); // Add a loading state variable
+
 const cropper = ref(null);
 const cropButton = ref(null);
 const { showImageCropper, profileId } = defineProps(['showImageCropper', 'profileId']);
@@ -49,6 +52,8 @@ const cropImage = () => {
 
   // Append the file to FormData
   formData.append('file', file, 'image.jpg');
+
+  isUploading.value = true;
   // Make a PUT request to send the cropped image data to the server
   axios
       .put(`/people/profile_image?id=${profileId}`, formData, {
@@ -60,13 +65,21 @@ const cropImage = () => {
         //console.log('Image uploaded successfully:', response.data);
         // Reset the cropper and hide it
         showCropper.value = false;
+        isUploading.value = false;
         imgSrc.value = '';
         emit('imageCropperUploadedSuccess');
       })
       .catch((error) => {
+        isUploading.value = false;
+        showCropper.value = false;
         console.error('Error uploading image:', error);
+        emit('imageCropperUploadedFailed');
       });
 };
+
+const cancelCrop = () => {
+  emit('imageCropperCancelled');
+}
 
 const handleDragEnter = (event) => {
   event.preventDefault();
@@ -134,119 +147,151 @@ onUnmounted(() => {
 });
 
 const handleWindowClick = (event) => {
-  //console.log('got here in handle window click')
-  if (showCropper.value) {
-    //console.log('got here in if to close cropper')
-    const cropperElement = cropper.value.$el;
-
-    // Check if the clicked element is not inside the cropper area
-    if (cropperElement && !cropperElement.contains(event.target) && !cropButton.contains(event.target)) {
-      //console.log('closing. dont know why')
+  if (imageUploadWrapper  && !imageUploadWrapper.value.contains(event.target)) {
       closeCropper();
-    }
-  } else {
-    //console.log('got here in else to close file input')
-    const dropZoneEl = dropZone.value;
-    //console.log(dropZoneEl);
-    if(dropZoneEl && !dropZoneEl.contains(event.target)) {
-      //console.log('got here in else to close file input and outside of dropZoneEl')
-      closeCropper();
-    }
   }
 };
+
 </script>
 
 <template>
   <div>
     <div class="modal-overlay" v-if="showCropper"></div>
-
-    <div
-        v-if = "!showCropper"
-        class="drop-zone"
-        ref="dropZone"
-        @dragenter="handleDragEnter"
-        @dragover.prevent
-        @dragleave="handleDragLeave"
-        @drop="handleDrop"
-        @click="handleClick"
-    >
-      <p>Drag & drop an image here or <br> click to select one</p>
-      <input
-          type="file"
-          ref="fileInput"
-          @change="handleFileChange"
-          accept="image/*"
-          class="hidden"
-      />
-
-      <!-- Hidden input element to trigger the file input dialog -->
-      <input
-          type="file"
-          style="display: none;"
-          ref="hiddenFileInput"
-          @change="handleFileChange"
-          accept="image/*"
-      />
-
-      <!-- Label element to open the hidden file input -->
-      <label for="hiddenFileInput" style="display: none;"></label>
+    <div v-if="isUploading" class="spinner-overlay">
+      <div class="spinner-border text-primary" role="status">
+        <svg aria-hidden="true" class="w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+        </svg>
+        <span class="sr-only">Loading...</span>
+      </div>
     </div>
-
-    <div v-if="showCropper" class="relative" >
-      <vue-cropper
-          ref="cropper"
-          :src="imgSrc"
-          :view-mode="2"
-          :aspectRatio="1"
-          drag-mode="crop"
-          alt="Selected Image"
-          :img-style="{ width: '720px', height: '720px' }"
-      ></vue-cropper>
-
-      <div class="mt-2">
-        <div class="flex items-center px-main-lr mb-10">
-        <button ref="cropButton" @click="cropImage" tabindex="0"
-                class="absolute bottom-4 right-4 px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 flex items-center">
-          <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              class="text-white mr-2"
-              stroke="#ffffff"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-          >
-            <path d="M6.13 1L6 16a2 2 0 002 2h15" />
-            <path d="M1 6.13L16 6a2 2 0 012 2v15" />
+    <div class="image-uploader-wrapper" ref="imageUploadWrapper">
+      <div
+          v-if = "!showCropper && !isUploading"
+          class="drop-zone"
+          ref="dropZone"
+          @dragenter="handleDragEnter"
+          @dragover.prevent
+          @dragleave="handleDragLeave"
+          @drop="handleDrop"
+          @click="handleClick"
+      >
+        <div class="flex justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="text-white mr-2" width="80" height="80" viewBox="0 0 80 80" fill="none"
+               stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M70 50v13.333a6.667 6.667 0 0 1 -6.667 6.667H16.667a6.667 6.667 0 0 1 -6.667 -6.667v-13.333"/>
+            <path points="17 8 12 3 7 8" d="M56.667 26.667L40 10L23.333 26.667"/>
+            <path x1="12" y1="3" x2="12" y2="15" d="M40 10L40 50"/>
           </svg>
-        Crop & Upload</button>
+
+        </div>
+        <p>Drag & drop an image here or <br> click to select one</p>
+        <input
+            type="file"
+            ref="fileInput"
+            @change="handleFileChange"
+            accept="image/*"
+            class="hidden"
+        />
+
+        <!-- Hidden input element to trigger the file input dialog -->
+        <input
+            type="file"
+            style="display: none;"
+            ref="hiddenFileInput"
+            @change="handleFileChange"
+            accept="image/*"
+        />
+
+        <!-- Label element to open the hidden file input -->
+        <label for="hiddenFileInput" style="display: none;"></label>
+      </div>
+
+      <div v-if="showCropper && !isUploading" class="relative" >
+        <vue-cropper
+            ref="cropper"
+            :src="imgSrc"
+            :view-mode="2"
+            :aspectRatio="1"
+            drag-mode="crop"
+            alt="Selected Image"
+            :img-style="{ width: '580px', height: '580px' }"
+        ></vue-cropper>
+      </div>
+      <div class="mt-2" v-if="showCropper && !isUploading">
+        <div class="flex items-center justify-end space-x-2">
+          <button
+              ref="cancelButton"
+              @click="cancelCrop"
+              tabindex="0"
+              class="px-4 py-2 rounded-lg bg-gray-300 text-black hover:bg-gray-400 flex items-center"
+          >
+            Cancel
+          </button>
+          <button ref="cropButton" @click="cropImage" tabindex="0"
+                  class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 flex items-center">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                class="text-white mr-2"
+                stroke="#ffffff"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+              <path d="M6.13 1L6 16a2 2 0 002 2h15" />
+              <path d="M1 6.13L16 6a2 2 0 012 2v15" />
+            </svg>
+            Crop & Upload</button>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <style scoped>
+.spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999; /* Ensure it's on top of other elements */
+}
+
+.image-uploader-wrapper {
+  border: 2px solid #ccc; /* Add a border */
+  padding: 20px; /* Add padding */
+  width: 600px;
+  height: 680px;
+  border-radius: 10px; /* Add rounded borders */
+  background-color: #f9f9f9; /* Set background color */
+}
 .drop-zone {
-  border: 2px solid #ffffff;
-  padding: 150px;
+  border: 2px dashed lightslategrey;
+  padding: 100px;
   text-align: center;
-  color: white;
+  color: black;
   cursor: pointer;
-  background-color: slategray;
+  background-color: white;
 }
 
 .drag-over {
-  border: 2px solid #ffffff;
-  padding: 150px;
+  border: 4px solid #a4b8ed;
+  padding: 100px;
   text-align: center;
-  color: white;
+  color: black;
   cursor: pointer;
-  font-weight: bold;
-  background-color: lightslategrey;
+  background-color: #edf2ff;
 }
 
 .drop-zone:focus {
