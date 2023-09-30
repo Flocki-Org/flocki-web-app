@@ -27,6 +27,8 @@ const dropdownVisible = ref(false);
 const profileImageViewVisible = ref(false)
 const uploadProfileImage = ref(false)
 const croppedImage = ref(null);
+const uploadProfileImageFailed = ref(false);
+const uploadProfileImageSuccess = ref(false);
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
@@ -105,15 +107,26 @@ const closeUploadProfileImageView = () => {
 
 const handleImageUploadedSuccess = () => {
   uploadProfileImage.value = false;
+  uploadProfileImageSuccess.value = true;
+  setTimeout(() => {
+    uploadProfileImageSuccess.value = false;
+  }, 3000);
 
   if(person && person.value)
     loadPerson(person.value.id)
 
 }
+
+const handleImageUploadFailed = () => {
+  uploadProfileImage.value = false;
+  uploadProfileImageFailed.value = true;
+}
 </script>
 
 <template>
   <Toaster message="Couldn't retrieve the user. Please try again later." type="error" :show="showLoadingError" @close="showLoadingError = false"></Toaster>
+  <Toaster message="Uploading of image failed" type="error" :show="uploadProfileImageFailed" @close="uploadProfileImageFailed = false"></Toaster>
+  <Toaster message="New Profile Image Uploaded" type="success" :show="uploadProfileImageSuccess" @close="uploadProfileImageSuccess = false" ></Toaster>
 
   <div class="ml-menu py-main-tb" id="person">
     <div class="flex items-center px-main-lr mb-10 relative">
@@ -388,7 +401,10 @@ const handleImageUploadedSuccess = () => {
     </div>
   </div>
   <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800 bg-opacity-75">
-    <ImageCropperUploader @cropped="handleCroppedImage" :profileId="person.id" @imageCropperCancelled="closeUploadProfileImageView" @imageCropperUploadedSuccess="handleImageUploadedSuccess"/>
+    <ImageCropperUploader @cropped="handleCroppedImage" :profileId="person.id"
+                          @imageCropperCancelled="closeUploadProfileImageView"
+                          @imageCropperUploadedSuccess="handleImageUploadedSuccess"
+                          @imageCropperUploadFailed="handleImageUploadFailed" />
 
     <div v-if="croppedImage">
       <h2>Cropped Image Preview</h2>

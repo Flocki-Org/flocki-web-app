@@ -73,7 +73,7 @@ const cropImage = () => {
         isUploading.value = false;
         showCropper.value = false;
         console.error('Error uploading image:', error);
-        emit('imageCropperUploadedFailed');
+        emit('imageCropperUploadFailed');
       });
 };
 
