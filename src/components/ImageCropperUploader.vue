@@ -13,7 +13,7 @@ const isUploading = ref(false); // Add a loading state variable
 
 const cropper = ref(null);
 const cropButton = ref(null);
-const { showImageCropper, profileId } = defineProps(['showImageCropper', 'profileId']);
+const { showImageCropper, uploadEndpoint } = defineProps(['showImageCropper', 'uploadEndpoint']);
 const emit = defineEmits(['imageCropperCancelled', 'imageCropperUploadedSuccess']);
 const axios = inject('axios')
 
@@ -36,7 +36,6 @@ const cropImage = () => {
   // Reset the cropper and hide it
   showCropper.value = false;
   imgSrc.value = '';
-  // send cropped image to server endpoint /people/profile_image?id=profileId
   // Create a FormData object to send the cropped image data
   const formData = new FormData();
   const base64Data = croppedData.split(',')[1];
@@ -56,7 +55,7 @@ const cropImage = () => {
   isUploading.value = true;
   // Make a PUT request to send the cropped image data to the server
   axios
-      .put(`/people/profile_image?id=${profileId}`, formData, {
+      .put(uploadEndpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

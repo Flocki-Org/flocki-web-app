@@ -119,6 +119,9 @@ const handleImageUploadedSuccess = () => {
 
 const handleImageUploadFailed = () => {
   uploadProfileImage.value = false;
+  setTimeout(() => {
+    uploadProfileImageFailed.value = false;
+  }, 8000);
   uploadProfileImageFailed.value = true;
 }
 </script>
@@ -401,7 +404,7 @@ const handleImageUploadFailed = () => {
     </div>
   </div>
   <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800 bg-opacity-75">
-    <ImageCropperUploader @cropped="handleCroppedImage" :profileId="person.id"
+    <ImageCropperUploader @cropped="handleCroppedImage" :uploadEndpoint="'/people/profile_image?id=' + person.id"
                           @imageCropperCancelled="closeUploadProfileImageView"
                           @imageCropperUploadedSuccess="handleImageUploadedSuccess"
                           @imageCropperUploadFailed="handleImageUploadFailed" />
