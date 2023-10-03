@@ -64,7 +64,6 @@ const router = createRouter({
         },
         {
             path: "/households",
-            name: "households",
             components: {
                 default: () => import("@/views/People/HouseholdView.vue"),
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
