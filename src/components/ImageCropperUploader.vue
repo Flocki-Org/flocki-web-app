@@ -14,7 +14,7 @@ const isUploading = ref(false); // Add a loading state variable
 const cropper = ref(null);
 const cropButton = ref(null);
 const { showImageCropper, uploadEndpoint } = defineProps(['showImageCropper', 'uploadEndpoint']);
-const emit = defineEmits(['imageCropperCancelled', 'imageCropperUploadedSuccess']);
+const emit = defineEmits(['imageCropperUploadFailed', 'imageCropperCancelled', 'imageCropperUploadedSuccess']);
 const axios = inject('axios')
 
 const handleFileChange = () => {

@@ -11,6 +11,7 @@ import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
 
 import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
 import Household from "@/models/Household";
+import AddressDisplay from '../../components/AddressDisplay.vue';
 
 
 const axios = inject('axios')
@@ -285,7 +286,9 @@ const handleImageUploadFailed = () => {
               </svg>
             </button>
           </div>
-          <div class="address px-10 mb-4 text-gray-500 text-sm">27 Tate cres., Lonehill, Johannesburg, 2062</div>
+          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person.address"><AddressDisplay :address="person.address" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" /></div>
+          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person.households && person.households[0]">
+            <AddressDisplay :address="person.households[0].address" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" /></div>
           <div class="w-full h-60" id="map"></div>
         </div>
         <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">

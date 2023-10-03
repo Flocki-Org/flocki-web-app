@@ -11,6 +11,7 @@ import Input from '@/components/Forms/Input.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Household from "@/models/Household";
+import AddressDisplay from '../../components/AddressDisplay.vue';
 
 const axios = inject('axios')
 
@@ -170,7 +171,7 @@ const redirectToPersonPage = (member) =>  {
             </td>
             <td class="py-3">
               <div v-if="household && household.address">
-                {{household.address.suburb}}, {{household.address.city}}
+                <AddressDisplay :address="household.address" addressFormat="[[suburb]], [[city]]" />
               </div>
               <div v-else>
                 N/A
