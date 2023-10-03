@@ -1,8 +1,9 @@
 <script setup lang="tsx">
 import { ref, reactive, inject, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import {onBeforeRouteUpdate, useRouter} from 'vue-router'
 import { useRepo } from 'pinia-orm'
-import { getHouseholdImageUrl } from '@/imageUtils';
+
+import { getHouseholdImageUrl, getPersonImageUrl } from '@/imageUtils';
 
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
@@ -32,7 +33,7 @@ const households = computed(() => {
 
 const loadHouseholds = () => {
   isLoadingHousehold.value = true
-
+  console.log('loading households')
   axios
     .get('/households')
     .then(response => {
@@ -44,7 +45,11 @@ const loadHouseholds = () => {
     })
 }
 
-loadHouseholds()
+loadHouseholds();
+
+onBeforeRouteUpdate((to, from) => {
+  console.log('On before Route Update')
+})
 
 const toggleAddPersonDialog = (val: boolean) => {
   isOpenAddHouseholdDialog.value = val
@@ -70,6 +75,12 @@ const createHousehold = () => {
       })
   }
 }
+
+const redirectToPersonPage = (member) =>  {
+  // Assuming 'member.id' is the unique identifier for each person
+  router.push({ name: 'person', params: { id: member.id } });
+}
+
 </script>
 
 <template>  
@@ -157,14 +168,25 @@ const createHousehold = () => {
             <td class="py-3 flex items-center"><img class="w-8 h-8 mr-2 rounded-full" v-if="household && household.householdImage" :src="getHouseholdImageUrl(household)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
               <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'households', params: { id: household.id } }">{{ household.leader.lastName}} </router-link>
             </td>
-            <td class="py-3"></td>
-            <td class="py-3"></td>
-            <td class="py-3 w-8 text-right">
-              <button class="hidden group-hover_inline-flex w-8 h-7 justify-center items-center rounded-md border border-transparent text-sky-400 hover_bg-gray-50">
+            <td class="py-3">
+              <div v-if="household && household.address">
+                {{household.address.suburb}}, {{household.address.city}}
+              </div>
+              <div v-else>
+                N/A
+              </div>
+            </td>
+            <td class="w-8 text-left inline">
+              <!-- show a list of circular images of the members -->
+                <div v-for="member in household.people"  class="inline" @click="redirectToPersonPage(member)">
+                  <img class="my-1 w-8 h-8 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)" :title="member.firstName">
+                  <img class="w-8 h-8 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png" :title="member.firstName">
+                </div>
+              <!--button class="hidden group-hover_inline-flex w-8 h-7 justify-center items-center rounded-md border border-transparent text-sky-400 hover_bg-gray-50">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"></path>
                 </svg>
-              </button>
+              </button-->
             </td>
             <td class="py-3 w-main-lr"></td>
           </tr>

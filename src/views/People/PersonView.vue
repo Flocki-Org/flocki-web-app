@@ -307,7 +307,7 @@ const handleImageUploadFailed = () => {
                @mouseenter="hovered = true"
                @mouseleave="hovered=false, dropdownVisible = false ">
 
-            <img class="rounded-lg reduce-height-in-panel  cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
+            <img class="rounded-lg reduce-height-in-panel cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
                  v-if="person.profileImage"
                  :src="getPersonImageUrl(person)">
             <img class="rounded-lg w-full cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"

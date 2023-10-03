@@ -10,6 +10,7 @@ export default class Household extends Model {
   @Attr(null) declare id: number | null
   @Attr(null) declare leader: Person | null
   @Attr(null) declare householdImage: EntityImage | null
+  @Attr(null) declare address: string | null
   //list of family members
   @Attr(null) declare people: Person[] | null
 
