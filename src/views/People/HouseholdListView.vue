@@ -165,7 +165,7 @@ const redirectToPersonPage = (member) =>  {
                 <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked_bg-sky-500 rounded border border-gray-300 hover_border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked_bg-check" type="checkbox" value="">
               </div>
             </td>
-            <td class="py-3 flex items-center"><img class="w-8 h-8 mr-2 rounded-full" v-if="household && household.householdImage" :src="getHouseholdImageUrl(household)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
+            <td class="py-3 flex items-center"><img class="w-10 h-10 mr-2 rounded-full" v-if="household && household.householdImage" :src="getHouseholdImageUrl(household)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
               <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'households', params: { id: household.id } }">{{ household.leader.lastName}} </router-link>
             </td>
             <td class="py-3">
@@ -176,17 +176,12 @@ const redirectToPersonPage = (member) =>  {
                 N/A
               </div>
             </td>
-            <td class="w-8 text-left inline">
+            <td>
               <!-- show a list of circular images of the members -->
                 <div v-for="member in household.people"  class="inline" @click="redirectToPersonPage(member)">
-                  <img class="my-1 w-8 h-8 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)" :title="member.firstName">
-                  <img class="w-8 h-8 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png" :title="member.firstName">
+                  <img class="w-10 h-10 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)" :title="member.firstName">
+                  <img class="w-10 h-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png" :title="member.firstName">
                 </div>
-              <!--button class="hidden group-hover_inline-flex w-8 h-7 justify-center items-center rounded-md border border-transparent text-sky-400 hover_bg-gray-50">
-                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"></path>
-                </svg>
-              </button-->
             </td>
             <td class="py-3 w-main-lr"></td>
           </tr>
