@@ -287,7 +287,7 @@ const handleImageUploadFailed = () => {
             </button>
           </div>
           <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person.address"><AddressDisplay :address="person.address" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" /></div>
-          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person.households && person.households[0]">
+          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person.households && person.households[0] && person.households[0].address">
             <AddressDisplay :address="person.households[0].address" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" /></div>
           <div class="w-full h-60" id="map"></div>
         </div>
