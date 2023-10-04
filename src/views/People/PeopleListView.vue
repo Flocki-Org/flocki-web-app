@@ -22,12 +22,45 @@ const isLoadingPeople = ref(false)
 const showPeopleLoadingError = ref(false)
 const initialFocusRef = ref(null)
 
+const activeProfilePopup = ref(null);
+
+const showProfilePopup = (personId) => {
+
+  activeProfilePopup.value = personId;
+};
+
+const hideProfilePopup = () => {
+  activeProfilePopup.value = null;
+};
+
+// Listen for mousemove event on the document
+document.addEventListener('mousemove', (event) => {
+  // Set the position of the profile popup based on the mouse cursor's position
+  const profilePopup = document.getElementById(`profile-popup-${activeProfilePopup.value}`);
+
+  if (profilePopup) {
+    const popupHeight = profilePopup.getBoundingClientRect().height;
+    const windowHeight = window.innerHeight;
+
+    let topPosition = event.clientY + 10; // Default position below the link
+
+    // Check if there's enough space below the link
+    if (event.clientY + popupHeight + 10 > windowHeight) {
+      topPosition = event.clientY - popupHeight - 10; // Display above the link
+    }
+
+    profilePopup.style.left = event.clientX + 'px';
+    profilePopup.style.top = topPosition + 'px';
+  }
+});
+
 const newPerson = reactive({
   firstName: '',
   lastName: '',
   email: '',
   mobileNumber: ''
 })
+
 
 const people = computed(() => {
   return useRepo(Person).all()
@@ -62,7 +95,7 @@ const createPerson = () => {
     axios
       .post('/people', newPerson, {params: {create_login: false}})
       .then(response => {
-        console.log(response)
+        //console.log(response)
 
         router.push({
           name: 'person',
@@ -73,6 +106,7 @@ const createPerson = () => {
       })
   }
 }
+
 </script>
 
 <template>  
@@ -161,7 +195,18 @@ const createPerson = () => {
               </div>
             </td>
             <td class="py-3 flex items-center"><img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
-              <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">{{ person.firstName }} </router-link>
+              <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
+                           @mouseover="showProfilePopup(person.id)"
+                           @mouseout="hideProfilePopup(person.id)"> {{ person.firstName }} </router-link>
+              <div class="profile-popup" :id="`profile-popup-${person.id}`" v-show="activeProfilePopup === person.id"
+                   @mouseenter="showProfilePopup(person.id)"
+                   @mouseleave="hideProfilePopup(person.id)">
+                <!-- Content for the user profile preview -->
+                <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)"><img class="profile-image" v-else src="@/assets/default-user-profile.png">
+                <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
+                <p class="profile-details">Age: 30 | Date of Birth: January 15, 1993 | </p><p v-if="person.gender">Gender: {{person.gender}}</p>
+                <!-- Add other details here -->
+              </div>
             </td>
             <td class="py-3">{{ person.lastName }} </td>
             <td class="py-3">{{ person.email }}</td>
@@ -209,3 +254,63 @@ const createPerson = () => {
     </template>
   </Dialog>
 </template>
+
+<style>
+/* Basic styling for the profile popup */
+.profile-popup {
+  position: absolute;
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically */
+  text-align: center; /* Center text horizontally */
+  top: calc(100% + 10px); /* Position below the link */
+  left: 0;
+  z-index: 1;
+  background-color: gainsboro;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  border-radius: 10px;
+  font-family: Arial, sans-serif; /* Set the desired font family */
+  font-size: 14px;
+  color: #333;
+  max-width: 200px; /* Adjust as needed */
+}
+
+/* Styling for the profile image */
+.profile-image {
+  margin: 0 auto; /* Center horizontally */
+  width: 150px;
+  height: 150px;
+  border-radius: 50%; /* Rounded image */
+  margin-bottom: 10px;
+  object-fit: cover; /* Ensure the image covers the container */
+
+}
+
+/* Styling for the profile name */
+.profile-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+/* Styling for the profile details */
+.profile-details {
+  margin-bottom: 10px;
+}
+
+/* Styling for the age and date of birth */
+.profile-details span {
+  margin-right: 10px;
+}
+
+/* Styling for the link */
+.profile-link {
+  color: #007bff; /* Link color */
+  text-decoration: none;
+}
+
+/* Hover effect for the link */
+.profile-link:hover + .profile-popup {
+  display: block;
+}
+</style>
