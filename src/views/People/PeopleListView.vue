@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { ref, reactive, inject, computed } from 'vue'
+import { ref, reactive, inject, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepo } from 'pinia-orm'
 import { getPersonImageUrl } from '@/imageUtils';
@@ -23,36 +23,97 @@ const showPeopleLoadingError = ref(false)
 const initialFocusRef = ref(null)
 
 const activeProfilePopup = ref(null);
+const showingPersonPopupModel = ref(false);
 
-const showProfilePopup = (personId) => {
-
+const showProfilePopup = (event, personId) => {
   activeProfilePopup.value = personId;
+  showingPersonPopupModel.value = true;
+
+  const profileLink = event.currentTarget; // Get the router-link element
+  const profilePopup = document.getElementById(`profile-popup-${personId}`);
+
+  if (profilePopup) {
+    setTimeout(() => {
+      const popupRect = profilePopup.getBoundingClientRect();
+      const popupHeight = popupRect.height;
+      const spaceAbove = profileLink.getBoundingClientRect().top;
+      const spaceBelow = window.innerHeight - profileLink.getBoundingClientRect().bottom;
+
+      let topPosition = profileLink.getBoundingClientRect().bottom; // Default position below the router-link element
+
+      // Check if there's not enough space below, and there's enough space above
+      if (spaceBelow < popupHeight && spaceAbove >= popupHeight) {
+        topPosition = profileLink.getBoundingClientRect().top - popupHeight; // Display above the router-link element
+      }
+
+      profilePopup.style.left = profileLink.getBoundingClientRect().left + 'px';
+      profilePopup.style.top = topPosition + 'px';
+    }, 0);
+
+    // Prevent the popup from hiding when moving the mouse over the popup itself
+    profilePopup.addEventListener('mouseenter', () => {
+      showingPersonPopupModel.value = true;
+    });
+  }
 };
 
-const hideProfilePopup = () => {
-  activeProfilePopup.value = null;
+const hideProfilePopup = (event, personId) => {
+  // Hide the popup unless the mouse is still over the popup
+  setTimeout(() => {
+    const profilePopup = document.getElementById(`profile-popup-${personId}`);
+    if (!profilePopupIsHovered(event, personId) && showingPersonPopupModel.value) {
+      activeProfilePopup.value = null;
+      showingPersonPopupModel.value = false; // Add this line to hide the popup
+    }
+  }, 100);
+};
+
+const profilePopupIsHovered = (event, personId) => {
+  console.log('got here')
+  const profilePopup = document.getElementById(`profile-popup-${personId}`);
+  if (!profilePopup) return false;
+
+  const popupRect = profilePopup.getBoundingClientRect();
+  const popupTop = popupRect.top;
+  const popupLeft = popupRect.left;
+  const popupRight = popupRect.right;
+  const popupBottom = popupRect.bottom;
+
+  const mouseX = event.clientX;
+  const mouseY = event.clientY;
+
+  console.log('X: ' + (mouseX >= popupLeft && mouseX <= popupRight))
+  console.log('Y: ' + (mouseY >= popupTop && mouseY <= popupBottom))
+
+  return (
+      mouseX >= popupLeft &&
+      mouseX <= popupRight &&
+      mouseY >= popupTop &&
+      mouseY <= popupBottom
+  );
 };
 
 // Listen for mousemove event on the document
-document.addEventListener('mousemove', (event) => {
+/*document.addEventListener('mousemove', (event) => {
   // Set the position of the profile popup based on the mouse cursor's position
   const profilePopup = document.getElementById(`profile-popup-${activeProfilePopup.value}`);
 
-  if (profilePopup) {
+  if (!showingPersonPopupModel.value && profilePopup) {
     const popupHeight = profilePopup.getBoundingClientRect().height;
     const windowHeight = window.innerHeight;
 
-    let topPosition = event.clientY + 10; // Default position below the link
+    let topPosition = event.clientY; // Default position below the link
 
     // Check if there's enough space below the link
     if (event.clientY + popupHeight + 10 > windowHeight) {
-      topPosition = event.clientY - popupHeight - 10; // Display above the link
+      topPosition = event.clientY - popupHeight; // Display above the link
     }
 
     profilePopup.style.left = event.clientX + 'px';
     profilePopup.style.top = topPosition + 'px';
+    showingPersonPopupModel.value = true;
   }
-});
+});*/
 
 const newPerson = reactive({
   firstName: '',
@@ -194,17 +255,28 @@ const createPerson = () => {
                 <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked_bg-sky-500 rounded border border-gray-300 hover_border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked_bg-check" type="checkbox" value="">
               </div>
             </td>
-            <td class="py-3 flex items-center"><img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
+            <td class="py-3 flex items-center">
               <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
-                           @mouseover="showProfilePopup(person.id)"
-                           @mouseout="hideProfilePopup(person.id)"> {{ person.firstName }} </router-link>
+                           @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
+                           >
+                  <img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
+                  <img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
+              </router-link>
+
+              <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
+                {{ person.firstName }}
+              </router-link>
               <div class="profile-popup" :id="`profile-popup-${person.id}`" v-show="activeProfilePopup === person.id"
-                   @mouseenter="showProfilePopup(person.id)"
-                   @mouseleave="hideProfilePopup(person.id)">
+                   @mouseleave="event => hideProfilePopup(event, person.id)">
                 <!-- Content for the user profile preview -->
-                <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)"><img class="profile-image" v-else src="@/assets/default-user-profile.png">
-                <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
-                <p class="profile-details">Age: 30 | Date of Birth: January 15, 1993 | </p><p v-if="person.gender">Gender: {{person.gender}}</p>
+                <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
+                  <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
+                  <img class="profile-image" v-else src="@/assets/default-user-profile.png">
+                </router-link>
+                <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
+                  <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
+                </router-link>
+                <p class="profile-details">Age: 30 | Date of Birth: January 15, 1993 <span v-if="person.gender"> | Gender: {{person.gender}}</span></p>
                 <!-- Add other details here -->
               </div>
             </td>
@@ -265,7 +337,7 @@ const createPerson = () => {
   top: calc(100% + 10px); /* Position below the link */
   left: 0;
   z-index: 1;
-  background-color: gainsboro;
+  background-color: whitesmoke;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 16px;
   border-radius: 10px;
