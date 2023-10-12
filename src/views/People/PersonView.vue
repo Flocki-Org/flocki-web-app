@@ -8,7 +8,6 @@ import 'leaflet/dist/leaflet.css'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
 import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
-
 import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
 import Household from "@/models/Household";
 import AddressDisplay from '../../components/AddressDisplay.vue';

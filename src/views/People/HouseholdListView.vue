@@ -34,7 +34,6 @@ const households = computed(() => {
 
 const loadHouseholds = () => {
   isLoadingHousehold.value = true
-  console.log('loading households')
   axios
     .get('/households')
     .then(response => {
@@ -49,7 +48,6 @@ const loadHouseholds = () => {
 loadHouseholds();
 
 onBeforeRouteUpdate((to, from) => {
-  console.log('On before Route Update')
 })
 
 const toggleAddPersonDialog = (val: boolean) => {
@@ -65,7 +63,6 @@ const createHousehold = () => {
     axios
       .post('/households', newHousehold, {params: {create_login: false}})
       .then(response => {
-        console.log(response)
 
         router.push({
           name: 'household',

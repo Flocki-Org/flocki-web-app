@@ -15,6 +15,7 @@ const axios = inject('axios')
 
 const router = useRouter()
 const personRepo = useRepo(Person)
+import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 
 const isOpenAddPersonDialog = ref(false)
 const isCreatingPerson = ref(false)
@@ -22,106 +23,12 @@ const isLoadingPeople = ref(false)
 const showPeopleLoadingError = ref(false)
 const initialFocusRef = ref(null)
 
-const activeProfilePopup = ref(null);
-const showingPersonPopupModel = ref(false);
-
-const showProfilePopup = (event, personId) => {
-  activeProfilePopup.value = personId;
-  showingPersonPopupModel.value = true;
-
-  const profileLink = event.currentTarget; // Get the router-link element
-  const profilePopup = document.getElementById(`profile-popup-${personId}`);
-
-  if (profilePopup) {
-    setTimeout(() => {
-      const popupRect = profilePopup.getBoundingClientRect();
-      const popupHeight = popupRect.height;
-      const spaceAbove = profileLink.getBoundingClientRect().top;
-      const spaceBelow = window.innerHeight - profileLink.getBoundingClientRect().bottom;
-
-      let topPosition = profileLink.getBoundingClientRect().bottom; // Default position below the router-link element
-
-      // Check if there's not enough space below, and there's enough space above
-      if (spaceBelow < popupHeight && spaceAbove >= popupHeight) {
-        topPosition = profileLink.getBoundingClientRect().top - popupHeight; // Display above the router-link element
-      }
-
-      profilePopup.style.left = profileLink.getBoundingClientRect().left + 'px';
-      profilePopup.style.top = topPosition + 'px';
-    }, 0);
-
-    // Prevent the popup from hiding when moving the mouse over the popup itself
-    profilePopup.addEventListener('mouseenter', () => {
-      showingPersonPopupModel.value = true;
-    });
-  }
-};
-
-const hideProfilePopup = (event, personId) => {
-  // Hide the popup unless the mouse is still over the popup
-  setTimeout(() => {
-    const profilePopup = document.getElementById(`profile-popup-${personId}`);
-    if (!profilePopupIsHovered(event, personId) && showingPersonPopupModel.value) {
-      activeProfilePopup.value = null;
-      showingPersonPopupModel.value = false; // Add this line to hide the popup
-    }
-  }, 100);
-};
-
-const profilePopupIsHovered = (event, personId) => {
-  console.log('got here')
-  const profilePopup = document.getElementById(`profile-popup-${personId}`);
-  if (!profilePopup) return false;
-
-  const popupRect = profilePopup.getBoundingClientRect();
-  const popupTop = popupRect.top;
-  const popupLeft = popupRect.left;
-  const popupRight = popupRect.right;
-  const popupBottom = popupRect.bottom;
-
-  const mouseX = event.clientX;
-  const mouseY = event.clientY;
-
-  console.log('X: ' + (mouseX >= popupLeft && mouseX <= popupRight))
-  console.log('Y: ' + (mouseY >= popupTop && mouseY <= popupBottom))
-
-  return (
-      mouseX >= popupLeft &&
-      mouseX <= popupRight &&
-      mouseY >= popupTop &&
-      mouseY <= popupBottom
-  );
-};
-
-// Listen for mousemove event on the document
-/*document.addEventListener('mousemove', (event) => {
-  // Set the position of the profile popup based on the mouse cursor's position
-  const profilePopup = document.getElementById(`profile-popup-${activeProfilePopup.value}`);
-
-  if (!showingPersonPopupModel.value && profilePopup) {
-    const popupHeight = profilePopup.getBoundingClientRect().height;
-    const windowHeight = window.innerHeight;
-
-    let topPosition = event.clientY; // Default position below the link
-
-    // Check if there's enough space below the link
-    if (event.clientY + popupHeight + 10 > windowHeight) {
-      topPosition = event.clientY - popupHeight; // Display above the link
-    }
-
-    profilePopup.style.left = event.clientX + 'px';
-    profilePopup.style.top = topPosition + 'px';
-    showingPersonPopupModel.value = true;
-  }
-});*/
-
 const newPerson = reactive({
   firstName: '',
   lastName: '',
   email: '',
   mobileNumber: ''
 })
-
 
 const people = computed(() => {
   return useRepo(Person).all()
@@ -256,7 +163,7 @@ const createPerson = () => {
               </div>
             </td>
             <td class="py-3 flex items-center">
-              <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
+              <!--router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
                            @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
                            >
                   <img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
@@ -268,7 +175,7 @@ const createPerson = () => {
               </router-link>
               <div class="profile-popup" :id="`profile-popup-${person.id}`" v-show="activeProfilePopup === person.id"
                    @mouseleave="event => hideProfilePopup(event, person.id)">
-                <!-- Content for the user profile preview -->
+
                 <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
                   <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
                   <img class="profile-image" v-else src="@/assets/default-user-profile.png">
@@ -277,8 +184,12 @@ const createPerson = () => {
                   <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
                 </router-link>
                 <p class="profile-details">Age: 30 | Date of Birth: January 15, 1993 <span v-if="person.gender"> | Gender: {{person.gender}}</span></p>
-                <!-- Add other details here -->
-              </div>
+
+              </div-->
+              <UserProfilePopup
+                  :person="person"
+                  :includeName="true"/>
+
             </td>
             <td class="py-3">{{ person.lastName }} </td>
             <td class="py-3">{{ person.email }}</td>
