@@ -3,6 +3,7 @@ import { ref, reactive, inject, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepo } from 'pinia-orm'
 import { getPersonImageUrl } from '@/imageUtils';
+import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
@@ -15,7 +16,6 @@ const axios = inject('axios')
 
 const router = useRouter()
 const personRepo = useRepo(Person)
-import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 
 const isOpenAddPersonDialog = ref(false)
 const isCreatingPerson = ref(false)
@@ -163,32 +163,19 @@ const createPerson = () => {
               </div>
             </td>
             <td class="py-3 flex items-center">
-              <!--router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
-                           @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
-                           >
-                  <img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
-                  <img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
-              </router-link>
-
-              <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
-                {{ person.firstName }}
-              </router-link>
-              <div class="profile-popup" :id="`profile-popup-${person.id}`" v-show="activeProfilePopup === person.id"
-                   @mouseleave="event => hideProfilePopup(event, person.id)">
-
-                <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
-                  <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
-                  <img class="profile-image" v-else src="@/assets/default-user-profile.png">
-                </router-link>
-                <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
-                  <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
-                </router-link>
-                <p class="profile-details">Age: 30 | Date of Birth: January 15, 1993 <span v-if="person.gender"> | Gender: {{person.gender}}</span></p>
-
-              </div-->
               <UserProfilePopup
                   :person="person"
-                  :includeName="true"/>
+                  :includeName="true">
+                <template v-slot:default="{ getPersonImageUrl }">
+                  <div class="flex items-center">
+                    <img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
+                    <img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
+                    <div class="name-container">
+                      {{ person.firstName }}
+                    </div>
+                  </div>
+                </template>
+              </UserProfilePopup>
 
             </td>
             <td class="py-3">{{ person.lastName }} </td>

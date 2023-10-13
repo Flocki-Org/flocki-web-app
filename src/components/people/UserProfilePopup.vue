@@ -90,12 +90,8 @@ const profilePopupIsHovered = (event, personId) => {
   <div class="user-profile-popup">
     <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
                  @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)">
-      <div class="user-profile-container">
-        <img class="w-8 h-8 mr-2 rounded-full" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
-        <img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
-        <div v-if="includeName" class="name-container">
-          {{ person.firstName }}
-        </div>
+      <div class="user-profile-container inline">
+        <slot :getPersonImageUrl="getPersonImageUrl"></slot>
       </div>
     </router-link>
     <div class="profile-popup" :id="`profile-popup-${person.id}`" v-show="activeProfilePopup === person.id"
@@ -121,17 +117,19 @@ const profilePopupIsHovered = (event, personId) => {
 
 <style scoped>
 .user-profile-container {
-  display: flex; /* Use flex layout to make the children appear in a row */
+  display: inline-block;
   align-items: center; /* Vertically align the items */
 }
 
 .user-profile-popup {
   position: relative; /* Parent container positioning */
-
+  display: inline;
+  vertical-align: top;
 }
 
 /* Basic styling for the profile popup */
 .profile-popup {
+  display: inline;
   position: fixed;
   align-items: center; /* Center horizontally */
   justify-content: center; /* Center vertically */

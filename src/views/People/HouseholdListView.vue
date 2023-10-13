@@ -12,6 +12,7 @@ import Dialog from '@/components/Widgets/Dialog.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Household from "@/models/Household";
 import AddressDisplay from '../../components/AddressDisplay.vue';
+import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 
 const axios = inject('axios')
 
@@ -177,8 +178,14 @@ const redirectToPersonPage = (member) =>  {
             <td>
               <!-- show a list of circular images of the members -->
                 <div v-for="member in household.people"  class="inline" @click="redirectToPersonPage(member)">
-                  <img class="w-10 h-10 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)" :title="member.firstName">
-                  <img class="w-10 h-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png" :title="member.firstName">
+                  <UserProfilePopup
+                      :person="member"
+                      :includeName="false">
+                    <template v-slot:default="{ getPersonImageUrl }">
+                      <img class="w-10 h-10 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)" :title="member.firstName">
+                      <img class="w-10 h-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png" :title="member.firstName">
+                    </template>
+                  </UserProfilePopup>
                 </div>
             </td>
             <td class="py-3 w-main-lr"></td>

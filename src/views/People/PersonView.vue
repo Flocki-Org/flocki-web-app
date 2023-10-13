@@ -11,6 +11,7 @@ import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
 import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
 import Household from "@/models/Household";
 import AddressDisplay from '../../components/AddressDisplay.vue';
+import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 
 
 const axios = inject('axios')
@@ -348,7 +349,15 @@ const handleImageUploadFailed = () => {
                   <!--each householdPerson in person.householdsArray[0].people-->
                   <div>
                     <div v-for="(householdPerson, index) in person.households[0].people" :key="householdPerson.id">
-                      <div class="flex shrink items-center p-4 gap-3 odd_bg-gray-50 even_bg-white"><img class="rounded-lg" :src="getPersonImageUrl(householdPerson)" width="82">
+                      <div class="flex shrink items-center p-4 gap-3 odd_bg-gray-50 even_bg-white">
+                        <UserProfilePopup
+                            :person="householdPerson"
+                            :includeName="true">
+                          <template v-slot:default="{ getPersonImageUrl }">
+                              <img class="rounded-lg" v-if="householdPerson && householdPerson.profileImage" :src="getPersonImageUrl(householdPerson)" width="82">
+                              <img class="rounded-lg" v-else src="@/assets/default-user-profile.png">
+                          </template>
+                        </UserProfilePopup>
                         <div class="flex flex-col">
                           <div class="inline-flex items-center" title="Primary contact">
                             <router-link  class="mr-2" :to="{name: 'person', params: {id: householdPerson.id} }">{{ householdPerson.firstName + " " + householdPerson.lastName }}</router-link>
