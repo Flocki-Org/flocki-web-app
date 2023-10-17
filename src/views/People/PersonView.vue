@@ -116,6 +116,8 @@ const handleImageUploadedSuccess = () => {
   if(person && person.value)
     loadPerson(person.value.id)
 
+  document.body.style.overflow = 'auto';
+
 }
 
 const handleImageUploadFailed = () => {
@@ -124,6 +126,9 @@ const handleImageUploadFailed = () => {
     uploadProfileImageFailed.value = false;
   }, 8000);
   uploadProfileImageFailed.value = true;
+
+  document.body.style.overflow = 'auto';
+
 }
 </script>
 

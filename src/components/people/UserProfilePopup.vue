@@ -87,30 +87,35 @@ const profilePopupIsHovered = (event, personId) => {
 </script>
 
 <template>
-  <div class="user-profile-popup">
-    <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
-                 @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)">
-      <div class="user-profile-container inline">
-        <slot :getPersonImageUrl="getPersonImageUrl"></slot>
-      </div>
-    </router-link>
-    <div class="profile-popup" :id="`profile-popup-${person.id}`" v-show="activeProfilePopup === person.id"
-         @mouseleave="event => hideProfilePopup(event, person.id)">
-      <!-- Content for the user profile preview -->
-      <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
-        <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
-        <img class="profile-image" v-else src="@/assets/default-user-profile.png">
+    <div class="user-profile-popup">
+      <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
+                   @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)">
+        <div class="user-profile-container inline">
+          <slot :getPersonImageUrl="getPersonImageUrl"></slot>
+        </div>
       </router-link>
-      <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
-        <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
-      </router-link>
-      <p class="profile-details"><span v-if="person.dateOfBirth">Age: {{ $filters.durationInYearsOrMonths(person.dateOfBirth) }} | Date of Birth:
-        {{ $filters.humanDate(person.dateOfBirth)}} </span><span v-if="person.gender"> | Gender: {{person.gender}}</span></p>
+      <transition name="fade" mode="out-in">
+        <!--template v-slot:enter="enterClass" v-slot:leave="leaveClass"-->
+          <div class="profile-popup" :id="`profile-popup-${person.id}`"
+               v-show="activeProfilePopup === person.id"
+               @mouseleave="event => hideProfilePopup(event, person.id)">
 
-      <p class="profile-details"> <span v-if="person.email">Email: {{ person.email }}</span><span v-if="person.email && person.mobileNumber"> | </span><span v-if="person.mobileNumber">Mobile: {{person.mobileNumber}}</span></p>
-      <!-- Add other details here -->
+            <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
+              <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
+              <img class="profile-image" v-else src="@/assets/default-user-profile.png">
+            </router-link>
+            <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
+              <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
+            </router-link>
+            <p class="profile-details"><span v-if="person.dateOfBirth">Age: {{ $filters.durationInYearsOrMonths(person.dateOfBirth) }} | Date of Birth:
+              {{ $filters.humanDate(person.dateOfBirth)}} </span><span v-if="person.gender"> | Gender: {{person.gender}}</span></p>
+
+            <p class="profile-details"> <span v-if="person.email">Email: {{ person.email }}</span><span v-if="person.email && person.mobileNumber"> | </span><span v-if="person.mobileNumber">Mobile: {{person.mobileNumber}}</span></p>
+            <!-- Add other details here -->
+          </div>
+        <!--/template-->
+      </transition>
     </div>
-  </div>
 </template>
 
 
@@ -184,5 +189,12 @@ const profilePopupIsHovered = (event, personId) => {
 /* Hover effect for the link */
 .profile-link:hover + .profile-popup {
   display: block;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
 }
 </style>
