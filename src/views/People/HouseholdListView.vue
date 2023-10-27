@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { ref, reactive, inject, computed } from 'vue'
+import {ref, reactive, inject, computed, watch} from 'vue'
 import {onBeforeRouteUpdate, useRouter} from 'vue-router'
 import { useRepo } from 'pinia-orm'
 
@@ -13,6 +13,8 @@ import Toaster from '@/components/Widgets/Toaster.vue'
 import Household from "@/models/Household";
 import AddressDisplay from '../../components/AddressDisplay.vue';
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
+import Person from "@/models/Person";
+import UserSelect from "@/components/people/UserSelect.vue";
 
 const axios = inject('axios')
 
@@ -26,12 +28,19 @@ const showHouseholdLoadingError = ref(false)
 const initialFocusRef = ref(null)
 
 const newHousehold = reactive({
-
+  leader_id: null,
+  people_ids: [],
 })
+
+
 
 const households = computed(() => {
   return useRepo(Household).all()
 })
+
+const toggleAddHouseholdDialog = (val: boolean) => {
+  isOpenAddHouseholdDialog.value = val
+}
 
 const loadHouseholds = () => {
   isLoadingHousehold.value = true
@@ -51,18 +60,18 @@ loadHouseholds();
 onBeforeRouteUpdate((to, from) => {
 })
 
-const toggleAddPersonDialog = (val: boolean) => {
-  isOpenAddHouseholdDialog.value = val
+const handlePersonSelected = (person: Person) => {
+  console.log('Selected person:', person);
+  newHousehold.leader_id = person.id;
+  newHousehold.people_ids.push(person.id);
 }
 
 const createHousehold = () => {
   if (!isCreatingHousehold.value) {
     isCreatingHousehold.value = true
-    if (newHousehold.email == '')
-      newHousehold.email=null;
 
     axios
-      .post('/households', newHousehold, {params: {create_login: false}})
+      .post('/households', newHousehold)
       .then(response => {
 
         router.push({
@@ -87,7 +96,7 @@ const redirectToPersonPage = (member) =>  {
   <div class="ml-menu py-main-tb" id="people-list">
     <div class="flex items-center px-main-lr mb-10">
       <h1 class="grow">All Households</h1>
-      <Button @click="toggleAddPersonDialog(true)">
+      <Button @click="toggleAddHouseholdDialog(true)">
         <svg class="mr-2" style="width:16px;height:16px" viewBox="0 0 24 24">
           <path fill="currentColor" d="M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z"></path>
         </svg>Add Household
@@ -194,4 +203,32 @@ const redirectToPersonPage = (member) =>  {
       </table>
     </div>
   </div>
+  <Dialog :show="isOpenAddHouseholdDialog" title="Add Household" :is-form="true" :initial-focus="initialFocusRef" @close="toggleAddHouseholdDialog(false)" @submit="createHousehold">
+    <div class="dialog-content">
+      <div class="mb-4">
+        <Label for-id="Leader">Household Leader</Label>
+        <UserSelect @person-selected="handlePersonSelected" v-model="newHousehold.leader"></UserSelect>
+      </div>
+
+      <!-- Other form fields can go here, each in its separate <div class="mb-4"> for spacing -->
+
+      <div class="flex justify-end mt-4">
+        <div class="w-1/2">
+          <Button stealth @click="toggleAddHouseholdDialog(false)">Cancel</Button>
+        </div>
+        <div class="w-1/2">
+          <Button type="submit" :show-loader="isCreatingHousehold">Create</Button>
+        </div>
+      </div>
+    </div>
+  </Dialog>
+
 </template>
+
+<style scoped>
+
+.dialog-content {
+  max-height: 800px; /* Set the maximum height you desire */
+  overflow-y: visible; /* Set the overflow behavior */
+}
+</style>

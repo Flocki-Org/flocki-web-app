@@ -15,7 +15,6 @@ import Person from '@/models/Person'
 const axios = inject('axios')
 
 const router = useRouter()
-const personRepo = useRepo(Person)
 
 const isOpenAddPersonDialog = ref(false)
 const isCreatingPerson = ref(false)
