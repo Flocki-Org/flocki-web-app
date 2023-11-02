@@ -2,6 +2,7 @@ import { Model } from 'pinia-orm'
 import { Attr, Str } from 'pinia-orm/dist/decorators'
 import type EntityImage from './EntityImage'
 import type Household from "@/models/Household";
+import type Address from "@/models/Address";
 
 export default class Person extends Model {
   static entity = 'people'
@@ -16,7 +17,7 @@ export default class Person extends Model {
   @Str('') declare marriageDate: string | null
   @Str('') declare maritalStatus: string | null
   @Str('') declare registeredDate: string | null
-  @Attr(null) declare address: string | null
+  @Attr(null) declare address: Address | null
   @Attr([]) declare households: Household[] | []
   @Attr(null) declare profileImage: EntityImage | null
 

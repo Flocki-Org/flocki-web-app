@@ -30,6 +30,17 @@ const initialFocusRef = ref(null)
 const newHousehold = reactive({
   leader_id: null,
   people_ids: [],
+  address_id: null,
+  address: {
+    street_number: '',
+    street: '',
+    suburb: '',
+    city: '',
+    province: '',
+    country: '',
+    postal_code: '',
+    type: 'home'
+  }
 })
 
 
@@ -70,17 +81,53 @@ const createHousehold = () => {
   if (!isCreatingHousehold.value) {
     isCreatingHousehold.value = true
 
+    //first create address and save created ID.
     axios
-      .post('/households', newHousehold)
+      .post('/addresses', newHousehold.address)
       .then(response => {
+        newHousehold.address_id = response.data.id;
+        delete newHousehold.address;
+        //then create household
+        axios
+            .post('/households', newHousehold)
+            .then(response => {
+              isOpenAddHouseholdDialog.value = false;
+              isCreatingHousehold.value = false;
+              router.push({
+                name: 'household',
+                params: {
+                  id: response.data.id
+                }
+              })
+            })
 
-        router.push({
-          name: 'household',
-          params: {
-            id: response.data.id
-          }
-        })
-      })
+      }) .catch(error => {
+      if (error.response && error.response.status === 409) {
+        // Handle the 409 Conflict response here, if needed.
+        newHousehold.address_id = response.data.id;
+        //remove address object from newHousehold
+        delete newHousehold.address;
+        axios
+            .post('/households', newHousehold)
+            .then(response => {
+              isCreatingHousehold.value = false;
+              isOpenAddHouseholdDialog.value = false;
+              router.push({
+                name: 'household',
+                params: {
+                  id: response.data.id
+                }
+              })
+            })
+      } else {
+        // Handle other errors that occur during the request.
+        console.error('An error occurred:', error);
+        isOpenAddHouseholdDialog.value = false;
+        isCreatingHousehold.value = false;
+      }
+    });
+
+
   }
 }
 
@@ -204,6 +251,8 @@ const redirectToPersonPage = (member) =>  {
     </div>
   </div>
   <Dialog :show="isOpenAddHouseholdDialog" title="Add Household" :is-form="true" :initial-focus="initialFocusRef" @close="toggleAddHouseholdDialog(false)" @submit="createHousehold">
+    <template #default>
+
     <div class="dialog-content">
       <div class="mb-4">
         <Label for-id="Leader">Household Leader</Label>
@@ -211,24 +260,70 @@ const redirectToPersonPage = (member) =>  {
       </div>
 
       <!-- Other form fields can go here, each in its separate <div class="mb-4"> for spacing -->
+      <!-- Address Entry Form -->
 
-      <div class="flex justify-end mt-4">
-        <div class="w-1/2">
-          <Button stealth @click="toggleAddHouseholdDialog(false)">Cancel</Button>
+      <div class="mb-4">
+        <div class="flex">
+          <div class="w-1/3 pr-2">
+            <Label for-id="StreetNumber">Street Number</Label>
+            <Input v-model="newHousehold.address.streetNumber" />
+          </div>
+          <div class="w-2/3">
+            <Label for-id="Street">Street</Label>
+            <Input v-model="newHousehold.address.street" />
+          </div>
         </div>
-        <div class="w-1/2">
-          <Button type="submit" :show-loader="isCreatingHousehold">Create</Button>
+      </div>
+      <div class="mb-4">
+        <div class="flex">
+          <div class="w-1/2 pr-2">
+            <Label for-id="Suburb">Suburb</Label>
+            <Input v-model="newHousehold.address.suburb" />
+          </div>
+          <div class="w-1/2">
+            <Label for-id="City">City</Label>
+            <Input v-model="newHousehold.address.city" />
+          </div>
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="flex">
+          <div class="w-2/5 pr-2">
+            <Label for-id="Province">Province</Label>
+            <Input v-model="newHousehold.address.province" />
+          </div>
+          <div class="w-2/5">
+            <Label for-id="Country">Country</Label>
+            <Input v-model="newHousehold.address.country" />
+          </div>
+          <div class="w-1/5 pl-2">
+            <Label for-id="PostalCode">Code</Label>
+            <Input v-model="newHousehold.address.postalCode" />
+          </div>
         </div>
       </div>
     </div>
-  </Dialog>
+    </template>
+      <!-- End of Address Entry Form -->
+      <template #controls>
+      <div class="flex justify-end mt-4">
+        <div>
+          <Button stealth @click="toggleAddHouseholdDialog(false)">Cancel</Button>
+        </div>
+        <div>
+          <Button type="submit" class="ml-2" :show-loader="isCreatingHousehold">Create</Button>
+        </div>
+      </div>
+    </template>
 
+  </Dialog>
 </template>
 
 <style scoped>
 
 .dialog-content {
   max-height: 800px; /* Set the maximum height you desire */
+  max-width: 400px;
   overflow-y: visible; /* Set the overflow behavior */
 }
 </style>

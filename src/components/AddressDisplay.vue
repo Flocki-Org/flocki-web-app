@@ -32,6 +32,9 @@ const formattedAddress = computed(() => {
 
   // Replace placeholders in addressFormat with actual values
   const formatted = addressFormat.replace(/\[\[(\w+)\]\]/g, (match, key) => {
+    console.log(address);
+    console.log(placeholderMap);
+    console.log(match, key, placeholderMap[key]);
     if (placeholderMap[key] !== undefined) {
       return placeholderMap[key];
     }
