@@ -1,5 +1,6 @@
 <script setup lang="tsx">
-import {ref, reactive, inject, computed, watch} from 'vue'
+import {ref, reactive, inject, computed} from 'vue'
+
 import {onBeforeRouteUpdate, useRouter} from 'vue-router'
 import { useRepo } from 'pinia-orm'
 
@@ -26,6 +27,22 @@ const isCreatingHousehold = ref(false)
 const isLoadingHousehold = ref(false)
 const showHouseholdLoadingError = ref(false)
 const initialFocusRef = ref(null)
+const createHouseholdSuccess = ref(false)
+const createHouseholdFailed = ref(false)
+let clickCount = 0; // Click count tracker
+
+// Function to handle the triple click event
+const handleClick = () => {
+  clickCount++;
+  console.log(clickCount);
+
+  if (clickCount >= 3) {
+    // Generate and fill in random address values
+    fillInRandomAddress();
+    clickCount = 0; // Reset the click count
+  }
+};
+
 
 const newHousehold = reactive({
   leader_id: null,
@@ -43,13 +60,27 @@ const newHousehold = reactive({
   }
 })
 
-
+// Function to generate and fill in random address values
+const fillInRandomAddress = () => {
+  if (!newHousehold.address) {
+    newHousehold.address = {}; // Initialize the address object if it's not defined
+  }
+  // Generate random address values (you can customize this part)
+  newHousehold.address.street_number = String(Math.floor(Math.random() * 100) + 1); // Example: Random street number from 1 to 100
+  newHousehold.address.street = 'Random Street Name';
+  newHousehold.address.suburb = 'Random Suburb';
+  newHousehold.address.city = 'Random City';
+  newHousehold.address.province = 'Random Province';
+  newHousehold.address.country = 'South Africa';
+  newHousehold.address.postal_code = '1685';
+};
 
 const households = computed(() => {
   return useRepo(Household).all()
 })
 
 const toggleAddHouseholdDialog = (val: boolean) => {
+  console.log('toggleAddHouseholdDialog: ', val);
   isOpenAddHouseholdDialog.value = val
 }
 
@@ -77,6 +108,14 @@ const handlePersonSelected = (person: Person) => {
   newHousehold.people_ids.push(person.id);
 }
 
+const handleSuccessfulHouseholdCreation = (household: Household) => {
+  isOpenAddHouseholdDialog.value = false;
+  isCreatingHousehold.value = false;
+  createHouseholdSuccess.value = true;
+  households.value.push(household);
+
+}
+
 const createHousehold = () => {
   if (!isCreatingHousehold.value) {
     isCreatingHousehold.value = true
@@ -91,39 +130,39 @@ const createHousehold = () => {
         axios
             .post('/households', newHousehold)
             .then(response => {
-              isOpenAddHouseholdDialog.value = false;
+              handleSuccessfulHouseholdCreation(response.data);
+            }) .catch(error => {
+              console.log('got here in error of creating household for new address');
+              console.log(error);
               isCreatingHousehold.value = false;
-              router.push({
-                name: 'household',
-                params: {
-                  id: response.data.id
-                }
-              })
-            })
-
+              isOpenAddHouseholdDialog.value = false;
+              createHouseholdFailed.value = true;
+        });
       }) .catch(error => {
       if (error.response && error.response.status === 409) {
         // Handle the 409 Conflict response here, if needed.
-        newHousehold.address_id = response.data.id;
+        newHousehold.address_id = error.response.data.id;
         //remove address object from newHousehold
         delete newHousehold.address;
         axios
             .post('/households', newHousehold)
             .then(response => {
+              handleSuccessfulHouseholdCreation(response.data);
+            }) .catch(error => {
+              console.log('got here in error of creating household');
+              console.log(error);
               isCreatingHousehold.value = false;
               isOpenAddHouseholdDialog.value = false;
-              router.push({
-                name: 'household',
-                params: {
-                  id: response.data.id
-                }
-              })
-            })
+              createHouseholdFailed.value = true;
+            });
       } else {
         // Handle other errors that occur during the request.
         console.error('An error occurred:', error);
         isOpenAddHouseholdDialog.value = false;
         isCreatingHousehold.value = false;
+        createHouseholdFailed.value = true;
+        households.value = useRepo(Household).all();
+
       }
     });
 
@@ -138,8 +177,11 @@ const redirectToPersonPage = (member) =>  {
 
 </script>
 
-<template>  
+<template>
   <Toaster message="Couldn't retrieve people. Please try again later." type="error" :show="showHouseholdLoadingError" @close="showHouseholdLoadingError = false"></Toaster>
+  <Toaster message="New household added" type="success" :show="createHouseholdSuccess" @close="createHouseholdSuccess = false" timeout="3000"></Toaster>
+  <Toaster message="Failed New household added" type="error" :show="createHouseholdFailed" @close="createHouseholdFailed = false" ></Toaster>
+
   <div class="ml-menu py-main-tb" id="people-list">
     <div class="flex items-center px-main-lr mb-10">
       <h1 class="grow">All Households</h1>
@@ -250,73 +292,75 @@ const redirectToPersonPage = (member) =>  {
       </table>
     </div>
   </div>
-  <Dialog :show="isOpenAddHouseholdDialog" title="Add Household" :is-form="true" :initial-focus="initialFocusRef" @close="toggleAddHouseholdDialog(false)" @submit="createHousehold">
-    <template #default>
+  <div v-if="isOpenAddHouseholdDialog">
+    <Dialog :show="true" title="Add Household" :is-form="true" :initial-focus="initialFocusRef" @close="toggleAddHouseholdDialog(false)" @submit="createHousehold">
+      <template #default>
 
-    <div class="dialog-content">
-      <div class="mb-4">
-        <Label for-id="Leader">Household Leader</Label>
-        <UserSelect @person-selected="handlePersonSelected" v-model="newHousehold.leader"></UserSelect>
-      </div>
+      <div class="dialog-content">
+        <div class="mb-4">
+          <Label for-id="Leader">Household Leader</Label>
+          <UserSelect @person-selected="handlePersonSelected" v-model="newHousehold.leader"></UserSelect>
+        </div>
 
-      <!-- Other form fields can go here, each in its separate <div class="mb-4"> for spacing -->
-      <!-- Address Entry Form -->
+        <!-- Other form fields can go here, each in its separate <div class="mb-4"> for spacing -->
+        <!-- Address Entry Form -->
 
-      <div class="mb-4">
-        <div class="flex">
-          <div class="w-1/3 pr-2">
-            <Label for-id="StreetNumber">Street Number</Label>
-            <Input v-model="newHousehold.address.streetNumber" />
+        <div class="mb-4">
+          <div class="flex">
+            <div class="w-1/3 pr-2">
+              <Label for-id="streetNumber">Street Number</Label>
+              <Input v-model="newHousehold.address.street_number" @click="handleClick" />
+            </div>
+            <div class="w-2/3">
+              <Label for-id="Street">Street</Label>
+              <Input v-model="newHousehold.address.street" />
+            </div>
           </div>
-          <div class="w-2/3">
-            <Label for-id="Street">Street</Label>
-            <Input v-model="newHousehold.address.street" />
+        </div>
+        <div class="mb-4">
+          <div class="flex">
+            <div class="w-1/2 pr-2">
+              <Label for-id="Suburb">Suburb</Label>
+              <Input v-model="newHousehold.address.suburb" />
+            </div>
+            <div class="w-1/2">
+              <Label for-id="City">City</Label>
+              <Input v-model="newHousehold.address.city" />
+            </div>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="flex">
+            <div class="w-2/5 pr-2">
+              <Label for-id="Province">Province</Label>
+              <Input v-model="newHousehold.address.province" />
+            </div>
+            <div class="w-2/5">
+              <Label for-id="Country">Country</Label>
+              <Input v-model="newHousehold.address.country" />
+            </div>
+            <div class="w-1/5 pl-2">
+              <Label for-id="PostalCode">Code</Label>
+              <Input v-model="newHousehold.address.postal_code" />
+            </div>
           </div>
         </div>
       </div>
-      <div class="mb-4">
-        <div class="flex">
-          <div class="w-1/2 pr-2">
-            <Label for-id="Suburb">Suburb</Label>
-            <Input v-model="newHousehold.address.suburb" />
+      </template>
+        <!-- End of Address Entry Form -->
+        <template #controls>
+        <div class="flex justify-end mt-4">
+          <div>
+            <Button stealth @click="toggleAddHouseholdDialog(false)">Cancel</Button>
           </div>
-          <div class="w-1/2">
-            <Label for-id="City">City</Label>
-            <Input v-model="newHousehold.address.city" />
-          </div>
-        </div>
-      </div>
-      <div class="mb-4">
-        <div class="flex">
-          <div class="w-2/5 pr-2">
-            <Label for-id="Province">Province</Label>
-            <Input v-model="newHousehold.address.province" />
-          </div>
-          <div class="w-2/5">
-            <Label for-id="Country">Country</Label>
-            <Input v-model="newHousehold.address.country" />
-          </div>
-          <div class="w-1/5 pl-2">
-            <Label for-id="PostalCode">Code</Label>
-            <Input v-model="newHousehold.address.postalCode" />
+          <div>
+            <Button type="submit" class="ml-2" :show-loader="isCreatingHousehold">Create</Button>
           </div>
         </div>
-      </div>
-    </div>
-    </template>
-      <!-- End of Address Entry Form -->
-      <template #controls>
-      <div class="flex justify-end mt-4">
-        <div>
-          <Button stealth @click="toggleAddHouseholdDialog(false)">Cancel</Button>
-        </div>
-        <div>
-          <Button type="submit" class="ml-2" :show-loader="isCreatingHousehold">Create</Button>
-        </div>
-      </div>
-    </template>
+      </template>
 
-  </Dialog>
+    </Dialog>
+  </div>
 </template>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-
+import {computed, watch, defineEmits} from 'vue'
+const emit = defineEmits(['close']);
 const props = defineProps({
   message: {
     type: String
@@ -17,6 +17,10 @@ const props = defineProps({
   canClose: {
     type: Boolean,
     default: true
+  },
+  timeout: {
+    type: Number, // New prop for specifying the timeout
+    default: 0 // Default timeout is 0 to disable
   }
 })
 
@@ -29,6 +33,23 @@ const getIcon = computed(() => {
     return 'M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z'
   }
 })
+
+// Watch for changes in the 'show' prop to automatically close the toaster
+watch(
+    () => props.show,
+    (newShow, oldShow) => {
+      if (newShow && props.timeout > 0) {
+        setTimeout(() => {
+          closeToast();
+        }, props.timeout);
+      }
+    }
+);
+
+const closeToast = () => {
+  emit('close')
+}
+
 </script>
 
 <template lang="pug">

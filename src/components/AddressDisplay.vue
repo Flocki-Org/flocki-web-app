@@ -20,13 +20,13 @@ const formattedAddress = computed(() => {
   // Define a mapping of placeholders to address properties
   const placeholderMap = {
     type: address.type,
-    streetNumber: address.streetNumber,
+    streetNumber: address.street_number,
     street: address.street,
     suburb: address.suburb,
     city: address.city,
     province: address.province,
     country: address.country,
-    postalCode: address.postalCode,
+    postalCode: address.postal_code,
     newline: '\n', // Define newline as a new line character
   };
 
