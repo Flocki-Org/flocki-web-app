@@ -65,7 +65,7 @@ const router = createRouter({
         {
             path: "/households",
             components: {
-                default: () => import("@/views/People/HouseholdView.vue"),
+                default: () => import("@/views/People/HouseholdsView.vue"),
                 MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                 MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
             },
@@ -75,6 +75,15 @@ const router = createRouter({
                     name: "households",
                     components: {
                         default: () => import("@/views/People/HouseholdListView.vue"),
+                        MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
+                        MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
+                    }
+                },
+                {
+                    path: ":id",
+                    name: "household",
+                    components: {
+                        default: () => import("@/views/People/HouseholdView.vue"),
                         MainSidebar: () => import("@/views/Layout/MainSidebar.vue"),
                         MainTopbar: () => import("@/views/Layout/MainTopbar.vue"),
                     }
@@ -170,7 +179,7 @@ function checkIfChurchExists() {
         axios.get('/church')
             .then(response => {
                 next();
-             })
+            })
             .catch((err) => {
                 console.log(err);
                 next('setup');
