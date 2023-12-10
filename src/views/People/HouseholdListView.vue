@@ -263,7 +263,7 @@ const redirectToPersonPage = (member) =>  {
               </div>
             </td>
             <td class="py-3 flex items-center"><img class="w-10 h-10 mr-2 rounded-full" v-if="household && household.householdImage" :src="getHouseholdImageUrl(household)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
-              <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'households', params: { id: household.id } }">{{ household.leader.lastName}} </router-link>
+              <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'household', params: { id: household.id } }">{{ household.leader.lastName}} </router-link>
             </td>
             <td class="py-3">
               <div v-if="household && household.address">

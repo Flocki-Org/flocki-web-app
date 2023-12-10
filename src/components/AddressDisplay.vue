@@ -20,21 +20,18 @@ const formattedAddress = computed(() => {
   // Define a mapping of placeholders to address properties
   const placeholderMap = {
     type: address.type,
-    streetNumber: address.street_number,
+    streetNumber: address.streetNumber,
     street: address.street,
     suburb: address.suburb,
     city: address.city,
     province: address.province,
     country: address.country,
-    postalCode: address.postal_code,
+    postalCode: address.postalCode,
     newline: '\n', // Define newline as a new line character
   };
 
   // Replace placeholders in addressFormat with actual values
   const formatted = addressFormat.replace(/\[\[(\w+)\]\]/g, (match, key) => {
-    console.log(address);
-    console.log(placeholderMap);
-    console.log(match, key, placeholderMap[key]);
     if (placeholderMap[key] !== undefined) {
       return placeholderMap[key];
     }
@@ -44,6 +41,3 @@ const formattedAddress = computed(() => {
   return formatted;
 });
 </script>
-
-
-

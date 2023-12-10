@@ -6,13 +6,13 @@ export default class Address extends Model {
 
     @Attr(null) declare id: number | null
     @Str('') declare type: string
-    @Str('') declare street_number: string
+    @Str('') declare streetNumber: string
     @Str('') declare street: string
     @Str('') declare suburb: string
     @Str('') declare city: string
     @Str('') declare province: string
     @Str('') declare country: string
-    @Str('') declare postal_code: string
+    @Str('') declare postalCode: string
     @Num(null) declare latitude: number | null
     @Num(null) declare longitude: number | null
 }
