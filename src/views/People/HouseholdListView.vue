@@ -277,8 +277,7 @@ const redirectToPersonPage = (member) =>  {
               <!-- show a list of circular images of the members -->
                 <div v-for="member in household.people"  class="inline" @click="redirectToPersonPage(member)">
                   <UserProfilePopup
-                      :person="member"
-                      :includeName="false">
+                      :person="member">
                     <template v-slot:default="{ getPersonImageUrl }">
                       <img class="w-10 h-10 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)" :title="member.firstName">
                       <img class="w-10 h-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png" :title="member.firstName">

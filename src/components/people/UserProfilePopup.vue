@@ -93,6 +93,7 @@ const profilePopupIsHovered = (event, personId) => {
         <div class="user-profile-container inline">
           <slot :getPersonImageUrl="getPersonImageUrl"></slot>
         </div>
+
       </router-link>
       <transition name="fade" mode="out-in">
         <!--template v-slot:enter="enterClass" v-slot:leave="leaveClass"-->

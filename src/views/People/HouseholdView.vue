@@ -12,6 +12,11 @@ import {getPersonImageUrl, getHouseholdImageUrl} from '@/imageUtils';
 import Household from "@/models/Household";
 import AddressDisplay from '../../components/AddressDisplay.vue';
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
+import Input from "@/components/Forms/Input.vue";
+import Button from "@/components/Forms/Button.vue";
+import Dialog from "@/components/Widgets/Dialog.vue";
+import Label from "@/components/Forms/Label.vue";
+import UserSelect from "@/components/people/UserSelect.vue";
 
 
 const axios = inject('axios')
@@ -31,6 +36,15 @@ const croppedImage = ref(null);
 const uploadHouseholdImageFailed = ref(false);
 const uploadHouseholdImageSuccess = ref(false);
 
+const isOpenAddMemberDialog = ref(false);
+const isAddingMember = ref(false);
+const newmember = ref(null);
+const toggleAddMemberDialog = () => {
+  isOpenAddMemberDialog.value = !isOpenAddMemberDialog.value;
+  console.log(isOpenAddMemberDialog);
+}
+
+
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
 };
@@ -38,6 +52,11 @@ const toggleDropdown = () => {
 const handleCroppedImage = (dataUrl) => {
   croppedImage.value = dataUrl;
 };
+
+const handlePersonSelected = (person: Person) => {
+  console.log('Selected person:', person);
+  newmember.value = person;
+}
 
 const loadHousehold = (id) => {
   console.log('loadHousehold');
@@ -56,6 +75,41 @@ const loadHousehold = (id) => {
         console.log(err)
 
         showLoadingError.value = true
+      })
+}
+
+const addMemberToHousehold = (id) => {
+
+  isAddingMember.value = true;
+  household.value.people.push(newmember.value);
+  /* create a household from household but with the following fields
+
+   id: int
+    address_id: int = Field("An address")
+    people_ids: List[int] = Field(title="A list of IDs of the people to be added to the household")
+    household_image_id: int = Field(None, title="The ID of the image of this household")
+    leader_id:
+   */
+  let udpatedHousehold = {
+    id: household.value.id,
+    address_id: household.value.address.id,
+    people_ids: household.value.people.map(person => person.id),
+    household_image_id: household.value.householdImage ? household.value.householdImage.id : null,
+    leader_id: household.value.leader.id
+  }
+  //do put to households endpoint with id as url param, newmember is already added to list above
+  axios
+      .put('/households?id=' + household.value.id, udpatedHousehold)
+      .then(response => {
+        console.log(response);
+        isAddingMember.value = false;
+        isOpenAddMemberDialog.value = false;
+        loadHousehold(household.value.id);
+      })
+      .catch((err) => {
+        console.log(err)
+        isAddingMember.value = false;
+        isOpenAddMemberDialog.value = false;
       })
 }
 
@@ -188,9 +242,9 @@ const handleImageUploadFailed = () => {
                       :person="household.leader"
                       :includeName="false">
                     <template v-slot:default="{ getPersonImageUrl }">
-                      <img class="w-10 h-10 mr-1 rounded-full inline cursor-pointer" v-if="household.leader && household.leader.profileImage" :src="getPersonImageUrl(household.leader)" :title="household.leader.firstName">
-                      <img class="w-10 h-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png" :title="household.leader.firstName">
-                      {{ household.leader.firstName }} {{ household.leader.lastName }}
+                      <img class="w-10 h-10 mr-1 rounded-full inline cursor-pointer" v-if="household && household.leader && household.leader.profileImage" :src="getPersonImageUrl(household.leader)">
+                      <img class="w-10 h-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png">
+
                     </template>
                   </UserProfilePopup> </template>
               </td>
@@ -200,16 +254,23 @@ const handleImageUploadFailed = () => {
               <td class="py-4">
                 <Skeletor v-if="isLoadingHousehold" width="350"></Skeletor>
                 <template v-else>
-                <div v-for="member in household.people"  class="inline" @click="redirectToPersonPage(member)">
-                  <UserProfilePopup
-                      :person="member"
-                      :includeName="false">
-                    <template v-slot:default="{ getPersonImageUrl }">
-                      <img class="w-10 h-10 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)" :title="member.firstName">
-                      <img class="w-10 h-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png" :title="member.firstName">
-                    </template>
-                  </UserProfilePopup>
-                </div>
+                  <div class="flex items-center">
+
+                  <div v-for="member in household.people"  class="inline" @click="redirectToPersonPage(member)">
+                    <UserProfilePopup
+                        :person="member"
+                        :includeName="true">
+                      <template v-slot:default="{ getPersonImageUrl }">
+                        <img class="h-10 w-10 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)">
+                        <img class="h-10 w-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png">
+                      </template>
+                    </UserProfilePopup>
+                  </div>
+                  <!-- Add a button for adding a new member -->
+                  <button @click="toggleAddMemberDialog" class="rounded-full bg-white border-dotted border-2 border-black w-10 h-10 flex items-center justify-center ml-1 hover:bg-blue-200 focus:outline-none">
+                    <span class="text-bold text-2xl font-bold">+</span>
+                  </button>
+                  </div>
                 </template>
               </td>
             </tr>
@@ -291,6 +352,28 @@ const handleImageUploadFailed = () => {
       <h2>Cropped Image Preview</h2>
       <img :src="croppedImage" alt="Cropped Image"/>
     </div>
+  </div>
+  <div v-if="isOpenAddMemberDialog">
+
+    <Dialog :show="true" title="Add Member to Household" :is-form="true" :initial-focus="initialFocusRef" @close="toggleAddMemberDialog" @submit="addMemberToHousehold">
+      <template #default>
+
+      <div class="dialog-content">
+        <div class="mb-4">
+          <Label for-id="Person">Person</Label>
+          <UserSelect @person-selected="handlePersonSelected" v-model="newmember"></UserSelect>
+        </div>
+      </div>
+      </template>
+      <template #controls>
+        <div class="flex items-center">
+          <div class="grow">
+            <Button stealth @click="toggleAddMemberDialog">cancel</Button>
+          </div>
+          <Button type="submit" :show-loader="isAddingMember">Add to Household</Button>
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
