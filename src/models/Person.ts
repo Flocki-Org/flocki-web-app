@@ -17,7 +17,7 @@ export default class Person extends Model {
   @Str('') declare marriageDate: string | null
   @Str('') declare maritalStatus: string | null
   @Str('') declare registeredDate: string | null
-  @Attr(null) declare address: Address | null
+  @Attr([]) declare addresses: Address[] | []
   @Attr([]) declare households: Household[] | []
   @Attr(null) declare profileImage: EntityImage | null
 

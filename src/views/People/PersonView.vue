@@ -291,10 +291,10 @@ const handleImageUploadFailed = () => {
               </svg>
             </button>
           </div>
-          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person.addresses && person.addresses[0]"><AddressDisplay :address="person.addresses[0]" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" />
+          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person && person.addresses && person.addresses[0]"><AddressDisplay :address="person.addresses[0]" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" />
             <div class="w-full h-60" id="map"></div>
           </div>
-          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person.households && person.households[0] && person.households[0].address">
+          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person && person.households && person.households[0] && person.households[0].address">
             <AddressDisplay :address="person.households[0].address" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" />
             <div class="w-full h-60" id="map"></div>
           </div>
@@ -321,14 +321,14 @@ const handleImageUploadFailed = () => {
                @mouseleave="hovered=false, dropdownVisible = false ">
 
             <img class="rounded-lg reduce-height-in-panel cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
-                 v-if="person.profileImage"
+                 v-if="person && person.profileImage"
                  :src="getPersonImageUrl(person)">
             <img class="rounded-lg w-full cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
                  v-else
                  src="@/assets/default-user-profile.png">
             <div v-if="dropdownVisible" class="absolute top-0 right-0 mt-2">
               <ul class="custom-hover bg-white border rounded shadow-lg">
-                <li v-if="person.profileImage">
+                <li v-if="person && person.profileImage">
                   <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewProfileImage">View Profile Image</a>
                 </li>
                 <li>
@@ -338,7 +338,7 @@ const handleImageUploadFailed = () => {
             </div>
           </div>
         </div>
-        <div v-if="person.households && person.households[0]" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+        <div v-if="person && person.households && person.households[0]" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
             <h2 class="grow text-gray-700">{{person.lastName}} Household</h2>
             <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
@@ -349,7 +349,7 @@ const handleImageUploadFailed = () => {
           </div><img class="w-full" :src="person.households && person.households[0] ? getHouseholdImageUrl(person.households[0]) : null">
           <div>
             <template v-if="!isLoadingPerson && person">
-              <template v-if="person.households && person.households[0]">
+              <template v-if="person && person.households && person.households[0]">
                 <template v-if="person.households[0].people">
                   <!--each householdPerson in person.householdsArray[0].people-->
                   <div>
