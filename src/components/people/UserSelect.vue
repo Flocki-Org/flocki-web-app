@@ -87,6 +87,7 @@ const clearInput = () => {
             v-model="userSearchInput"
             @input="handleInput"
             @click="showPeopleList = true"
+            @focus="clearInput"
             :style="{ paddingLeft: selectedPerson ? '50px' : '10px' }"
         />
         <span v-if="selectedPerson" class="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -210,8 +211,3 @@ const clearInput = () => {
 }
 
 </style>
-
-
-
-
-

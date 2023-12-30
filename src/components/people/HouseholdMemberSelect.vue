@@ -88,6 +88,7 @@ const clearInput = () => {
             type="text"
             v-model="userSearchInput"
             @input="handleInput"
+            @focus="clearInput"
             @click="showPeopleList = true"
             :style="{ paddingLeft: selectedPerson ? '50px' : '10px' }"
         />
