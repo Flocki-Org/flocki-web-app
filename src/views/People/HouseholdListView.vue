@@ -298,7 +298,7 @@ const redirectToPersonPage = (member) =>  {
       <div class="dialog-content">
         <div class="mb-4">
           <Label for-id="Leader">Household Leader</Label>
-          <UserSelect @person-selected="handlePersonSelected" v-model="newHousehold.leader"></UserSelect>
+          <UserSelect @person-selected="handlePersonSelected" v-model="newHousehold.leader" peopleUrl="/people/with_name_or_surname"></UserSelect>
         </div>
 
         <!-- Other form fields can go here, each in its separate <div class="mb-4"> for spacing -->

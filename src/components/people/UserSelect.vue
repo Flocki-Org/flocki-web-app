@@ -8,7 +8,10 @@ import { getPersonImageUrl } from '@/imageUtils';
 const emit = defineEmits(['person-selected']);
 
 const axios = inject('axios')
-
+const { householdId, peopleUrl } = defineProps([
+  'householdId',
+  'peopleUrl'
+])
 const userSearchInput = ref('');
 const showPeopleList = ref(false);
 const selectedPerson = ref(null);
@@ -33,13 +36,20 @@ const fetchPeople = async (name, surname) => {
     // Make an API request to fetch people
     console.log(name, surname)
     let url = ''
-    if (name && surname) {
-      url = `/people/with_name_or_surname?name=${name}&surname=${surname}`
-    } else if (name) {
-      url = `/people/with_name_or_surname?name=${name}`
-    } else if (surname) {
-      url = `/people/with_name_or_surname?surname=${surname}`
+    let houseHoldUrlParam = ''
+    console.log(peopleUrl)
+    if (householdId) {
+      houseHoldUrlParam = `household_id=${householdId}`
     }
+
+    if (name && surname) {
+      url = `${peopleUrl}?name=${name}&surname=${surname}&${houseHoldUrlParam}`
+    } else if (name) {
+      url = `${peopleUrl}?name=${name}&${houseHoldUrlParam}`
+    } else if (surname) {
+      url = `${peopleUrl}?surname=${surname}&${houseHoldUrlParam}`
+    }
+    console.log('got here 2')
     console.log(url);
     axios
         .get(url)
@@ -86,8 +96,8 @@ const clearInput = () => {
             type="text"
             v-model="userSearchInput"
             @input="handleInput"
-            @click="showPeopleList = true"
             @focus="clearInput"
+            @click="showPeopleList = true"
             :style="{ paddingLeft: selectedPerson ? '50px' : '10px' }"
         />
         <span v-if="selectedPerson" class="absolute left-3 top-1/2 transform -translate-y-1/2">

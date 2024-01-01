@@ -17,7 +17,6 @@ import Button from "@/components/Forms/Button.vue";
 import Dialog from "@/components/Widgets/Dialog.vue";
 import Label from "@/components/Forms/Label.vue";
 import UserSelect from "@/components/people/UserSelect.vue";
-import HouseholdMemberSelect from "@/components/people/HouseholdMemberSelect.vue";
 
 
 const axios = inject('axios')
@@ -362,7 +361,7 @@ const handleImageUploadFailed = () => {
       <div class="dialog-content">
         <div class="mb-4">
           <Label for-id="Person">Person</Label>
-          <HouseholdMemberSelect @person-selected="handlePersonSelected" v-model="newmember" :household-id="household.id"></HouseholdMemberSelect>
+          <UserSelect @person-selected="handlePersonSelected" v-model="newmember" :household-id="household.id" peopleUrl="/households/people"></UserSelect>
         </div>
       </div>
       </template>
