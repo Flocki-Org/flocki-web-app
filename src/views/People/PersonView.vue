@@ -340,13 +340,16 @@ const handleImageUploadFailed = () => {
         </div>
         <div v-if="person && person.households && person.households[0]" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
-            <h2 class="grow text-gray-700">{{person.lastName}} Household</h2>
-            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
-              <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
-              </svg>
-            </button>
-          </div><img class="w-full" :src="person.households && person.households[0] ? getHouseholdImageUrl(person.households[0]) : null">
+            <router-link  class="grow" :to="{name: 'household', params: {id: person.households[0].id} }">
+              <h2 class="text-gray-700">{{person.lastName}} Household</h2>
+            </router-link>
+              <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
+                </svg>
+              </button>
+          </div>
+          <img class="w-full" :src="person.households && person.households[0] ? getHouseholdImageUrl(person.households[0]) : null">
           <div>
             <template v-if="!isLoadingPerson && person">
               <template v-if="person && person.households && person.households[0]">

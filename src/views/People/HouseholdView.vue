@@ -35,10 +35,70 @@ const uploadHouseholdImage = ref(false)
 const croppedImage = ref(null);
 const uploadHouseholdImageFailed = ref(false);
 const uploadHouseholdImageSuccess = ref(false);
+const memberRemovalSuccess = ref(false);
 
 const isOpenAddMemberDialog = ref(false);
 const isAddingMember = ref(false);
 const newmember = ref(null);
+
+const visibleDeleteIcons = ref([]);
+
+const showDeleteIcon = (memberId) => {
+  // Hide all delete icons first
+  if(household && household.value && household.value.people) {
+    visibleDeleteIcons.value = Array(household.value.people.length).fill(false);
+
+    // Show delete icon for the clicked member
+    visibleDeleteIcons.value[memberId] = true;
+  }
+};
+
+const isDeleteIconVisible = (memberId) => {
+  // Check if delete icon is visible for a specific member
+  return visibleDeleteIcons.value[memberId] || false;
+};
+
+const removeMember = (memberId) => {
+  // Implement logic to remove the member from the household
+  // You can use household.people.splice(index, 1) or any other method
+  //check if member is leader and if so don't allow removal
+  if (household.value.leader.id === memberId) {
+    //show alert dialog
+    alert('Cannot remove leader from household')
+    return;
+  }
+
+  //check if user is sure of removal. show name
+  if (!confirm('Are you sure you want to remove ' + household.value.people.find(person => person.id === memberId).firstName +
+      ' ' + household.value.people.find(person => person.id === memberId).lastName + ' from the household?')) {
+    return;
+  }
+  //remove member from household
+  household.value.people = household.value.people.filter(person => person.id !== memberId)
+  //do put to households endpoint with id as url param, newmember is already added to list above
+  let udpatedHousehold = {
+    id: household.value.id,
+    address_id: household.value.address.id,
+    people_ids: household.value.people.map(person => person.id),
+    household_image_id: household.value.householdImage ? household.value.householdImage.id : null,
+    leader_id: household.value.leader.id
+  }
+  axios
+      .put('/households?id=' + household.value.id, udpatedHousehold)
+      .then(response => {
+        console.log(response);
+        loadHousehold(household.value.id);
+        memberRemovalSuccess.value = true;
+        setTimeout(() => {
+          memberRemovalSuccess.value = false;
+        }, 3000);
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  console.log('Remove member with ID:', memberId);
+};
+
 const toggleAddMemberDialog = () => {
   isOpenAddMemberDialog.value = !isOpenAddMemberDialog.value;
   console.log(isOpenAddMemberDialog);
@@ -193,7 +253,8 @@ const handleImageUploadFailed = () => {
            @close="uploadHouseholdImageFailed = false"></Toaster>
   <Toaster message="New Household Image Uploaded" type="success" :show="uploadHouseholdImageSuccess"
            @close="uploadHouseholdImageSuccess = false"></Toaster>
-
+  <Toaster message="Household member removed from household" type="success" :show="memberRemovalSuccess"
+           @close="memberRemovalSuccess = false"></Toaster>
 
   <div class="ml-menu py-main-tb" id="household">
     <div class="flex items-center px-main-lr mb-10 relative">
@@ -242,8 +303,8 @@ const handleImageUploadFailed = () => {
                       :person="household.leader"
                       :includeName="false">
                     <template v-slot:default="{ getPersonImageUrl }">
-                      <img class="w-10 h-10 mr-1 rounded-full inline cursor-pointer" v-if="household && household.leader && household.leader.profileImage" :src="getPersonImageUrl(household.leader)">
-                      <img class="w-10 h-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png">
+                      <img class="w-12 h-12 mr-1 rounded-full inline cursor-pointer" v-if="household && household.leader && household.leader.profileImage" :src="getPersonImageUrl(household.leader)">
+                      <img class="w-12 h-12 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png">
 
                     </template>
                   </UserProfilePopup> </template>
@@ -256,16 +317,41 @@ const handleImageUploadFailed = () => {
                 <template v-else>
                   <div class="flex items-center">
 
-                  <div v-for="member in household.people"  class="inline" @click="redirectToPersonPage(member)">
-                    <UserProfilePopup
-                        :person="member"
-                        :includeName="true">
-                      <template v-slot:default="{ getPersonImageUrl }">
-                        <img class="h-10 w-10 mr-1 rounded-full inline cursor-pointer" v-if="member && member.profileImage" :src="getPersonImageUrl(member)">
-                        <img class="h-10 w-10 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png">
-                      </template>
-                    </UserProfilePopup>
-                  </div>
+  <div>
+    <div
+      v-for="member in household.people"
+      :key="member.id"
+      class="inline relative"
+      @click="showDeleteIcon(member.id)"
+    >
+      <UserProfilePopup :person="member" :include-name="true" should-prevent-default="true">
+        <template v-slot:default="{ getPersonImageUrl }">
+          <img
+            class="h-12 w-12 mr-1 rounded-full inline cursor-pointer"
+            v-if="member && member.profileImage"
+            :src="getPersonImageUrl(member)"
+            :class="{'border border-2 border-black': isDeleteIconVisible(member.id)}"
+          />
+          <img
+            class="h-12 w-12 rounded-full inline cursor-pointer"
+            v-else
+            src="@/assets/default-user-profile.png"
+            :class="{'border border-2 border-black': isDeleteIconVisible(member.id)}"
+          />
+        </template>
+      </UserProfilePopup>
+
+      <!-- Delete icon, initially hidden -->
+      <button
+        v-if="isDeleteIconVisible(member.id)"
+        class="absolute top-1/2 right-0 transform -translate-y-1/2 bg-red-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
+        @click="removeMember(member.id)"
+      >
+        <!-- Add your delete icon here -->
+        X
+      </button>
+    </div>
+  </div>
                   <!-- Add a button for adding a new member -->
                   <button @click="toggleAddMemberDialog" class="rounded-full bg-white border-dotted border-2 border-black w-10 h-10 flex items-center justify-center ml-1 hover:bg-blue-200 focus:outline-none">
                     <span class="text-bold text-2xl font-bold">+</span>

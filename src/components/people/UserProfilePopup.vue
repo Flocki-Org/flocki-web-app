@@ -2,10 +2,11 @@
 import { ref, defineProps } from 'vue';
 import { getPersonImageUrl } from '@/imageUtils';
 
-const { personId, person, includeName } = defineProps([
+const { personId, person, includeName, shouldPreventDefault } = defineProps([
   'personId',
   'person',
-  'includeName'
+  'includeName',
+  'shouldPreventDefault'
 ]);
 const showingPersonPopupModel = ref(false);
 const activeProfilePopup = ref(null);
@@ -84,17 +85,34 @@ const profilePopupIsHovered = (event, personId) => {
   );
 };
 
+const handleLinkClick = (event) => {
+  // Your logic to determine whether to prevent the default action
+  console.log('handleLinkClick');
+  console.log(shouldPreventDefault);
+  if (shouldPreventDefault) {
+    event.preventDefault();
+  }
+};
+
 </script>
 
 <template>
     <div class="user-profile-popup">
-      <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
-                   @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)">
+      <router-link v-if="!shouldPreventDefault" class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
+                   @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
+                   @click="handleLinkClick">
         <div class="user-profile-container inline">
           <slot :getPersonImageUrl="getPersonImageUrl"></slot>
         </div>
 
       </router-link>
+      <a v-else class="no-underline group-hover_underline text-current group-hover_text-sky-500" :href="`/people/${person.id}`"
+         @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
+         @click="handleLinkClick">
+        <div class="user-profile-container inline">
+          <slot :getPersonImageUrl="getPersonImageUrl"></slot>
+        </div>
+      </a>
       <transition name="fade" mode="out-in">
         <!--template v-slot:enter="enterClass" v-slot:leave="leaveClass"-->
           <div class="profile-popup" :id="`profile-popup-${person.id}`"
