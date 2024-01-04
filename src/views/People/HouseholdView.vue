@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ref, inject, onMounted} from 'vue'
+import {ref, inject, onMounted, onBeforeUnmount} from 'vue'
 import {useRoute, onBeforeRouteUpdate} from 'vue-router'
 import {useRepo} from 'pinia-orm'
 import L from 'leaflet'
@@ -36,6 +36,7 @@ const croppedImage = ref(null);
 const uploadHouseholdImageFailed = ref(false);
 const uploadHouseholdImageSuccess = ref(false);
 const memberRemovalSuccess = ref(false);
+const memberPromotedSuccess = ref(false);
 
 const isOpenAddMemberDialog = ref(false);
 const isAddingMember = ref(false);
@@ -43,7 +44,9 @@ const newmember = ref(null);
 
 const visibleDeleteIcons = ref([]);
 
-const showDeleteIcon = (memberId) => {
+const showDeleteIcon = (event, memberId) => {
+  event.stopPropagation();
+
   // Hide all delete icons first
   if(household && household.value && household.value.people) {
     visibleDeleteIcons.value = Array(household.value.people.length).fill(false);
@@ -53,10 +56,57 @@ const showDeleteIcon = (memberId) => {
   }
 };
 
+const clearAllDeleteIcons = () => {
+  visibleDeleteIcons.value = Array(household.value.people.length).fill(false);
+};
+
 const isDeleteIconVisible = (memberId) => {
   // Check if delete icon is visible for a specific member
   return visibleDeleteIcons.value[memberId] || false;
 };
+
+const promoteMemberToLeader = (memberId) => {
+  // Implement logic to promote the member to leader
+  // You can use household.leader = member
+  //check if member is leader and if so don't allow removal
+  if (household.value.leader.id === memberId) {
+    //show alert dialog with name of leader
+    alert(household.value.people.find(person => person.id === memberId).firstName + ' ' +
+        household.value.people.find(person => person.id === memberId).lastName + 'is already the leader');
+    return;
+  }
+
+  //check if user is sure of removal. show name
+  if (!confirm('Are you sure you want to promote ' + household.value.people.find(person => person.id === memberId).firstName +
+      ' ' + household.value.people.find(person => person.id === memberId).lastName + ' to leader of the household?')) {
+    return;
+  }
+
+  //do put to households endpoint with id as url param, newmember is already added to list above
+  let udpatedHousehold = {
+    id: household.value.id,
+    address_id: household.value.address.id,
+    people_ids: household.value.people.map(person => person.id),
+    household_image_id: household.value.householdImage ? household.value.householdImage.id : null,
+    leader_id: memberId
+  }
+
+  axios
+      .put('/households?id=' + household.value.id, udpatedHousehold)
+      .then(response => {
+        console.log(response);
+        loadHousehold(household.value.id);
+        memberPromotedSuccess.value = true;
+        clearAllDeleteIcons();
+        setTimeout(() => {
+          memberPromotedSuccess.value = false;
+        }, 3000);
+      })
+      .catch((err) => {
+        console.log(err)
+        clearAllDeleteIcons();
+      })
+}
 
 const removeMember = (memberId) => {
   // Implement logic to remove the member from the household
@@ -89,21 +139,30 @@ const removeMember = (memberId) => {
         console.log(response);
         loadHousehold(household.value.id);
         memberRemovalSuccess.value = true;
+        clearAllDeleteIcons();
         setTimeout(() => {
           memberRemovalSuccess.value = false;
         }, 3000);
       })
       .catch((err) => {
+        clearAllDeleteIcons();
         console.log(err)
       })
   console.log('Remove member with ID:', memberId);
 };
 
-const toggleAddMemberDialog = () => {
+const toggleAddMemberDialog = (event) => {
+  event.stopPropagation();
+
   isOpenAddMemberDialog.value = !isOpenAddMemberDialog.value;
   console.log(isOpenAddMemberDialog);
 }
 
+
+onBeforeUnmount(() => {
+  // Remove the click event listener when the component is unmounted
+  document.body.removeEventListener('click', clearAllDeleteIcons);
+});
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
@@ -188,6 +247,8 @@ onMounted(() => {
       attribution: '© OpenStreetMap'
     }).addTo(map);
   }
+  document.body.addEventListener('click', clearAllDeleteIcons);
+
 });
 
 onBeforeRouteUpdate((to, from) => {
@@ -255,6 +316,8 @@ const handleImageUploadFailed = () => {
            @close="uploadHouseholdImageSuccess = false"></Toaster>
   <Toaster message="Household member removed from household" type="success" :show="memberRemovalSuccess"
            @close="memberRemovalSuccess = false"></Toaster>
+  <Toaster message="Household member promoted to leader" type="success" :show="memberPromotedSuccess"
+           @close="memberPromotedSuccess = false"></Toaster>
 
   <div class="ml-menu py-main-tb" id="household">
     <div class="flex items-center px-main-lr mb-10 relative">
@@ -322,7 +385,7 @@ const handleImageUploadFailed = () => {
       v-for="member in household.people"
       :key="member.id"
       class="inline relative"
-      @click="showDeleteIcon(member.id)"
+      @click="showDeleteIcon($event, member.id)"
     >
       <UserProfilePopup :person="member" :include-name="true" should-prevent-default="true">
         <template v-slot:default="{ getPersonImageUrl }">
@@ -350,10 +413,17 @@ const handleImageUploadFailed = () => {
         <!-- Add your delete icon here -->
         X
       </button>
+            <button
+        v-if="isDeleteIconVisible(member.id)"
+        class="absolute top-1/2 right-9 transform -translate-y-1/2 bg-blue-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
+        @click="promoteMemberToLeader(member.id)"
+      >
+        ^
+      </button>
     </div>
   </div>
                   <!-- Add a button for adding a new member -->
-                  <button @click="toggleAddMemberDialog" class="rounded-full bg-white border-dotted border-2 border-black w-10 h-10 flex items-center justify-center ml-1 hover:bg-blue-200 focus:outline-none">
+                  <button @click="toggleAddMemberDialog($event)" class="rounded-full bg-white border-dotted border-2 border-black w-10 h-10 flex items-center justify-center ml-1 hover:bg-blue-200 focus:outline-none">
                     <span class="text-bold text-2xl font-bold">+</span>
                   </button>
                   </div>
