@@ -363,7 +363,7 @@ const handleImageUploadFailed = () => {
                             :includeName="true">
                           <template v-slot:default="{ getPersonImageUrl }">
                               <img class="rounded-lg" v-if="householdPerson && householdPerson.profileImage" :src="getPersonImageUrl(householdPerson)" width="82">
-                              <img class="rounded-lg" v-else src="@/assets/default-user-profile.png">
+                              <img class="rounded-lg" v-else src="@/assets/default-user-profile.png" width="82">
                           </template>
                         </UserProfilePopup>
                         <div class="flex flex-col">
