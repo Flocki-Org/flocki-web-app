@@ -227,7 +227,7 @@ const goToPage = (pageNumber) => {
         </tbody>
       </table>
     </div>
-<div class="pagination-container flex items-center mt-4">
+<div class="pagination-container flex items-center mt-4" v-if="!isLoadingPeople && people.length > 0">
   <button
     class="pagination-button"
     :disabled="page === 1"
