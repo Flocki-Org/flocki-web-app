@@ -22,6 +22,11 @@ const isLoadingPeople = ref(false)
 const showPeopleLoadingError = ref(false)
 const initialFocusRef = ref(null)
 
+const page = ref(1)
+const perPage = ref(10)
+const total = ref(0)
+const totalPages = ref(0)
+
 const newPerson = reactive({
   firstName: '',
   lastName: '',
@@ -35,11 +40,26 @@ const people = computed(() => {
 
 const loadPeople = () => {
   isLoadingPeople.value = true
-
+  const currentPage = page.value;
+  const pageSize = perPage.value;
+  console.log(currentPage, pageSize)
   axios
-    .get('/people')
+    .get('/people',{
+      params: {
+        page: currentPage,
+        page_size: pageSize,
+      },
+    })
     .then(response => {
-      useRepo(Person).save(response.data.items)
+      const personRepo = useRepo(Person);
+
+      personRepo.flush();
+      // Save new data
+      personRepo.save(response.data.items);
+      console.log(response.data.items, response.data.page, response.data.total, response.data.size)
+      page.value = response.data.page;
+      total.value = response.data.total;
+      totalPages.value = Math.ceil( total.value/ response.data.size);
       isLoadingPeople.value = false
     })
     .catch((err) => {
@@ -73,6 +93,20 @@ const createPerson = () => {
       })
   }
 }
+
+const changePage = (newPage) => {
+  if (newPage >= 1 && newPage <= totalPages.value) {
+    page.value = newPage;
+  }
+  loadPeople()
+};
+
+const goToPage = (pageNumber) => {
+  if (pageNumber >= 1 && pageNumber <= totalPages.value) {
+    page.value = pageNumber;
+   loadPeople()
+  }
+};
 
 </script>
 
@@ -193,6 +227,85 @@ const createPerson = () => {
         </tbody>
       </table>
     </div>
+<div class="pagination-container flex items-center mt-4">
+  <button
+    class="pagination-button"
+    :disabled="page === 1"
+    @click="goToPage(page - 1)"
+  >
+    &lt; Prev
+  </button>
+
+  <template v-if="totalPages <= 5">
+    <!-- Display all pages if total pages are less than or equal to 5 -->
+    <template v-for="pageNumber in totalPages">
+      <button
+        class="pagination-button"
+        :class="{ 'current-page': page === pageNumber }"
+        @click="goToPage(pageNumber)"
+      >
+        {{ pageNumber }}
+      </button>
+    </template>
+  </template>
+
+  <template v-else>
+    <!-- Display ellipses and nearby pages for larger total pages -->
+    <template v-if="page <= 3">
+      <template v-for="pageNumber in [1, 2, 3, 4, 5, '...', totalPages]">
+        <button
+          class="pagination-button"
+          :class="{ 'current-page': page === pageNumber }"
+          @click="goToPage(pageNumber)"
+          v-if="pageNumber !== '...'"
+        >
+          {{ pageNumber }}
+        </button>
+        <span v-else>...</span>
+      </template>
+    </template>
+
+    <template v-else-if="page > totalPages - 3">
+      <template v-for="pageNumber in [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]">
+        <button
+          class="pagination-button"
+          :class="{ 'current-page': page === pageNumber }"
+          @click="goToPage(pageNumber)"
+          v-if="pageNumber !== '...'"
+        >
+          {{ pageNumber }}
+        </button>
+        <span v-else>...</span>
+      </template>
+    </template>
+
+    <template v-else>
+      <template v-for="pageNumber in [1, '...', page - 1, page, page + 1, '...', totalPages]">
+        <button
+          class="pagination-button"
+          :class="{ 'current-page': page === pageNumber }"
+          @click="goToPage(pageNumber)"
+          v-if="pageNumber !== '...'"
+        >
+          {{ pageNumber }}
+        </button>
+        <span v-else>...</span>
+      </template>
+    </template>
+  </template>
+
+  <button
+    class="pagination-button"
+    :disabled="page === totalPages"
+    @click="goToPage(page + 1)"
+  >
+    Next &gt;
+  </button>
+</div>
+      <!--div class="flex justify-center mt-4">
+        <button @click="changePage(page - 1)" :disabled="page === 1" class="mr-2" :class="{ 'cursor-not-allowed': page === 1 }">Previous</button>
+        <button @click="changePage(page + 1)" :disabled="page === totalPages" :class="{ 'cursor-not-allowed': page === totalPages }">Next</button>
+      </div-->
   </div>
   <Dialog :show="isOpenAddPersonDialog" title="Add Person" :is-form="true" :initial-focus="initialFocusRef" @close="toggleAddPersonDialog(false)" @submit="createPerson">
     <template #default>
@@ -281,5 +394,32 @@ const createPerson = () => {
 /* Hover effect for the link */
 .profile-link:hover + .profile-popup {
   display: block;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px; /* Add some margin if needed */
+}
+
+.pagination-button {
+  margin: 0 4px;
+  padding: 8px 12px;
+  border: 1px solid #3490dc;
+  background-color: #fff;
+  color: #3490dc;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.pagination-button:hover {
+  background-color: #3490dc;
+  color: #fff;
+}
+
+.current-page {
+  background-color: #3490dc;
+  color: #fff;
 }
 </style>
