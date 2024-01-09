@@ -33,7 +33,7 @@ const createHouseholdFailed = ref(false)
 let clickCount = 0; // Click count tracker
 
 const page = ref(1)
-const perPage = ref(2)
+const perPage = ref(10)
 const total = ref(0)
 const totalPages = ref(0)
 
