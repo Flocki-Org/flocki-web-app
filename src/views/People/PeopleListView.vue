@@ -41,13 +41,11 @@ const people = computed(() => {
 
 const loadPeople = (currentPage, itemsPerPage) => {
   isLoadingPeople.value = true
-  const pageSize = itemsPerPage;
-  console.log(currentPage, pageSize)
   axios
     .get('/people',{
       params: {
         page: currentPage,
-        page_size: pageSize,
+        page_size: itemsPerPage,
       },
     })
     .then(response => {
@@ -56,7 +54,7 @@ const loadPeople = (currentPage, itemsPerPage) => {
       personRepo.flush();
       // Save new data
       personRepo.save(response.data.items);
-      console.log(response.data.items, response.data.page, response.data.total, response.data.size)
+
       page.value = response.data.page;
       total.value = response.data.total;
       totalPages.value = Math.ceil( total.value/ response.data.size);

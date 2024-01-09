@@ -16,6 +16,7 @@ import AddressDisplay from '../../components/AddressDisplay.vue';
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 import Person from "@/models/Person";
 import UserSelect from "@/components/people/UserSelect.vue";
+import Paginator from "@/components/Paginator.vue";
 
 const axios = inject('axios')
 
@@ -30,6 +31,11 @@ const initialFocusRef = ref(null)
 const createHouseholdSuccess = ref(false)
 const createHouseholdFailed = ref(false)
 let clickCount = 0; // Click count tracker
+
+const page = ref(1)
+const perPage = ref(2)
+const total = ref(0)
+const totalPages = ref(0)
 
 // Function to handle the triple click event
 const handleClick = () => {
@@ -84,12 +90,24 @@ const toggleAddHouseholdDialog = (val: boolean) => {
   isOpenAddHouseholdDialog.value = val
 }
 
-const loadHouseholds = () => {
+const loadHouseholds = (currentPage, itemsPerPage) => {
   isLoadingHousehold.value = true
   axios
-    .get('/households')
+    .get('/households',{
+            params: {
+            page: currentPage,
+            page_size: itemsPerPage,
+          },
+        }
+    )
     .then(response => {
-      useRepo(Household).save(response.data.items)
+      const householdRepo = useRepo(Household);
+      householdRepo.flush();
+      householdRepo.save(response.data.items)
+      page.value = response.data.page;
+      total.value = response.data.total;
+      totalPages.value = Math.ceil( total.value/ response.data.size);
+      console.log('totalPages: ', totalPages.value, 'total: ', total.value, 'page: ', page.value, 'perPage: ', perPage.value);
       isLoadingHousehold.value = false
     })
     .catch((err) => {
@@ -97,7 +115,7 @@ const loadHouseholds = () => {
     })
 }
 
-loadHouseholds();
+loadHouseholds(1, perPage.value);
 
 onBeforeRouteUpdate((to, from) => {
 })
@@ -290,6 +308,8 @@ const redirectToPersonPage = (member) =>  {
         </tbody>
       </table>
     </div>
+          <Paginator  v-if="!isLoadingHousehold && households.length > 0" :page="page" :total-pages="totalPages" :items-per-page="perPage" :load-page="loadHouseholds"/>
+
   </div>
   <div v-if="isOpenAddHouseholdDialog">
     <Dialog :show="true" title="Add Household" :is-form="true" :initial-focus="initialFocusRef" @close="toggleAddHouseholdDialog(false)" @submit="createHousehold">
