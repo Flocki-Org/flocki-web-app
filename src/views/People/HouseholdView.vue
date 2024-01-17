@@ -411,14 +411,23 @@ const handleImageUploadFailed = () => {
         @click="removeMember(member.id)"
       >
         <!-- Add your delete icon here -->
-        X
+<svg width="800px" height="800px" viewBox="1 1 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="si-glyph si-glyph-delete">
+
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M12.566,8 L15.611,4.956 C16.031,4.535 16.031,3.853 15.611,3.434 L12.566,0.389 C12.146,-0.031 11.464,-0.031 11.043,0.389 L7.999,3.433 L4.955,0.389 C4.534,-0.031 3.852,-0.031 3.432,0.389 L0.388,3.434 C-0.034,3.854 -0.034,4.536 0.387,4.956 L3.431,8 L0.387,11.044 C-0.034,11.465 -0.034,12.147 0.388,12.567 L3.432,15.611 C3.852,16.032 4.534,16.032 4.955,15.611 L7.999,12.567 L11.043,15.611 C11.464,16.032 12.146,16.032 12.566,15.611 L15.611,12.567 C16.031,12.146 16.031,11.464 15.611,11.044 L12.566,8 L12.566,8 Z" fill="#FFF" class="si-glyph-fill">
+
+</path>
+    </g>
+</svg>
       </button>
             <button
         v-if="isDeleteIconVisible(member.id)"
         class="absolute top-1/2 right-9 transform -translate-y-1/2 bg-blue-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
         @click="promoteMemberToLeader(member.id)"
       >
-        ^
+       <svg width="800px" height="800px" viewBox="1 1 15 15" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#FFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<polygon stroke-width="3" points="8 1.75,5.75 5.75,1.75 6.25,4.75 9.75,3.75 14.25,8.00 12.25,12.25 14.25,11.25 9.75,14.25 6.25,10.25 5.75"/>
+</svg>
       </button>
     </div>
   </div>
