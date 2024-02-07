@@ -407,7 +407,7 @@ const handleImageUploadFailed = () => {
       <!-- Delete icon, initially hidden -->
       <button
         v-if="isDeleteIconVisible(member.id)"
-        class="absolute top-1/2 right-0 transform -translate-y-1/2 bg-red-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
+        class="absolute top-1/2 right-9 transform -translate-y-1/2 bg-red-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
         @click="removeMember(member.id)"
       >
         <!-- Add your delete icon here -->
@@ -422,7 +422,7 @@ const handleImageUploadFailed = () => {
       </button>
             <button
         v-if="isDeleteIconVisible(member.id)"
-        class="absolute top-1/2 right-9 transform -translate-y-1/2 bg-blue-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
+        class="absolute top-1/2 left-8 transform -translate-y-1/2 bg-blue-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
         @click="promoteMemberToLeader(member.id)"
       >
        <svg width="800px" height="800px" viewBox="1 1 15 15" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#FFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">

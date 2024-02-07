@@ -186,3 +186,17 @@ function checkIfChurchExists() {
             });
     }
 }
+
+router.beforeEach((to, from, next) => {
+    axios.get('/church')
+            .then(response => {
+                document.title = 'Flocki - '  + response.data.name;
+                next();
+            })
+            .catch(error => {
+            // Handle error if the request fails
+                console.error('Error fetching data:', error);
+                // Optionally, you can redirect to an error page or do something else
+                next();
+            });
+})

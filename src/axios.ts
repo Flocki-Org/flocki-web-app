@@ -22,10 +22,19 @@ const transformData = (data: any, func: any) => {
 
 // check if working locally
 
+
 if (process.env.NODE_ENV === 'development') {
   axios.defaults.baseURL = 'http://localhost:8000';
-} else {
-  axios.defaults.baseURL = 'https://flocki-api.onrender.com';
+}
+else {
+  if (window._env_.APP_API_PROTOCOL === undefined) {
+    console.log('getting from render')
+    axios.defaults.baseURL = 'https://flocki-api.onrender.com';
+  } else {
+    console.log('getting from env')
+    axios.defaults.baseURL = window._env_.APP_API_PROTOCOL + '://' + window._env_.APP_API_URL + ':' + window._env_.APP_API_PORT;
+  }
+
 }
 
 axios.interceptors.request.use(config => {
