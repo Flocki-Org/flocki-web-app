@@ -27,7 +27,7 @@ if (process.env.NODE_ENV === 'development') {
   axios.defaults.baseURL = 'http://localhost:8000';
 }
 else {
-  if (window._env_.APP_API_PROTOCOL === undefined) {
+  if (!window._env_ || window._env_.APP_API_PROTOCOL === undefined) {
     console.log('getting from render')
     axios.defaults.baseURL = 'https://flocki-api.onrender.com';
   } else {
