@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm'
-import { Attr, Str } from 'pinia-orm/dist/decorators'
+import { Attr } from 'pinia-orm/decorators'
 import type Person from "@/models/Person";
 import type EntityImage from "@/models/EntityImage";
 import type Address from "@/models/Address";
@@ -8,11 +8,11 @@ import type Address from "@/models/Address";
 export default class Household extends Model {
   static entity = 'household'
 
-  @Attr(null) declare id: number | null
-  @Attr(null) declare leader: Person | null
-  @Attr(null) declare householdImage: EntityImage | null
-  @Attr(null) declare address: Address | null
+  @Attr(null) id!: number | null
+  @Attr(null) leader!: Person | null
+  @Attr(null) householdImage!: EntityImage | null
+  @Attr(null) address!: Address | null
   //list of family members
-  @Attr(null) declare people: Person[] | null
+  @Attr(null) people!: Person[] | null
 
 }

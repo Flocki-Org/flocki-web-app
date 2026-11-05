@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm'
-import { Attr, Str } from 'pinia-orm/dist/decorators'
+import { Attr, Str } from 'pinia-orm/decorators'
 
 export default class User extends Model {
   static entity = 'users'

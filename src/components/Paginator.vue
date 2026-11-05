@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps } from 'vue';
+import { defineProps } from 'vue';
 
 const { page, totalPages, itemsPerPage, loadPage } = defineProps(['page', 'totalPages', 'itemsPerPage', 'loadPage']);
 
@@ -24,7 +24,7 @@ const goToPage = (pageNumber) => {
     <!-- Page buttons -->
     <template v-if="totalPages <= 5">
       <!-- Display all pages if total pages are less than or equal to 5 -->
-      <template v-for="pageNumber in totalPages">
+      <template v-for="pageNumber in totalPages" :key="pageNumber">
         <button
           class="pagination-button"
           :class="{ 'current-page': page === pageNumber }"
@@ -38,7 +38,7 @@ const goToPage = (pageNumber) => {
     <!-- Display ellipses and nearby pages for larger total pages -->
     <template v-else>
       <template v-if="page <= 3">
-        <template v-for="pageNumber in [1, 2, 3, 4, 5, '...', totalPages]">
+        <template v-for="(pageNumber, index) in [1, 2, 3, 4, 5, '...', totalPages]" :key="index">
           <button
             class="pagination-button"
             :class="{ 'current-page': page === pageNumber }"
@@ -52,7 +52,7 @@ const goToPage = (pageNumber) => {
       </template>
 
       <template v-else-if="page > totalPages - 3">
-        <template v-for="pageNumber in [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]">
+        <template v-for="(pageNumber, index) in [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]" :key="index">
           <button
             class="pagination-button"
             :class="{ 'current-page': page === pageNumber }"
@@ -66,7 +66,7 @@ const goToPage = (pageNumber) => {
       </template>
 
       <template v-else>
-        <template v-for="pageNumber in [1, '...', page - 1, page, page + 1, '...', totalPages]">
+        <template v-for="(pageNumber, index) in [1, '...', page - 1, page, page + 1, '...', totalPages]" :key="index">
           <button
             class="pagination-button"
             :class="{ 'current-page': page === pageNumber }"

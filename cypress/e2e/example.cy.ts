@@ -1,8 +1,9 @@
-// https://docs.cypress.io/api/introduction/api.html
-
-describe("My First Test", () => {
-  it("visits the app root url", () => {
-    cy.visit("/");
-    cy.contains("h1", "You did it!");
-  });
-});
+describe('Sign in', () => {
+  it('shows the email and password form', () => {
+    cy.visit('/login')
+    cy.contains('h1', 'Sign In')
+    cy.get('input[type="email"]').should('be.visible')
+    cy.get('input[type="password"]').should('be.visible')
+    cy.contains('button', 'SIGN IN')
+  })
+})
