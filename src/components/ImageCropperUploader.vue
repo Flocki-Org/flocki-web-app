@@ -13,7 +13,7 @@ const isUploading = ref(false); // Add a loading state variable
 
 const cropper = ref(null);
 const cropButton = ref(null);
-const { showImageCropper, uploadEndpoint } = defineProps(['showImageCropper', 'uploadEndpoint']);
+const { uploadEndpoint } = defineProps(['showImageCropper', 'uploadEndpoint']);
 const emit = defineEmits(['imageCropperUploadFailed', 'imageCropperCancelled', 'imageCropperUploadedSuccess']);
 const axios = inject('axios')
 
@@ -104,14 +104,6 @@ const handleDragLeave = (event) => {
   }
 };
 
-// Helper function to check if the cursor is inside the drop zone or its children
-const isCursorInsideDropZone = (event) => {
-  const rect = dropZone.value.getBoundingClientRect();
-  const x = event.clientX;
-  const y = event.clientY;
-
-  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-};
 
 const handleDrop = (event) => {
   event.preventDefault();
@@ -146,7 +138,7 @@ onUnmounted(() => {
 });
 
 const handleWindowClick = (event) => {
-  if (imageUploadWrapper  && !imageUploadWrapper.value.contains(event.target)) {
+  if (imageUploadWrapper.value  && !imageUploadWrapper.value.contains(event.target)) {
       closeCropper();
   }
 };

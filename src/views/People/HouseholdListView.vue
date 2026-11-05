@@ -1,10 +1,11 @@
-<script setup lang="tsx">
+<script setup lang="ts">
+import type { AxiosInstance } from 'axios'
 import {ref, reactive, inject, computed} from 'vue'
 
 import {onBeforeRouteUpdate, useRouter} from 'vue-router'
 import { useRepo } from 'pinia-orm'
 
-import { getHouseholdImageUrl, getPersonImageUrl } from '@/imageUtils';
+import { getHouseholdImageUrl } from '@/imageUtils';
 
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
@@ -18,10 +19,9 @@ import Person from "@/models/Person";
 import UserSelect from "@/components/people/UserSelect.vue";
 import Paginator from "@/components/Paginator.vue";
 
-const axios = inject('axios')
+const axios = inject<AxiosInstance>('axios')
 
 const router = useRouter()
-const householdRepo = useRepo(Household)
 
 const isOpenAddHouseholdDialog = ref(false)
 const isCreatingHousehold = ref(false)
@@ -51,9 +51,10 @@ const handleClick = () => {
 
 
 const newHousehold = reactive({
-  leader_id: null,
-  people_ids: [],
-  address_id: null,
+  leader_id: null as number | null,
+  leader: null as Person | null,
+  people_ids: [] as Array<number | null>,
+  address_id: null as number | null,
   address: {
     street_number: '',
     street: '',
@@ -68,9 +69,6 @@ const newHousehold = reactive({
 
 // Function to generate and fill in random address values
 const fillInRandomAddress = () => {
-  if (!newHousehold.address) {
-    newHousehold.address = {}; // Initialize the address object if it's not defined
-  }
   // Generate random address values (you can customize this part)
   newHousehold.address.street_number = String(Math.floor(Math.random() * 100) + 1); // Example: Random street number from 1 to 100
   newHousehold.address.street = 'Random Street Name';
@@ -130,8 +128,7 @@ const handleSuccessfulHouseholdCreation = (household: Household) => {
   isOpenAddHouseholdDialog.value = false;
   isCreatingHousehold.value = false;
   createHouseholdSuccess.value = true;
-  households.value.push(household);
-
+  useRepo(Household).save(household);
 }
 
 const createHousehold = () => {
@@ -143,10 +140,10 @@ const createHousehold = () => {
       .post('/addresses', newHousehold.address)
       .then(response => {
         newHousehold.address_id = response.data.id;
-        delete newHousehold.address;
+        const { address: _address, leader: _leader, ...householdPayload } = newHousehold
         //then create household
         axios
-            .post('/households', newHousehold)
+            .post('/households', householdPayload)
             .then(response => {
               handleSuccessfulHouseholdCreation(response.data);
             }) .catch(error => {
@@ -160,10 +157,9 @@ const createHousehold = () => {
       if (error.response && error.response.status === 409) {
         // Handle the 409 Conflict response here, if needed.
         newHousehold.address_id = error.response.data.id;
-        //remove address object from newHousehold
-        delete newHousehold.address;
+        const { address: _address, leader: _leader, ...householdPayload } = newHousehold
         axios
-            .post('/households', newHousehold)
+            .post('/households', householdPayload)
             .then(response => {
               handleSuccessfulHouseholdCreation(response.data);
             }) .catch(error => {
@@ -179,8 +175,6 @@ const createHousehold = () => {
         isOpenAddHouseholdDialog.value = false;
         isCreatingHousehold.value = false;
         createHouseholdFailed.value = true;
-        households.value = useRepo(Household).all();
-
       }
     });
 
@@ -197,7 +191,7 @@ const redirectToPersonPage = (member) =>  {
 
 <template>
   <Toaster message="Couldn't retrieve people. Please try again later." type="error" :show="showHouseholdLoadingError" @close="showHouseholdLoadingError = false"></Toaster>
-  <Toaster message="New household added" type="success" :show="createHouseholdSuccess" @close="createHouseholdSuccess = false" timeout="3000"></Toaster>
+  <Toaster message="New household added" type="success" :show="createHouseholdSuccess" @close="createHouseholdSuccess = false" :timeout="3000"></Toaster>
   <Toaster message="Failed New household added" type="error" :show="createHouseholdFailed" @close="createHouseholdFailed = false" ></Toaster>
 
   <div class="ml-menu py-main-tb" id="people-list">
@@ -274,7 +268,7 @@ const redirectToPersonPage = (member) =>  {
           </tr>
         </thead>
         <tbody>
-          <tr class="group hover_bg-sky-100" v-for="household in households">
+          <tr class="group hover_bg-sky-100" v-for="household in households" :key="household.id">
             <td class="py-3 w-main-lr">
               <div class="flex items-center justify-around">
                 <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked_bg-sky-500 rounded border border-gray-300 hover_border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked_bg-check" type="checkbox" value="">
@@ -293,7 +287,7 @@ const redirectToPersonPage = (member) =>  {
             </td>
             <td>
               <!-- show a list of circular images of the members -->
-                <div v-for="member in household.people"  class="inline" @click="redirectToPersonPage(member)">
+                <div v-for="member in household.people" :key="member.id" class="inline" @click="redirectToPersonPage(member)">
                   <UserProfilePopup
                       :person="member">
                     <template v-slot:default="{ getPersonImageUrl }">

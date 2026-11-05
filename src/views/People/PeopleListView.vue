@@ -1,8 +1,8 @@
-<script setup lang="tsx">
+<script setup lang="ts">
+import type { AxiosInstance } from 'axios'
 import { ref, reactive, inject, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepo } from 'pinia-orm'
-import { getPersonImageUrl } from '@/imageUtils';
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 
 import Button from '@/components/Forms/Button.vue'
@@ -13,7 +13,7 @@ import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
 import Paginator from "@/components/Paginator.vue";
 
-const axios = inject('axios')
+const axios = inject<AxiosInstance>('axios')
 
 const router = useRouter()
 
@@ -174,7 +174,7 @@ const createPerson = () => {
           </tr>
         </thead>
         <tbody>
-          <tr class="group hover_bg-sky-100" v-for="person in people">
+          <tr class="group hover_bg-sky-100" v-for="person in people" :key="person.id">
             <td class="py-3 w-main-lr">
               <div class="flex items-center justify-around">
                 <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked_bg-sky-500 rounded border border-gray-300 hover_border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked_bg-check" type="checkbox" value="">

@@ -12,7 +12,8 @@ const props = defineProps({
   type: {
     type: String,
     default: 'error',
-    validator: (val) => ['error', 'warning', 'info', 'success'].includes(val)
+    validator: (val: unknown) =>
+      typeof val === 'string' && ['error', 'warning', 'info', 'success'].includes(val),
   },
   canClose: {
     type: Boolean,

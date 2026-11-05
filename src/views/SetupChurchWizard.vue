@@ -12,7 +12,7 @@
       <h2 class="text-2xl font-semibold mb-4">Church Setup Wizard</h2>
       <!-- Add description of this form -->
       <div class="pb-3"><p>Please enter details fo the church. This will be used throughout the  app. <br> You will be able to edit these details later on.</p></div>
-      <form @submit="submitForm" class="space-y-4">
+      <form @submit.prevent="handleButtonClick" class="space-y-4">
         <div class="form-group">
           <label for="name" class="block font-medium">Church Name:</label>
           <input
@@ -90,7 +90,7 @@
         </div>
         <!-- Add more form fields for address_id, logo_image_id, etc., as needed -->
 
-        <button  class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-full" @click="handleButtonClick" :disabled="isLoading">
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-full" :disabled="isLoading">
           {{ isLoading ? 'Creating...' : 'Create Church' }}
         </button>
       </form>
@@ -100,9 +100,6 @@
 
 <script>
 import axios from 'axios';
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
 
 function createChurch() {
   if (this.formData.logo_image_id == -1) {

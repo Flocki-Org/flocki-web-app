@@ -1,43 +1,47 @@
 import axios from 'axios'
-import VueAxios from 'vue-axios'
-import { camelCase, snakeCase, isPlainObject, isObject, isArray } from 'lodash-es'
+import { camelCase, isArray, isObject, isPlainObject, snakeCase } from 'lodash-es'
 
-const transformData = (data: any, func: any) => {
+const transformData = (data: unknown, func: (key: string) => string): unknown => {
   if (isArray(data)) {
-    return data.map((value: any) => transformData(value, func))
-  } else if (isPlainObject(data)) {
-    const result = {}
+    return data.map((value: unknown) => transformData(value, func))
+  }
 
-    Object.keys(data).forEach(key => {
-      const value = data[key]
+  if (isPlainObject(data)) {
+    const record = data as Record<string, unknown>
+    const result: Record<string, unknown> = {}
 
+    Object.keys(record).forEach((key) => {
+      const value = record[key]
       result[func(key)] = isObject(value) ? transformData(value, func) : value
     })
 
     return result
-  } else {
-    return data
-  }
-}
-
-// check if working locally
-
-
-if (process.env.NODE_ENV === 'development') {
-  axios.defaults.baseURL = 'http://localhost:8000';
-}
-else {
-  if (!window._env_ || window._env_.APP_API_PROTOCOL === undefined) {
-    console.log('getting from render')
-    axios.defaults.baseURL = 'https://flocki-api.onrender.com';
-  } else {
-    console.log('getting from env')
-    axios.defaults.baseURL = window._env_.APP_API_PROTOCOL + '://' + window._env_.APP_API_URL + ':' + window._env_.APP_API_PORT;
   }
 
+  return data
 }
 
-axios.interceptors.request.use(config => {
+function resolveApiBaseUrl() {
+  const runtime = window._env_
+
+  if (runtime?.APP_API_URL && runtime.APP_API_PROTOCOL) {
+    return `${runtime.APP_API_PROTOCOL}://${runtime.APP_API_URL}:${runtime.APP_API_PORT}`
+  }
+
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8001'
+  }
+
+  return 'https://flocki-api.onrender.com'
+}
+
+axios.defaults.baseURL = resolveApiBaseUrl()
+
+axios.interceptors.request.use((config) => {
   if (config.data) {
     config.data = transformData(config.data, snakeCase)
   }
@@ -45,7 +49,7 @@ axios.interceptors.request.use(config => {
   return config
 })
 
-axios.interceptors.response.use(response => {
+axios.interceptors.response.use((response) => {
   if (response.data) {
     response.data = transformData(response.data, camelCase)
   }
@@ -53,4 +57,4 @@ axios.interceptors.response.use(response => {
   return response
 })
 
-export { axios, VueAxios }
+export { axios }

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-const props = defineProps({
+defineProps({
   type: {
     type: String,
     default: 'button',
-    validator: (val) => ['submit', 'reset', 'button'].includes(val),
+    validator: (val: unknown) => typeof val === 'string' && ['submit', 'reset', 'button'].includes(val),
   },
   showLoader: {
     type: Boolean,

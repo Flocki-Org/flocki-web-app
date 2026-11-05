@@ -2,7 +2,7 @@
 import { ref, defineProps } from 'vue';
 import { getPersonImageUrl } from '@/imageUtils';
 
-const { personId, person, includeName, shouldPreventDefault } = defineProps([
+const { person, shouldPreventDefault } = defineProps([
   'personId',
   'person',
   'includeName',
@@ -55,7 +55,6 @@ const hideProfilePopup = (event, personId) => {
 
   // Hide the popup unless the mouse is still over the popup
   setTimeout(() => {
-    const profilePopup = document.getElementById(`profile-popup-${personId}`);
     if (!profilePopupIsHovered(event, personId) && showingPersonPopupModel.value) {
       activeProfilePopup.value = null;
       showingPersonPopupModel.value = false; // Add this line to hide the popup

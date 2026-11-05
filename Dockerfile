@@ -1,10 +1,10 @@
-FROM node:20.9.0 as node
+FROM node:24-bookworm AS node
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm ci --ignore-scripts
 
 COPY . .
 
@@ -21,14 +21,8 @@ COPY --from=node /usr/src/app/dist/ .
 COPY ./public/env.sh .
 COPY .env .
 
-
-# Add bash
 RUN apk add --no-cache bash
 
-# Make our shell script executable
 RUN chmod +x env.sh
 
-
-# Start Nginx server
 CMD ["/bin/bash", "-c", "/usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""]
-#CMD ["nginx", "-g", "daemon off;"]

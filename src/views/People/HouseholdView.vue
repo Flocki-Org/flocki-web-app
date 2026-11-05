@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+import type { AxiosInstance } from 'axios'
 import {ref, inject, onMounted, onBeforeUnmount} from 'vue'
 import {useRoute, onBeforeRouteUpdate} from 'vue-router'
 import {useRepo} from 'pinia-orm'
@@ -8,47 +9,46 @@ import 'leaflet/dist/leaflet.css'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
 import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
-import {getPersonImageUrl, getHouseholdImageUrl} from '@/imageUtils';
+import {getHouseholdImageUrl} from '@/imageUtils';
 import Household from "@/models/Household";
 import AddressDisplay from '../../components/AddressDisplay.vue';
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
-import Input from "@/components/Forms/Input.vue";
 import Button from "@/components/Forms/Button.vue";
 import Dialog from "@/components/Widgets/Dialog.vue";
 import Label from "@/components/Forms/Label.vue";
 import UserSelect from "@/components/people/UserSelect.vue";
 
 
-const axios = inject('axios')
+const axios = inject<AxiosInstance>('axios')
 
 const route = useRoute()
-const personRepo = useRepo(Person)
 
 const isLoadingHousehold = ref(true)
 const showLoadingError = ref(false)
-const household = ref(null)
+const household = ref<Household | null>(null)
 
 const hovered = ref(false);
 const dropdownVisible = ref(false);
 const householdImageViewVisible = ref(false)
 const uploadHouseholdImage = ref(false)
-const croppedImage = ref(null);
+const croppedImage = ref<string | null>(null);
 const uploadHouseholdImageFailed = ref(false);
 const uploadHouseholdImageSuccess = ref(false);
 const memberRemovalSuccess = ref(false);
 const memberPromotedSuccess = ref(false);
 
 const isOpenAddMemberDialog = ref(false);
+const initialFocusRef = ref(null);
 const isAddingMember = ref(false);
-const newmember = ref(null);
+const newmember = ref<Person | null>(null);
 
-const visibleDeleteIcons = ref([]);
+const visibleDeleteIcons = ref<boolean[]>([]);
 
 const showDeleteIcon = (event, memberId) => {
   event.stopPropagation();
 
   // Hide all delete icons first
-  if(household && household.value && household.value.people) {
+  if(household.value && household.value && household.value.people) {
     visibleDeleteIcons.value = Array(household.value.people.length).fill(false);
 
     // Show delete icon for the clicked member
@@ -83,7 +83,7 @@ const promoteMemberToLeader = (memberId) => {
   }
 
   //do put to households endpoint with id as url param, newmember is already added to list above
-  let udpatedHousehold = {
+  const udpatedHousehold = {
     id: household.value.id,
     address_id: household.value.address.id,
     people_ids: household.value.people.map(person => person.id),
@@ -126,7 +126,7 @@ const removeMember = (memberId) => {
   //remove member from household
   household.value.people = household.value.people.filter(person => person.id !== memberId)
   //do put to households endpoint with id as url param, newmember is already added to list above
-  let udpatedHousehold = {
+  const udpatedHousehold = {
     id: household.value.id,
     address_id: household.value.address.id,
     people_ids: household.value.people.map(person => person.id),
@@ -209,7 +209,7 @@ const addMemberToHousehold = (id) => {
     household_image_id: int = Field(None, title="The ID of the image of this household")
     leader_id:
    */
-  let udpatedHousehold = {
+  const udpatedHousehold = {
     id: household.value.id,
     address_id: household.value.address.id,
     people_ids: household.value.people.map(person => person.id),
@@ -237,7 +237,7 @@ loadHousehold(route.params.id)
 onMounted(() => {
   // Check if the map element already has a map associated with it
   if (document.getElementById('map') && !document.getElementById('map')._leaflet_id) {
-    let map = L.map('map', {
+    const map = L.map('map', {
       center: [51.505, -0.09],
       zoom: 13
     });
@@ -288,7 +288,7 @@ const handleImageUploadedSuccess = () => {
     uploadHouseholdImageSuccess.value = false;
   }, 3000);
 
-  if (household && household.value)
+  if (household.value && household.value)
     loadHousehold(household.value.id)
 
   document.body.style.overflow = 'auto';

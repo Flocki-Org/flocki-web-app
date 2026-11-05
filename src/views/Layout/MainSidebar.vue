@@ -12,7 +12,7 @@
         )
 
     ul.flex.flex-col.mt-4
-      li(v-for="item in menu")
+      li(v-for="item in menu" :key="item.name")
         component(
           :is="item.to ? 'router-link' : 'button'"
           :class="menuItemClass"
@@ -38,7 +38,7 @@
             )
 
         ul(v-if="item.subMenu && checkIfSubmenuShouldDisplay(item, $route)")
-          li(v-for="subItem in item.subMenu")
+          li(v-for="subItem in item.subMenu" :key="subItem.name")
             router-link.flex.items-center.px-8.text-gray-800.no-underline.py-4.hover_bg-main(
               :to="subItem.to"
               active-class="!text-sky-500 bg-main"
@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getFullImageUrl } from '@/imageUtils';
 

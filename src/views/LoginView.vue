@@ -29,10 +29,11 @@ const login = () => {
     auth
       .login({
         data: params.toString(),
+        // The published LoginOptions type omits headers. The axios driver still forwards them.
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
-      })
+      } as Parameters<typeof auth.login>[0])
       .catch((err) => {
         console.log('Login failed');
 

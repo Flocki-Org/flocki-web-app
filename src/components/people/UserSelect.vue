@@ -1,6 +1,6 @@
 
 <script setup>
-import {ref, watch, defineProps, defineEmits, computed, inject} from 'vue';
+import {ref, defineProps, defineEmits, computed, inject} from 'vue';
 import {useRepo} from "pinia-orm";
 import Person from "@/models/Person";
 import { getPersonImageUrl } from '@/imageUtils';

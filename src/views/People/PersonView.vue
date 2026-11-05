@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+import type { AxiosInstance } from 'axios'
 import { ref, inject, onMounted} from 'vue'
 import { useRoute, onBeforeRouteUpdate } from 'vue-router'
 import { useRepo } from 'pinia-orm'
@@ -9,25 +10,23 @@ import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
 import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
 import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
-import Household from "@/models/Household";
 import AddressDisplay from '../../components/AddressDisplay.vue';
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 
 
-const axios = inject('axios')
+const axios = inject<AxiosInstance>('axios')
 
 const route = useRoute()
-const personRepo = useRepo(Person)
 
 const isLoadingPerson = ref(true)
 const showLoadingError = ref(false)
-const person = ref(null)
+const person = ref<Person | null>(null)
 
 const hovered = ref(false);
 const dropdownVisible = ref(false);
 const profileImageViewVisible = ref(false)
 const uploadProfileImage = ref(false)
-const croppedImage = ref(null);
+const croppedImage = ref<string | null>(null);
 const uploadProfileImageFailed = ref(false);
 const uploadProfileImageSuccess = ref(false);
 
@@ -64,7 +63,7 @@ loadPerson(route.params.id)
 onMounted(() => {
   // Check if the map element already has a map associated with it
   if (document.getElementById('map') && !document.getElementById('map')._leaflet_id) {
-    let map = L.map('map', {
+    const map = L.map('map', {
       center: [51.505, -0.09],
       zoom: 13
     });
@@ -113,7 +112,7 @@ const handleImageUploadedSuccess = () => {
     uploadProfileImageSuccess.value = false;
   }, 3000);
 
-  if(person && person.value)
+  if(person.value && person.value)
     loadPerson(person.value.id)
 
   document.body.style.overflow = 'auto';
@@ -356,7 +355,7 @@ const handleImageUploadFailed = () => {
                 <template v-if="person.households[0].people">
                   <!--each householdPerson in person.householdsArray[0].people-->
                   <div>
-                    <div v-for="(householdPerson, index) in person.households[0].people" :key="householdPerson.id">
+                    <div v-for="householdPerson in person.households[0].people" :key="householdPerson.id">
                       <div class="flex shrink items-center p-4 gap-3 odd_bg-gray-50 even_bg-white">
                         <UserProfilePopup
                             :person="householdPerson"
