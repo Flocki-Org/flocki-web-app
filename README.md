@@ -2,7 +2,7 @@
 
 Vue 3 client for the Flocki church API.
 
-Local development needs Node.js 22 or newer. The Docker image builds with the Node 24 LTS image. `npm run dev` calls the API at `http://localhost:8001`, which is the port published by the `flocki-api` compose file. Set `VITE_API_BASE_URL` to point somewhere else.
+Local development needs Node.js 22.12 or newer. The Docker image builds with the Node 24 LTS image. `.node-version` pins 22.23.4 for hosts that read it. Render currently forces Node 16.20.2 with the service environment variable `NODE_VERSION`, and that value overrides `.node-version`. Set `NODE_VERSION` to `22.23.4`, or remove it. `npm run dev` calls the API at `http://localhost:8001`, which is the port published by the `flocki-api` compose file. Set `VITE_API_BASE_URL` to point somewhere else.
 
 ```sh
 npm install
