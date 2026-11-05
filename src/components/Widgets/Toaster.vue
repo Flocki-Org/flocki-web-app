@@ -58,7 +58,7 @@ const closeToast = () => {
   v-if="show"
 )
   .m-auto.flex.max-w-min.relative.my-5.items-center.p-4.text-gray-500.bg-white.rounded-lg.shadow
-    .inline-flex.flex-shrink-0.justify-center.items-center.w-8.h-8.rounded-lg(
+    .inline-flex.shrink-0.justify-center.items-center.w-8.h-8.rounded-lg(
       :class="{ 'text-red-500 bg-red-100': type === 'error', 'text-orange-500 bg-orange-100': type === 'warning', 'text-gray-500 bg-gray-100': type === 'info', 'text-green-500 bg-green-100': type === 'success' }"
     )
       svg(
@@ -75,7 +75,8 @@ const closeToast = () => {
     .ml-3.text-sm.font-normal.whitespace-nowrap(
       :class="{ 'text-red-500': type === 'error', 'text-orange-500': type === 'warning',  }"
     ) {{ message }}
-    button.ml-8.w-8.h-8.inline-flex.justify-center.items-center.rounded-md.text-gray-400.bg-white.hover_bg-gray-100.transition-all(
+    button.ml-8.w-8.h-8.inline-flex.justify-center.items-center.rounded-md.text-gray-400.bg-white.transition-all(
+      class="hover:bg-gray-100"
       @click="$emit('close')"
     )
       svg(

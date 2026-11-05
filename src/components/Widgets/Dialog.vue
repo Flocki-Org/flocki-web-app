@@ -39,7 +39,7 @@ TransitionRoot(
       leave-from="opacity-100"
       leave-to="opacity-0"
     )
-      .fixed.inset-0.bg-black.bg-opacity-40
+      .fixed.inset-0(class="bg-black/40")
 
     .fixed.inset-0.overflow-y-auto
       .flex.min-h-full.items-center.justify-center.p-4.text-center
@@ -56,7 +56,8 @@ TransitionRoot(
               DialogTitle.grow.text-lg.font-bold.leading-6.text-gray-700(
                 as="h3"
               ) {{ title }}
-              button.w-8.h-8.inline-flex.justify-center.items-center.rounded-md.text-gray-400.bg-gray-50.hover_bg-gray-100.transition-all(
+              button.w-8.h-8.inline-flex.justify-center.items-center.rounded-md.text-gray-400.bg-gray-50.transition-all(
+                class="hover:bg-gray-100"
                 @click="$emit('close')"
               )
                 svg(

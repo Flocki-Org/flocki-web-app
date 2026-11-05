@@ -5,7 +5,8 @@
       router-link(
         to="/"
       )
-        img.hover_opacity-80.transition-all(
+        img.transition-all(
+          class="hover:opacity-80"
           :src="getFullImageUrl('/church/logo')"
           onerror="this.src = ''"
           width="60"
@@ -39,7 +40,8 @@
 
         ul(v-if="item.subMenu && checkIfSubmenuShouldDisplay(item, $route)")
           li(v-for="subItem in item.subMenu" :key="subItem.name")
-            router-link.flex.items-center.px-8.text-gray-800.no-underline.py-4.hover_bg-main(
+            router-link.flex.items-center.px-8.text-gray-800.no-underline.py-4(
+              class="hover:bg-main"
               :to="subItem.to"
               active-class="!text-sky-500 bg-main"
             )
@@ -54,7 +56,7 @@ import { getFullImageUrl } from '@/imageUtils';
 const route = useRoute()
 const currentSubmenu = ref('')
 
-const menuItemClass = "flex items-center px-8 py-4 w-full text-gray-800 no-underline hover_bg-main"
+const menuItemClass = "flex items-center px-8 py-4 w-full text-gray-800 no-underline hover:bg-main"
 
 const menu = [
   {

@@ -16,7 +16,7 @@ const logout = () => {
 <template lang="pug">
 nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
   form.grow
-    input.block.w-full.outline-none.bg-transparent.border-b-2(
+    input.block.w-full.outline-hidden.bg-transparent.border-b-2(
       type="text"
       name="search"
       placeholder="Search for people, sermons, events, etc..."
@@ -27,7 +27,7 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
       as="div"
     )
       MenuButton
-        .shrink.bg-white.hover_bg-gray-50.p-1.rounded-full.flex.flex-row.items-center.transition-all.cursor-pointer
+        .shrink.bg-white.p-1.rounded-full.flex.flex-row.items-center.transition-all.cursor-pointer(class="hover:bg-gray-50")
           img.w-8.h-8.mr-2.rounded-full(
             src="@/assets/temp/user-profile-pic.png"
           )
@@ -48,7 +48,7 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
         leave-from-class="transform scale-100 opacity-100"
         leave-to-class="transform scale-95 opacity-0"
       )
-        MenuItems.absolute.right-0.mt-2.w-40.origin-top-right.divide-y.divide-gray-100.rounded-md.bg-white.shadow-lg.ring-1.ring-black.ring-opacity-5.focus_outline-none.divide-y.divide-gray-300
+        MenuItems.absolute.right-0.mt-2.w-40.origin-top-right.divide-y.divide-gray-100.rounded-md.bg-white.shadow-lg.ring-1.divide-y.divide-gray-300(class="ring-black/5 focus:outline-hidden")
           .px-1.py-1
             MenuItem(v-slot="{ active }")
               button.group.flex.w-full.items-center.rounded-md.px-2.py-2(
@@ -65,7 +65,7 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
                 @click="logout()"
               ) Log out
 
-    button.inline-flex.relative.items-center.px-3.rounded-lg.mr-4.hover_bg-gray-50.transition-all
+    button.inline-flex.relative.items-center.px-3.rounded-lg.mr-4.transition-all(class="hover:bg-gray-50")
       svg(
         style="width:24px;height:24px"
         viewBox="0 0 24 24"

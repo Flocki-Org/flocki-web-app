@@ -138,7 +138,7 @@ const handleImageUploadFailed = () => {
 
   <div class="ml-menu py-main-tb" id="person">
     <div class="flex items-center px-main-lr mb-10 relative">
-      <router-link class="absolute -ml-8 no-underline text-gray-600 font-bold text-lg hover_pr-2 hover_-ml-9 transition-all" :to="{ name: 'people' }">
+      <router-link class="absolute -ml-8 no-underline text-gray-600 font-bold text-lg hover:pr-2 hover:-ml-9 transition-all" :to="{ name: 'people' }">
         <svg style="width:24px;height:24px" viewBox="0 0 24 24">
           <path fill="currentColor" d="M21,11H6.83L10.41,7.41L9,6L3,12L9,18L10.41,16.58L6.83,13H21V11Z"></path>
         </svg>
@@ -147,7 +147,7 @@ const handleImageUploadFailed = () => {
         <Skeletor v-if="isLoadingPerson" width="350"></Skeletor>
         <template v-else>{{ person.fullName }}</template>
       </h1>
-      <button class="w-10 h-8 inline-flex justify-center items-center rounded-md border border-sky-400 hover_border-sky-300 text-sky-400 bg-transparent hover_bg-sky-50 transition-all">
+      <button class="w-10 h-8 inline-flex justify-center items-center rounded-md border border-sky-400 hover:border-sky-300 text-sky-400 bg-transparent hover:bg-sky-50 transition-all">
         <svg style="width:16px;height:16px" viewBox="0 0 24 24">
           <path fill="currentColor" d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"></path>
         </svg>
@@ -155,10 +155,10 @@ const handleImageUploadFailed = () => {
     </div>
     <div class="flex px-main-lr gap-5">
       <div class="flex flex-col gap-5 w-3/5">
-        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
             <h2 class="grow text-gray-700">Basic Information</h2>
-            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
+            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
               </svg>
@@ -166,21 +166,21 @@ const handleImageUploadFailed = () => {
           </div>
           <table class="table-auto w-full text-left text-sm">
             <tbody>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Date of birth</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="200"></Skeletor>
                   <template v-else-if="!!person.dateOfBirth">{{ $filters.humanDate(person.dateOfBirth) }} ({{ $filters.durationInYearsOrMonths(person.dateOfBirth) }} old)</template>
                 </td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Gender</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="80"></Skeletor>
                   <template v-else>{{ person?.gender }}</template>
                 </td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Marital status</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="200"></Skeletor>
@@ -192,37 +192,37 @@ const handleImageUploadFailed = () => {
                   </template>
                 </td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Email address</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="160"></Skeletor>
                   <template v-else>{{ person?.email }}</template>
                 </td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Phone number</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="120"></Skeletor>
                   <template v-else>{{ person?.mobileNumber }}</template>
                 </td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Social profiles</td>
                 <td class="py-4 flex">
                   <Skeletor v-if="isLoadingPerson" width="100"></Skeletor>
-                  <template v-else><a class="mr-1 hover_opacity-80 transition-all text-[#0077B5]" href="#">
+                  <template v-else><a class="mr-1 hover:opacity-80 transition-all text-[#0077B5]" href="#">
                       <svg style="width:24px;height:24px" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M19 3A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H19M18.5 18.5V13.2A3.26 3.26 0 0 0 15.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17A1.4 1.4 0 0 1 15.71 13.57V18.5H18.5M6.88 8.56A1.68 1.68 0 0 0 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19A1.69 1.69 0 0 0 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56M8.27 18.5V10.13H5.5V18.5H8.27Z"></path>
-                      </svg></a><a class="mr-1 hover_opacity-80 transition-all text-[#4267B2]" href="#">
+                      </svg></a><a class="mr-1 hover:opacity-80 transition-all text-[#4267B2]" href="#">
                       <svg style="width:24px;height:24px" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"></path>
-                      </svg></a><a class="mr-1 hover_opacity-80 transition-all text-[#1DA1F2]" href="#">
+                      </svg></a><a class="mr-1 hover:opacity-80 transition-all text-[#1DA1F2]" href="#">
                       <svg style="width:24px;height:24px" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M22.46,6C21.69,6.35 20.86,6.58 20,6.69C20.88,6.16 21.56,5.32 21.88,4.31C21.05,4.81 20.13,5.16 19.16,5.36C18.37,4.5 17.26,4 16,4C13.65,4 11.73,5.92 11.73,8.29C11.73,8.63 11.77,8.96 11.84,9.27C8.28,9.09 5.11,7.38 3,4.79C2.63,5.42 2.42,6.16 2.42,6.94C2.42,8.43 3.17,9.75 4.33,10.5C3.62,10.5 2.96,10.3 2.38,10C2.38,10 2.38,10 2.38,10.03C2.38,12.11 3.86,13.85 5.82,14.24C5.46,14.34 5.08,14.39 4.69,14.39C4.42,14.39 4.15,14.36 3.89,14.31C4.43,16 6,17.26 7.89,17.29C6.43,18.45 4.58,19.13 2.56,19.13C2.22,19.13 1.88,19.11 1.54,19.07C3.44,20.29 5.7,21 8.12,21C16,21 20.33,14.46 20.33,8.79C20.33,8.6 20.33,8.42 20.32,8.23C21.16,7.63 21.88,6.87 22.46,6Z"></path>
                       </svg></a></template>
                 </td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500">Registered at</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="230"></Skeletor>
@@ -232,10 +232,10 @@ const handleImageUploadFailed = () => {
             </tbody>
           </table>
         </div>
-        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
             <h2 class="grow text-gray-700">Church Life</h2>
-            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
+            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
               </svg>
@@ -243,19 +243,19 @@ const handleImageUploadFailed = () => {
           </div>
           <table class="table-auto w-full text-left text-sm">
             <tbody>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Role</td>
                 <td class="py-4">Member, Deacon</td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Date baptized</td>
                 <td class="py-4">25 February 1992</td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Member from</td>
                 <td class="py-4">30 June 1991</td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Leading ministries</td>
                 <td class="py-4">
                   <ul>
@@ -268,7 +268,7 @@ const handleImageUploadFailed = () => {
                   </ul>
                 </td>
               </tr>
-              <tr class="odd_bg-gray-50 even_bg-white">
+              <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-4 pl-10 text-gray-500 w-2/5">Groups</td>
                 <td class="py-4">
                   <ul>
@@ -281,10 +281,10 @@ const handleImageUploadFailed = () => {
             </tbody>
           </table>
         </div>
-        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
             <h2 class="grow text-gray-700">Address</h2>
-            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
+            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
               </svg>
@@ -300,10 +300,10 @@ const handleImageUploadFailed = () => {
           <div v-else class="px-10 mb-4 text-gray-500 text-sm">No address</div>
 
         </div>
-        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
             <h2 class="grow text-gray-700">Prayer Requests</h2>
-            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
+            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
               </svg>
@@ -337,12 +337,12 @@ const handleImageUploadFailed = () => {
             </div>
           </div>
         </div>
-        <div v-if="person && person.households && person.households[0]" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+        <div v-if="person && person.households && person.households[0]" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
             <router-link  class="grow" :to="{name: 'household', params: {id: person.households[0].id} }">
               <h2 class="text-gray-700">{{person.lastName}} Household</h2>
             </router-link>
-              <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
+              <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
                 </svg>
@@ -356,7 +356,7 @@ const handleImageUploadFailed = () => {
                   <!--each householdPerson in person.householdsArray[0].people-->
                   <div>
                     <div v-for="householdPerson in person.households[0].people" :key="householdPerson.id">
-                      <div class="flex shrink items-center p-4 gap-3 odd_bg-gray-50 even_bg-white">
+                      <div class="flex shrink items-center p-4 gap-3 odd:bg-gray-50 even:bg-white">
                         <UserProfilePopup
                             :person="householdPerson"
                             :includeName="true">
@@ -400,10 +400,10 @@ const handleImageUploadFailed = () => {
             </template-->
           </div>
         </div>
-        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover_shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center px-10 py-8">
             <h2 class="grow text-gray-700">Private Notes</h2>
-            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover_border-gray-200 text-gray-400 bg-transparent hover_bg-gray-50 transition-all">
+            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
               </svg>
@@ -418,7 +418,7 @@ const handleImageUploadFailed = () => {
     </div>
   </div>
   <!-- Profile Image View -->
-  <div v-if="profileImageViewVisible" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
+  <div v-if="profileImageViewVisible" class="fixed inset-0 flex items-center justify-center bg-gray-800/75">
     <div class="bg-white p-4 rounded-lg shadow-lg relative max-w-3xl overflow-hidden">
       <button @click="closeProfileImageView" class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl">×</button>
       <div class="flex items-center justify-center">
@@ -426,7 +426,7 @@ const handleImageUploadFailed = () => {
       </div>
     </div>
   </div>
-  <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800 bg-opacity-75">
+  <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800/75">
     <ImageCropperUploader @cropped="handleCroppedImage" :uploadEndpoint="'/people/profile_image?id=' + person.id"
                           @imageCropperCancelled="closeUploadProfileImageView"
                           @imageCropperUploadedSuccess="handleImageUploadedSuccess"

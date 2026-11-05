@@ -92,7 +92,7 @@ const clearInput = () => {
       <div class="w-full flex items-center">
 
         <input
-            class="outline-none bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:border-blue-300 focus:visible:border-blue-300 block w-64 p-3 pr-12"
+            class="outline-hidden bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:border-blue-300 focus-visible:border-blue-300 block w-64 p-3 pr-12"
             type="text"
             v-model="userSearchInput"
             @input="handleInput"

@@ -237,17 +237,17 @@ const redirectToPersonPage = (member) =>  {
             <svg class="ml-1" style="width:12px;height:12px" viewBox="0 0 24 24">
               <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></path>
             </svg></span>
-          <button class="h-7 mr-2 px-2 text-sm inline-flex items-center rounded-md border border-dashed border-sky-400 hover_border-sky-300 text-sky-400 bg-transparent hover_bg-sky-50 transition-all">
+          <button class="h-7 mr-2 px-2 text-sm inline-flex items-center rounded-md border border-dashed border-sky-400 hover:border-sky-300 text-sky-400 bg-transparent hover:bg-sky-50 transition-all">
             <svg class="mr-1" style="width:16px;height:16px" viewBox="0 0 24 24">
               <path fill="currentColor" d="M15 17H18V14H20V17H23V19H20V22H18V19H15V17M13 19.88C13.04 20.18 12.94 20.5 12.72 20.71C12.32 21.1 11.69 21.1 11.3 20.71L7.29 16.7C7.06 16.47 6.96 16.16 7 15.87V10.75L2.21 4.62C1.87 4.19 1.95 3.56 2.38 3.22C2.57 3.08 2.78 3 3 3V3H17V3C17.22 3 17.43 3.08 17.62 3.22C18.05 3.56 18.13 4.19 17.79 4.62L13 10.75V19.88M5.04 5L9 10.07V15.58L11 17.58V10.05L14.96 5H5.04Z"></path>
             </svg>Add filter
           </button>
-          <button class="w-8 h-7 mr-2 inline-flex justify-center items-center rounded-md border border-sky-400 hover_border-sky-300 text-sky-400 bg-transparent hover_bg-sky-50 transition-all">
+          <button class="w-8 h-7 mr-2 inline-flex justify-center items-center rounded-md border border-sky-400 hover:border-sky-300 text-sky-400 bg-transparent hover:bg-sky-50 transition-all">
             <svg style="width:16px;height:16px" viewBox="0 0 24 24">
               <path fill="currentColor" d="M11,2A2,2 0 0,1 13,4V20A2,2 0 0,1 11,22H2V2H11M4,10V14H11V10H4M4,16V20H11V16H4M4,4V8H11V4H4M15,11H18V8H20V11H23V13H20V16H18V13H15V11Z"></path>
             </svg>
           </button>
-          <button class="w-8 h-7 inline-flex justify-center items-center rounded-md border border-sky-400 hover_border-sky-300 text-sky-400 bg-transparent hover_bg-sky-50 transition-all">
+          <button class="w-8 h-7 inline-flex justify-center items-center rounded-md border border-sky-400 hover:border-sky-300 text-sky-400 bg-transparent hover:bg-sky-50 transition-all">
             <svg style="width:16px;height:16px" viewBox="0 0 24 24">
               <path fill="currentColor" d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"></path>
             </svg>
@@ -259,7 +259,7 @@ const redirectToPersonPage = (member) =>  {
           <tr>
             <th class="py-3 w-main-lr">
               <div class="flex items-center justify-around">
-                <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked_bg-sky-500 rounded border border-gray-300 hover_border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked_bg-check" type="checkbox" value="">
+                <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked:bg-sky-500 rounded border border-gray-300 hover:border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked:bg-check" type="checkbox" value="">
               </div>
             </th>
             <th class="py-3">Last name</th>
@@ -268,14 +268,14 @@ const redirectToPersonPage = (member) =>  {
           </tr>
         </thead>
         <tbody>
-          <tr class="group hover_bg-sky-100" v-for="household in households" :key="household.id">
+          <tr class="group hover:bg-sky-100" v-for="household in households" :key="household.id">
             <td class="py-3 w-main-lr">
               <div class="flex items-center justify-around">
-                <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked_bg-sky-500 rounded border border-gray-300 hover_border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked_bg-check" type="checkbox" value="">
+                <input class="form-check-input appearance-none w-4 h-4 bg-gray-100 checked:bg-sky-500 rounded border border-gray-300 hover:border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked:bg-check" type="checkbox" value="">
               </div>
             </td>
             <td class="py-3 flex items-center"><img class="w-10 h-10 mr-2 rounded-full" v-if="household && household.householdImage" :src="getHouseholdImageUrl(household)"><img class="w-8 h-8 mr-2 rounded-full" v-else src="@/assets/default-user-profile.png">
-              <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'household', params: { id: household.id } }">{{ household.leader.lastName}} </router-link>
+              <router-link class="no-underline group-hover:underline text-current group-hover:text-sky-500" :to="{ name: 'household', params: { id: household.id } }">{{ household.leader.lastName}} </router-link>
             </td>
             <td class="py-3">
               <div v-if="household && household.address">

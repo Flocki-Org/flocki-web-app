@@ -19,7 +19,7 @@ defineProps({
 <template lang="pug">
 button.inline-flex.items-center.rounded-lg.py-2.cursor-pointer.transition-all(
   :type="type"
-  :class="{ 'font-medium text-white px-5': !stealth, 'bg-sky-300 hover_bg-sky-300 cursor-default': showLoader && !stealth, 'bg-sky-500 hover_bg-sky-400': !showLoader && !stealth, 'font-light text-gray-500 hover_bg-white px-3': stealth }"
+  :class="{ 'font-medium text-white px-5': !stealth, 'bg-sky-300 hover:bg-sky-300 cursor-default': showLoader && !stealth, 'bg-sky-500 hover:bg-sky-400': !showLoader && !stealth, 'font-light text-gray-500 hover:bg-white px-3': stealth }"
 )
   svg.mr-2.w-4.h-4.animate-spin.fill-sky-500(
     :class="{ 'hidden': !showLoader, 'fill-sky-300': showLoader }"

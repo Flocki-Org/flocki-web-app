@@ -97,7 +97,7 @@ const handleLinkClick = (event) => {
 
 <template>
     <div class="user-profile-popup">
-      <router-link v-if="!shouldPreventDefault" class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
+      <router-link v-if="!shouldPreventDefault" class="no-underline group-hover:underline text-current group-hover:text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
                    @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
                    @click="handleLinkClick">
         <div class="user-profile-container inline">
@@ -105,7 +105,7 @@ const handleLinkClick = (event) => {
         </div>
 
       </router-link>
-      <a v-else class="no-underline group-hover_underline text-current group-hover_text-sky-500" :href="`/people/${person.id}`"
+      <a v-else class="no-underline group-hover:underline text-current group-hover:text-sky-500" :href="`/people/${person.id}`"
          @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
          @click="handleLinkClick">
         <div class="user-profile-container inline">
@@ -118,11 +118,11 @@ const handleLinkClick = (event) => {
                v-show="activeProfilePopup === person.id"
                @mouseleave="event => hideProfilePopup(event, person.id)">
 
-            <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
+            <router-link class="no-underline group-hover:underline text-current group-hover:text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
               <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
               <img class="profile-image" v-else src="@/assets/default-user-profile.png">
             </router-link>
-            <router-link class="no-underline group-hover_underline text-current group-hover_text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
+            <router-link class="no-underline group-hover:underline text-current group-hover:text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
               <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
             </router-link>
             <p class="profile-details"><span v-if="person.dateOfBirth">Age: {{ $filters.durationInYearsOrMonths(person.dateOfBirth) }} | Date of Birth:

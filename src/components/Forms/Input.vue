@@ -14,7 +14,8 @@ defineEmits(['update:modelValue'])
 </script>
 
 <template lang="pug">
-input.outline-none.bg-gray-50.border.border-gray-300.text-gray-900.rounded-lg.focus_border-blue-300.focus-visible_border-blue-300.block.w-full.p-3(
+input.outline-hidden.bg-gray-50.border.border-gray-300.text-gray-900.rounded-lg.block.w-full.p-3(
+  class="focus:border-blue-300 focus-visible:border-blue-300"
   :id="id"
   :type="type"
   :placeholder="placeholder"

@@ -20,7 +20,7 @@
             id="name"
             v-model="formData.name"
             required
-            class="w-80 px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           />
         </div>
         <!--label for="logo" class="block font-medium">Church Logo:</label>
@@ -36,7 +36,7 @@
             type="url"
             id="website"
             v-model="formData.website"
-            class="w-80 px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           />
         </div>
         <label for="logo" class="block font-medium">Choose Logo: </label>
@@ -68,7 +68,7 @@
             type="email"
             id="email"
             v-model="formData.email"
-            class="w-80 px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           />
         </div>
         <div class="form-group">
@@ -77,7 +77,7 @@
             type="tel"
             id="phone"
             v-model="formData.phone"
-            class="w-80 px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           />
         </div>
         <div class="form-group">
@@ -85,7 +85,7 @@
           <textarea
             id="description"
             v-model="formData.description"
-            class="w-80 px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           ></textarea>
         </div>
         <!-- Add more form fields for address_id, logo_image_id, etc., as needed -->
