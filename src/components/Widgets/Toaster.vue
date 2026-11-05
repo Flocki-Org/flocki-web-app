@@ -54,10 +54,12 @@ const closeToast = () => {
 </script>
 
 <template lang="pug">
-.absolute.top-0.left-0.right-0(
+.fixed.top-0.left-0.right-0.z-50.px-3(
   v-if="show"
 )
-  .m-auto.flex.max-w-min.relative.my-5.items-center.p-4.text-gray-500.bg-white.rounded-lg.shadow
+  .mx-auto.flex.w-full.max-w-lg.relative.items-center.text-gray-500.bg-white.rounded-lg.shadow(
+    class="my-3 p-3 sm:my-5 sm:p-4 sm:max-w-min"
+  )
     .inline-flex.shrink-0.justify-center.items-center.w-8.h-8.rounded-lg(
       :class="{ 'text-red-500 bg-red-100': type === 'error', 'text-orange-500 bg-orange-100': type === 'warning', 'text-gray-500 bg-gray-100': type === 'info', 'text-green-500 bg-green-100': type === 'success' }"
     )
@@ -72,11 +74,11 @@ const closeToast = () => {
           fill="currentColor"
           :d="getIcon"
         )
-    .ml-3.text-sm.font-normal.whitespace-nowrap(
+    .ml-3.min-w-0.flex-1.text-sm.font-normal.break-words(
       :class="{ 'text-red-500': type === 'error', 'text-orange-500': type === 'warning',  }"
     ) {{ message }}
-    button.ml-8.w-8.h-8.inline-flex.justify-center.items-center.rounded-md.text-gray-400.bg-white.transition-all(
-      class="hover:bg-gray-100"
+    button.w-8.h-8.shrink-0.inline-flex.justify-center.items-center.rounded-md.text-gray-400.bg-white.transition-all(
+      class="ml-3 sm:ml-8 hover:bg-gray-100"
       @click="$emit('close')"
     )
       svg(

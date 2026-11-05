@@ -260,16 +260,18 @@ const handleWindowClick = (event) => {
 }
 
 .image-uploader-wrapper {
-  border: 2px solid #ccc; /* Add a border */
-  padding: 20px; /* Add padding */
-  width: 600px;
-  height: 680px;
-  border-radius: 10px; /* Add rounded borders */
-  background-color: #f9f9f9; /* Set background color */
+  border: 2px solid #ccc;
+  padding: 1rem;
+  width: min(100%, 600px);
+  max-height: min(90vh, 680px);
+  overflow: auto;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
 }
 .drop-zone {
   border: 2px dashed lightslategrey;
-  padding: 100px;
+  padding: clamp(2rem, 8vw, 100px);
   text-align: center;
   color: black;
   cursor: pointer;
@@ -278,7 +280,7 @@ const handleWindowClick = (event) => {
 
 .drag-over {
   border: 4px solid #a4b8ed;
-  padding: 100px;
+  padding: clamp(2rem, 8vw, 100px);
   text-align: center;
   color: black;
   cursor: pointer;

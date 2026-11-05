@@ -11,7 +11,7 @@ const goToPage = (pageNumber) => {
 </script>
 
 <template>
-  <div class="pagination-container flex items-center mt-4" v-if="totalPages > 1">
+  <div class="pagination-container px-main-lr" v-if="totalPages > 1">
     <!-- Previous button -->
     <button
       class="pagination-button"
@@ -96,13 +96,22 @@ const goToPage = (pageNumber) => {
 
 .pagination-container {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 20px; /* Add some margin if needed */
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .pagination-container {
+    justify-content: flex-end;
+  }
 }
 
 .pagination-button {
-  margin: 0 4px;
-  padding: 8px 12px;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
   border: 1px solid #3490dc;
   background-color: #fff;
   color: #3490dc;
@@ -114,6 +123,11 @@ const goToPage = (pageNumber) => {
 .pagination-button:hover {
   background-color: #3490dc;
   color: #fff;
+}
+
+.pagination-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .current-page {

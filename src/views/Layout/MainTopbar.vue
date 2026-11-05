@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { useAuth } from '@websanova/vue-auth'
+import { useSidebar } from '@/composables/useSidebar'
 
 const auth = useAuth()
+const { toggle } = useSidebar()
 
 const logout = () => {
   auth.logout({
@@ -14,26 +16,50 @@ const logout = () => {
 </script>
 
 <template lang="pug">
-nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
-  form.grow
-    input.block.w-full.outline-hidden.bg-transparent.border-b-2(
-      type="text"
+nav.bg-secondary.flex.items-center.gap-2(
+  class="h-[76px] px-main-lr lg:ml-menu sm:gap-3"
+)
+  button.inline-flex.shrink-0.items-center.justify-center.w-10.h-10.rounded-md.text-gray-700(
+    type="button"
+    class="hover:bg-gray-50 lg:hidden"
+    aria-label="Open navigation menu"
+    @click="toggle()"
+  )
+    svg.h-6.w-6(
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    )
+      path(
+        fill="currentColor"
+        d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"
+      )
+
+  form.min-w-0.grow
+    input.block.w-full.outline-hidden.bg-transparent.border-b-2.min-w-0(
+      type="search"
       name="search"
-      placeholder="Search for people, sermons, events, etc..."
+      placeholder="Search…"
+      aria-label="Search for people, sermons, events, etc."
     )
 
-  .grow.flex.flex-row-reverse
+  .flex.shrink-0.flex-row-reverse.items-center
     Menu.relative.inline-block.z-10(
       as="div"
     )
-      MenuButton
+      MenuButton(aria-label="Account menu")
         .shrink.bg-white.p-1.rounded-full.flex.flex-row.items-center.transition-all.cursor-pointer(class="hover:bg-gray-50")
-          img.w-8.h-8.mr-2.rounded-full(
+          img.w-8.h-8.rounded-full(
+            class="sm:mr-2"
             src="@/assets/temp/user-profile-pic.png"
+            alt=""
           )
-          .mr-2 Adam
-          svg.w-6.h-6.mr-2(
+          span.mr-2(
+            class="hidden md:inline"
+          ) Adam
+          svg.w-6.h-6(
+            class="mr-1 sm:mr-2"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           )
             path(
               fill="currentColor"
@@ -65,10 +91,15 @@ nav.bg-secondary.px-main-lr.flex.items-center.ml-menu(class="h-[76px]")
                 @click="logout()"
               ) Log out
 
-    button.inline-flex.relative.items-center.px-3.rounded-lg.mr-4.transition-all(class="hover:bg-gray-50")
+    button.inline-flex.relative.items-center.rounded-lg.transition-all(
+      type="button"
+      class="px-2 sm:px-3 mr-1 sm:mr-4 hover:bg-gray-50"
+      aria-label="Notifications"
+    )
       svg(
         style="width:24px;height:24px"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       )
         path(
           fill="currentColor"

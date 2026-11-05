@@ -42,7 +42,9 @@ TransitionRoot(
       .fixed.inset-0(class="bg-black/40")
 
     .fixed.inset-0.overflow-y-auto
-      .flex.min-h-full.items-center.justify-center.p-4.text-center
+      .flex.min-h-full.justify-center.text-center(
+        class="items-end p-3 sm:items-center sm:p-4"
+      )
         TransitionChild(
           enter="duration-300 ease-out"
           enter-from="opacity-0 scale-95"
@@ -51,8 +53,12 @@ TransitionRoot(
           leave-from="opacity-100 scale-100"
           leave-to="opacity-0 scale-95"
         )
-          DialogPanel.w-full.max-w-md.transform.overflow-hidden.rounded-2xl.bg-white.pt-6.text-left.align-middle.shadow-xl.transition-all
-            .flex.items-center.mb-6.px-8
+          DialogPanel.w-full.max-w-md.transform.overflow-hidden.bg-white.pt-6.text-left.align-middle.shadow-xl.transition-all(
+            class="max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl"
+          )
+            .flex.items-center.mb-6(
+              class="px-4 sm:px-8"
+            )
               DialogTitle.grow.text-lg.font-bold.leading-6.text-gray-700(
                 as="h3"
               ) {{ title }}
@@ -72,9 +78,13 @@ TransitionRoot(
               :is="isForm ? 'form' : 'div'"
               @submit.prevent="$emit('submit')"
             )
-              .px-8.pb-6
+              .pb-6(
+                class="px-4 sm:px-8"
+              )
                 slot
-              .bg-gray-100.px-8.py-4
+              .bg-gray-100.py-4(
+                class="px-4 sm:px-8"
+              )
                 slot(
                   name="controls"
                 )
