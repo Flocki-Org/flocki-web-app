@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: Archivo, sans-serif;
-  --color-main: #f8f8f8;
-  --color-secondary: #f0f0f0;
-  --spacing-menu: 300px;
+  --font-sans: Archivo, ui-sans-serif, system-ui, sans-serif;
+  --color-main: #f5f6f8;
+  --color-secondary: #eceef2;
+  --spacing-menu: 260px;
   /* Mobile-first page gutters; bumped at md/lg below. */
   --spacing-main-lr: 1rem;
   --spacing-main-tb: 1.25rem;
@@ -93,23 +93,23 @@
   }
 
   html {
-    @apply h-full text-gray-800;
+    @apply h-full text-gray-800 antialiased;
   }
 
   body {
-    @apply h-full bg-main;
+    @apply h-full bg-main font-sans;
   }
 
   h1 {
-    @apply text-2xl font-bold sm:text-3xl;
+    @apply text-2xl font-semibold tracking-tight text-gray-900 sm:text-[1.75rem];
   }
 
   h2 {
-    @apply text-lg sm:text-xl;
+    @apply text-base font-semibold text-gray-800 sm:text-lg;
   }
 
   a {
-    @apply text-sky-500 underline;
+    @apply text-sky-700 underline underline-offset-2 hover:text-sky-800;
   }
 }
 
@@ -122,8 +122,9 @@
 
 @media (min-width: 1024px) {
   :root {
-    --spacing-main-lr: 3.5rem;
-    --spacing-main-tb: 2.5rem;
+    --spacing-main-lr: 2.5rem;
+    --spacing-main-tb: 2rem;
+    --spacing-menu: 260px;
   }
 }
 
@@ -134,7 +135,7 @@
   }
 
   .app-page-header {
-    @apply flex flex-wrap items-center gap-3 px-main-lr mb-6 sm:mb-10;
+    @apply mb-5 flex flex-wrap items-center gap-3 px-main-lr sm:mb-7;
   }
 
   .app-page-section {
@@ -154,10 +155,50 @@
   }
 
   .app-panel-pad {
-    @apply px-4 sm:px-6 lg:px-10;
+    @apply px-4 sm:px-6 lg:px-8;
   }
 
   .app-table-wrap {
     @apply w-full overflow-x-auto;
+  }
+
+  .app-panel {
+    @apply overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)];
+  }
+
+  .app-data-table {
+    @apply w-full border-collapse text-left text-sm;
+  }
+
+  .app-data-table thead {
+    @apply border-b border-gray-200 bg-gray-50/80 text-xs font-medium uppercase tracking-wide text-gray-500;
+  }
+
+  .app-data-table th {
+    @apply px-3 py-2.5 font-medium first:pl-4 last:pr-4 sm:px-4 sm:first:pl-5 sm:last:pr-5;
+  }
+
+  .app-data-table td {
+    @apply border-b border-gray-100 px-3 py-2.5 align-middle text-sm leading-5 text-gray-700 first:pl-4 last:pr-4 sm:px-4 sm:first:pl-5 sm:last:pr-5;
+  }
+
+  .app-data-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .app-data-table tbody tr {
+    @apply transition-colors hover:bg-gray-50;
+  }
+
+  .app-toolbar-btn {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700;
+  }
+
+  .app-filter-chip {
+    @apply inline-flex h-7 items-center gap-1 rounded-md bg-sky-50 px-2.5 text-xs font-medium text-sky-700;
+  }
+
+  .app-empty-state {
+    @apply flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-500 sm:flex-row sm:text-left;
   }
 }

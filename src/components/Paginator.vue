@@ -1,137 +1,97 @@
 <script setup>
-import { defineProps } from 'vue';
+import { computed } from 'vue'
 
-const { page, totalPages, itemsPerPage, loadPage } = defineProps(['page', 'totalPages', 'itemsPerPage', 'loadPage']);
+const props = defineProps({
+  page: { type: Number, required: true },
+  totalPages: { type: Number, required: true },
+  itemsPerPage: { type: Number, required: true },
+  loadPage: { type: Function, required: true },
+})
 
 const goToPage = (pageNumber) => {
-  if (pageNumber >= 1 && pageNumber <= totalPages) {
-    loadPage(pageNumber, itemsPerPage);
+  if (typeof pageNumber !== 'number') return
+  if (pageNumber >= 1 && pageNumber <= props.totalPages && pageNumber !== props.page) {
+    props.loadPage(pageNumber, props.itemsPerPage)
   }
-};
+}
+
+const pages = computed(() => {
+  const total = props.totalPages
+  const current = props.page
+
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+
+  if (current <= 3) {
+    return [1, 2, 3, 4, '…', total]
+  }
+
+  if (current >= total - 2) {
+    return [1, '…', total - 3, total - 2, total - 1, total]
+  }
+
+  return [1, '…', current - 1, current, current + 1, '…', total]
+})
 </script>
 
 <template>
-  <div class="pagination-container px-main-lr" v-if="totalPages > 1">
-    <!-- Previous button -->
-    <button
-      class="pagination-button"
-      :disabled="page === 1"
-      @click="goToPage(page - 1)"
-    >
-      &lt; Prev
-    </button>
+  <nav
+    v-if="totalPages > 1"
+    class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 sm:px-6"
+    aria-label="Pagination"
+  >
+    <p class="text-sm text-gray-500">
+      Page <span class="tabular-nums text-gray-700">{{ page }}</span>
+      of <span class="tabular-nums text-gray-700">{{ totalPages }}</span>
+    </p>
 
-    <!-- Page buttons -->
-    <template v-if="totalPages <= 5">
-      <!-- Display all pages if total pages are less than or equal to 5 -->
-      <template v-for="pageNumber in totalPages" :key="pageNumber">
+    <div class="inline-flex items-stretch overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <button
+        type="button"
+        class="inline-flex h-8 w-8 items-center justify-center text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-800 disabled:pointer-events-none disabled:opacity-35"
+        :disabled="page === 1"
+        aria-label="Previous page"
+        @click="goToPage(page - 1)"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" />
+        </svg>
+      </button>
+
+      <template v-for="(pageNumber, index) in pages" :key="`${pageNumber}-${index}`">
+        <span
+          v-if="pageNumber === '…'"
+          class="inline-flex h-8 min-w-8 items-center justify-center border-l border-gray-200 text-sm text-gray-400"
+          aria-hidden="true"
+        >…</span>
         <button
-          class="pagination-button"
-          :class="{ 'current-page': page === pageNumber }"
+          v-else
+          type="button"
+          class="inline-flex h-8 min-w-8 items-center justify-center border-l border-gray-200 px-2.5 text-sm tabular-nums transition-colors"
+          :class="
+            page === pageNumber
+              ? 'bg-sky-50 font-semibold text-sky-700'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          "
+          :aria-current="page === pageNumber ? 'page' : undefined"
           @click="goToPage(pageNumber)"
         >
           {{ pageNumber }}
         </button>
       </template>
-    </template>
 
-    <!-- Display ellipses and nearby pages for larger total pages -->
-    <template v-else>
-      <template v-if="page <= 3">
-        <template v-for="(pageNumber, index) in [1, 2, 3, 4, 5, '...', totalPages]" :key="index">
-          <button
-            class="pagination-button"
-            :class="{ 'current-page': page === pageNumber }"
-            @click="goToPage(pageNumber)"
-            v-if="pageNumber !== '...'"
-          >
-            {{ pageNumber }}
-          </button>
-          <span v-else>...</span>
-        </template>
-      </template>
-
-      <template v-else-if="page > totalPages - 3">
-        <template v-for="(pageNumber, index) in [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]" :key="index">
-          <button
-            class="pagination-button"
-            :class="{ 'current-page': page === pageNumber }"
-            @click="goToPage(pageNumber)"
-            v-if="pageNumber !== '...'"
-          >
-            {{ pageNumber }}
-          </button>
-          <span v-else>...</span>
-        </template>
-      </template>
-
-      <template v-else>
-        <template v-for="(pageNumber, index) in [1, '...', page - 1, page, page + 1, '...', totalPages]" :key="index">
-          <button
-            class="pagination-button"
-            :class="{ 'current-page': page === pageNumber }"
-            @click="goToPage(pageNumber)"
-            v-if="pageNumber !== '...'"
-          >
-            {{ pageNumber }}
-          </button>
-          <span v-else>...</span>
-        </template>
-      </template>
-    </template>
-
-    <!-- Next button -->
-    <button
-      class="pagination-button"
-      :disabled="page === totalPages"
-      @click="goToPage(page + 1)"
-    >
-      Next &gt;
-    </button>
-  </div>
+      <button
+        type="button"
+        class="inline-flex h-8 w-8 items-center justify-center border-l border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-800 disabled:pointer-events-none disabled:opacity-35"
+        :disabled="page === totalPages"
+        aria-label="Next page"
+        @click="goToPage(page + 1)"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+        </svg>
+      </button>
+    </div>
+  </nav>
 </template>
-
-
-<style>
-
-.pagination-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.25rem;
-  margin-top: 1.25rem;
-}
-
-@media (min-width: 640px) {
-  .pagination-container {
-    justify-content: flex-end;
-  }
-}
-
-.pagination-button {
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #3490dc;
-  background-color: #fff;
-  color: #3490dc;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.pagination-button:hover {
-  background-color: #3490dc;
-  color: #fff;
-}
-
-.pagination-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.current-page {
-  background-color: #3490dc;
-  color: #fff;
-}
-</style>

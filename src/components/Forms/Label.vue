@@ -7,7 +7,8 @@ defineProps({
 </script>
 
 <template lang="pug">
-label.block.mb-1.text-gray-900(
+label.block.text-sm.font-medium.text-gray-700(
+  class="mb-1.5"
   :for="forId"
 )
   slot
