@@ -5,8 +5,9 @@
   --color-main: #f8f8f8;
   --color-secondary: #f0f0f0;
   --spacing-menu: 300px;
-  --spacing-main-lr: 3.5rem;
-  --spacing-main-tb: 2.5rem;
+  /* Mobile-first page gutters; bumped at md/lg below. */
+  --spacing-main-lr: 1rem;
+  --spacing-main-tb: 1.25rem;
   --background-image-check: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='%23fff' d='M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z' /%3e%3c/svg%3e");
 
   /* v3 palette for the families this UI uses. v4's defaults are oklch. */
@@ -100,14 +101,63 @@
   }
 
   h1 {
-    @apply text-3xl font-bold;
+    @apply text-2xl font-bold sm:text-3xl;
   }
 
   h2 {
-    @apply text-xl;
+    @apply text-lg sm:text-xl;
   }
 
   a {
     @apply text-sky-500 underline;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --spacing-main-lr: 1.5rem;
+    --spacing-main-tb: 1.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --spacing-main-lr: 3.5rem;
+    --spacing-main-tb: 2.5rem;
+  }
+}
+
+@layer components {
+  /* Authenticated page shell: no sidebar offset until lg. */
+  .app-page {
+    @apply py-main-tb lg:ml-menu;
+  }
+
+  .app-page-header {
+    @apply flex flex-wrap items-center gap-3 px-main-lr mb-6 sm:mb-10;
+  }
+
+  .app-page-section {
+    @apply px-main-lr;
+  }
+
+  .app-detail-grid {
+    @apply flex flex-col gap-5 px-main-lr lg:flex-row;
+  }
+
+  .app-detail-primary {
+    @apply flex w-full flex-col gap-5 lg:w-3/5;
+  }
+
+  .app-detail-aside {
+    @apply flex w-full flex-col gap-5 lg:w-2/5;
+  }
+
+  .app-panel-pad {
+    @apply px-4 sm:px-6 lg:px-10;
+  }
+
+  .app-table-wrap {
+    @apply w-full overflow-x-auto;
   }
 }

@@ -136,27 +136,27 @@ const handleImageUploadFailed = () => {
   <Toaster message="Uploading of image failed" type="error" :show="uploadProfileImageFailed" @close="uploadProfileImageFailed = false"></Toaster>
   <Toaster message="New Profile Image Uploaded" type="success" :show="uploadProfileImageSuccess" @close="uploadProfileImageSuccess = false" ></Toaster>
 
-  <div class="ml-menu py-main-tb" id="person">
-    <div class="flex items-center px-main-lr mb-10 relative">
-      <router-link class="absolute -ml-8 no-underline text-gray-600 font-bold text-lg hover:pr-2 hover:-ml-9 transition-all" :to="{ name: 'people' }">
+  <div class="app-page" id="person">
+    <div class="app-page-header">
+      <router-link class="inline-flex shrink-0 no-underline text-gray-600 font-bold text-lg transition-all hover:text-sky-500" :to="{ name: 'people' }" aria-label="Back to people">
         <svg style="width:24px;height:24px" viewBox="0 0 24 24">
           <path fill="currentColor" d="M21,11H6.83L10.41,7.41L9,6L3,12L9,18L10.41,16.58L6.83,13H21V11Z"></path>
         </svg>
       </router-link>
-      <h1 class="grow text-gray-600">
-        <Skeletor v-if="isLoadingPerson" width="350"></Skeletor>
+      <h1 class="grow min-w-0 text-gray-600 break-words">
+        <Skeletor v-if="isLoadingPerson" width="200"></Skeletor>
         <template v-else>{{ person.fullName }}</template>
       </h1>
-      <button class="w-10 h-8 inline-flex justify-center items-center rounded-md border border-sky-400 hover:border-sky-300 text-sky-400 bg-transparent hover:bg-sky-50 transition-all">
+      <button class="w-10 h-8 inline-flex shrink-0 justify-center items-center rounded-md border border-sky-400 hover:border-sky-300 text-sky-400 bg-transparent hover:bg-sky-50 transition-all">
         <svg style="width:16px;height:16px" viewBox="0 0 24 24">
           <path fill="currentColor" d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"></path>
         </svg>
       </button>
     </div>
-    <div class="flex px-main-lr gap-5">
-      <div class="flex flex-col gap-5 w-3/5">
+    <div class="app-detail-grid">
+      <div class="app-detail-primary order-2 lg:order-1">
         <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
-          <div class="flex items-center px-10 py-8">
+          <div class="flex items-center app-panel-pad py-6 sm:py-8">
             <h2 class="grow text-gray-700">Basic Information</h2>
             <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
@@ -167,21 +167,21 @@ const handleImageUploadFailed = () => {
           <table class="table-auto w-full text-left text-sm">
             <tbody>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Date of birth</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Date of birth</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="200"></Skeletor>
                   <template v-else-if="!!person.dateOfBirth">{{ $filters.humanDate(person.dateOfBirth) }} ({{ $filters.durationInYearsOrMonths(person.dateOfBirth) }} old)</template>
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Gender</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Gender</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="80"></Skeletor>
                   <template v-else>{{ person?.gender }}</template>
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Marital status</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Marital status</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="200"></Skeletor>
                   <template v-else>{{ person?.maritalStatus }}
@@ -193,21 +193,21 @@ const handleImageUploadFailed = () => {
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Email address</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Email address</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="160"></Skeletor>
                   <template v-else>{{ person?.email }}</template>
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Phone number</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Phone number</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="120"></Skeletor>
                   <template v-else>{{ person?.mobileNumber }}</template>
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Social profiles</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Social profiles</td>
                 <td class="py-4 flex">
                   <Skeletor v-if="isLoadingPerson" width="100"></Skeletor>
                   <template v-else><a class="mr-1 hover:opacity-80 transition-all text-[#0077B5]" href="#">
@@ -223,7 +223,7 @@ const handleImageUploadFailed = () => {
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500">Registered at</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 align-top">Registered at</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="230"></Skeletor>
                   <template v-else-if="!!person.registeredDate">{{ $filters.fullDateTime(person.registeredDate) }} ({{ $filters.humanize(person.registeredDate) }} ago)</template>
@@ -233,7 +233,7 @@ const handleImageUploadFailed = () => {
           </table>
         </div>
         <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
-          <div class="flex items-center px-10 py-8">
+          <div class="flex items-center app-panel-pad py-6 sm:py-8">
             <h2 class="grow text-gray-700">Church Life</h2>
             <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
@@ -244,19 +244,19 @@ const handleImageUploadFailed = () => {
           <table class="table-auto w-full text-left text-sm">
             <tbody>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Role</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Role</td>
                 <td class="py-4">Member, Deacon</td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Date baptized</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Date baptized</td>
                 <td class="py-4">25 February 1992</td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Member from</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Member from</td>
                 <td class="py-4">30 June 1991</td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Leading ministries</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Leading ministries</td>
                 <td class="py-4">
                   <ul>
                     <li>
@@ -269,7 +269,7 @@ const handleImageUploadFailed = () => {
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-4 pl-10 text-gray-500 w-2/5">Groups</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Groups</td>
                 <td class="py-4">
                   <ul>
                     <li>
@@ -282,7 +282,7 @@ const handleImageUploadFailed = () => {
           </table>
         </div>
         <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
-          <div class="flex items-center px-10 py-8">
+          <div class="flex items-center app-panel-pad py-6 sm:py-8">
             <h2 class="grow text-gray-700">Address</h2>
             <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
@@ -290,18 +290,18 @@ const handleImageUploadFailed = () => {
               </svg>
             </button>
           </div>
-          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person && person.addresses && person.addresses[0]"><AddressDisplay :address="person.addresses[0]" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" />
+          <div class="address app-panel-pad mb-4 text-gray-500 text-sm" v-if="person && person.addresses && person.addresses[0]"><AddressDisplay :address="person.addresses[0]" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" />
             <div class="w-full h-60" id="map"></div>
           </div>
-          <div class="address px-10 mb-4 text-gray-500 text-sm" v-if="person && person.households && person.households[0] && person.households[0].address">
+          <div class="address app-panel-pad mb-4 text-gray-500 text-sm" v-if="person && person.households && person.households[0] && person.households[0].address">
             <AddressDisplay :address="person.households[0].address" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" />
             <div class="w-full h-60" id="map"></div>
           </div>
-          <div v-else class="px-10 mb-4 text-gray-500 text-sm">No address</div>
+          <div v-else class="app-panel-pad mb-4 text-gray-500 text-sm">No address</div>
 
         </div>
         <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
-          <div class="flex items-center px-10 py-8">
+          <div class="flex items-center app-panel-pad py-6 sm:py-8">
             <h2 class="grow text-gray-700">Prayer Requests</h2>
             <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
@@ -309,11 +309,11 @@ const handleImageUploadFailed = () => {
               </svg>
             </button>
           </div>
-          <div class="text-sm font-bold text-gray-500 px-10">27 February 2022</div>
-          <div class="text-sm text-gray-500 px-10 mb-6">Please pray for my grandmother that she may be saved, pray for my family for strength and comfort in this difficult time.</div>
+          <div class="text-sm font-bold text-gray-500 app-panel-pad">27 February 2022</div>
+          <div class="text-sm text-gray-500 app-panel-pad mb-6">Please pray for my grandmother that she may be saved, pray for my family for strength and comfort in this difficult time.</div>
         </div>
       </div>
-      <div class="flex flex-col gap-5 w-2/5">
+      <div class="app-detail-aside order-1 lg:order-2">
         <div class="flex items-center justify-center">
           <div @click="toggleDropdown" class="relative"
                @mouseenter="hovered = true"
@@ -338,7 +338,7 @@ const handleImageUploadFailed = () => {
           </div>
         </div>
         <div v-if="person && person.households && person.households[0]" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
-          <div class="flex items-center px-10 py-8">
+          <div class="flex items-center app-panel-pad py-6 sm:py-8">
             <router-link  class="grow" :to="{name: 'household', params: {id: person.households[0].id} }">
               <h2 class="text-gray-700">{{person.lastName}} Household</h2>
             </router-link>
@@ -401,7 +401,7 @@ const handleImageUploadFailed = () => {
           </div>
         </div>
         <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
-          <div class="flex items-center px-10 py-8">
+          <div class="flex items-center app-panel-pad py-6 sm:py-8">
             <h2 class="grow text-gray-700">Private Notes</h2>
             <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
               <svg style="width:16px;height:16px" viewBox="0 0 24 24">
@@ -409,8 +409,8 @@ const handleImageUploadFailed = () => {
               </svg>
             </button>
           </div>
-          <div class="text-sm font-bold text-gray-500 px-10">All Stewards only</div>
-          <div class="text-sm text-gray-500 px-10 mb-6">Haven’t been to church in 2 months. Need to check in.
+          <div class="text-sm font-bold text-gray-500 app-panel-pad">All Stewards only</div>
+          <div class="text-sm text-gray-500 app-panel-pad mb-6">Haven’t been to church in 2 months. Need to check in.
             <div></div>
           </div>
         </div>
@@ -418,15 +418,15 @@ const handleImageUploadFailed = () => {
     </div>
   </div>
   <!-- Profile Image View -->
-  <div v-if="profileImageViewVisible" class="fixed inset-0 flex items-center justify-center bg-gray-800/75">
-    <div class="bg-white p-4 rounded-lg shadow-lg relative max-w-3xl overflow-hidden">
+  <div v-if="profileImageViewVisible" class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">
+    <div class="bg-white p-4 rounded-lg shadow-lg relative w-full max-w-3xl overflow-hidden">
       <button @click="closeProfileImageView" class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl">×</button>
       <div class="flex items-center justify-center">
         <img :src="getPersonImageUrl(person)" class="w-auto reduce-height" alt="Profile Image">
       </div>
     </div>
   </div>
-  <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800/75">
+  <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800/75 p-4">
     <ImageCropperUploader @cropped="handleCroppedImage" :uploadEndpoint="'/people/profile_image?id=' + person.id"
                           @imageCropperCancelled="closeUploadProfileImageView"
                           @imageCropperUploadedSuccess="handleImageUploadedSuccess"
@@ -452,15 +452,20 @@ ul.custom-hover li:hover {
 }
 
 div.reduce-height {
-  max-height: 720px;
+  max-height: min(70vh, 720px);
 }
 
 img.reduce-height {
-  max-height: 720px;
+  max-height: min(70vh, 720px);
+  max-width: 100%;
+  height: auto;
 }
 
 img.reduce-height-in-panel {
-  max-height: 580px;
+  max-height: min(50vh, 580px);
+  max-width: 100%;
+  width: auto;
+  height: auto;
 }
 
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-8">
     <div v-if="error" class="error-banner">
       <div class="error-banner-text">
         {{ error }}
@@ -8,8 +8,8 @@
     <div class="logo py-3">
       <img src="@/assets/flocki_logo.jpg" alt="Flock Logo" class="w-24 h-24 rounded-full border-2" />
     </div>
-    <div class="w-100 bg-white p-8 rounded-lg shadow-md">
-      <h2 class="text-2xl font-semibold mb-4">Church Setup Wizard</h2>
+    <div class="w-full max-w-md bg-white p-5 sm:p-8 rounded-lg shadow-md">
+      <h2 class="text-xl sm:text-2xl font-semibold mb-4">Church Setup Wizard</h2>
       <!-- Add description of this form -->
       <div class="pb-3"><p>Please enter details fo the church. This will be used throughout the  app. <br> You will be able to edit these details later on.</p></div>
       <form @submit.prevent="handleButtonClick" class="space-y-4">
@@ -20,7 +20,7 @@
             id="name"
             v-model="formData.name"
             required
-            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
+            class="w-full px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           />
         </div>
         <!--label for="logo" class="block font-medium">Church Logo:</label>
@@ -36,12 +36,12 @@
             type="url"
             id="website"
             v-model="formData.website"
-            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
+            class="w-full px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           />
         </div>
         <label for="logo" class="block font-medium">Choose Logo: </label>
         <div
-            class="border border-dashed border-gray-300 p-4 rounded-md "
+            class="relative border border-dashed border-gray-300 p-4 rounded-md min-h-28"
             @dragover.prevent="preventDefault"
             @drop="handleDrop">
               <input
@@ -53,14 +53,14 @@
                 @change="handleFileSelect"
               />
 
-              <p class="text-gray-400 text-center absolute top-12 left-0 w-full h-full flex justify-center items-center pointer-events-none">
+              <p class="text-gray-400 text-center absolute inset-0 flex justify-center items-center pointer-events-none px-4">
                   Drag and drop or click to upload a logo
               </p>              
               <img
                 v-if="logoPreview"
                 :src="logoPreview"
                 alt="Uploaded Logo"
-                class="mx-auto mt-4 max-w-xs"/>
+                class="relative z-10 mx-auto mt-4 max-w-full max-h-40"/>
         </div>
         <div class="form-group">
           <label for="email" class="block font-medium">Email:</label>
@@ -68,7 +68,7 @@
             type="email"
             id="email"
             v-model="formData.email"
-            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
+            class="w-full px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           />
         </div>
         <div class="form-group">
@@ -77,7 +77,7 @@
             type="tel"
             id="phone"
             v-model="formData.phone"
-            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
+            class="w-full px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           />
         </div>
         <div class="form-group">
@@ -85,7 +85,7 @@
           <textarea
             id="description"
             v-model="formData.description"
-            class="w-80 px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
+            class="w-full px-3 py-2 border rounded-md focus:outline-hidden focus:border-blue-500"
           ></textarea>
         </div>
         <!-- Add more form fields for address_id, logo_image_id, etc., as needed -->

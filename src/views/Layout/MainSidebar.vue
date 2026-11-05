@@ -1,9 +1,24 @@
 <template lang="pug">
-.bg-white.fixed.top-0.left-0.bottom-0(class="w-[300px] shadow-[0px_0px_30px_rgba(0,0,0,0.15)]")
+button.fixed.inset-0.z-40.transition-opacity(
+  v-if="isOpen"
+  type="button"
+  class="bg-black/40 lg:hidden"
+  aria-label="Close navigation menu"
+  @click="close()"
+)
+
+aside.bg-white.fixed.top-0.bottom-0.left-0.z-50.flex.flex-col.transition-transform.duration-200.ease-out(
+  class="w-[min(100%,300px)] shadow-[0px_0px_30px_rgba(0,0,0,0.15)] lg:translate-x-0"
+  :class="isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+  :aria-hidden="!isOpen ? 'true' : undefined"
+)
   .h-full.overflow-y-auto.w-full
-    .logo.px-8.mt-2.flex.items-center(class="h-[76px]")
+    .logo.mt-2.flex.items-center.justify-between(
+      class="h-[76px] px-6 sm:px-8"
+    )
       router-link(
         to="/"
+        @click="close()"
       )
         img.transition-all(
           class="hover:opacity-80"
@@ -11,14 +26,29 @@
           onerror="this.src = ''"
           width="60"
         )
+      button.inline-flex.items-center.justify-center.w-10.h-10.rounded-md.text-gray-600(
+        type="button"
+        class="hover:bg-main lg:hidden"
+        aria-label="Close navigation menu"
+        @click="close()"
+      )
+        svg.h-6.w-6(
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        )
+          path(
+            fill="currentColor"
+            d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+          )
 
-    ul.flex.flex-col.mt-4
+    ul.flex.flex-col.mt-4.pb-8
       li(v-for="item in menu" :key="item.name")
         component(
           :is="item.to ? 'router-link' : 'button'"
           :class="menuItemClass"
           :to="item.to ? item.to : ''"
           :exact-active-class="item.subMenu ? '' : '!text-sky-500 bg-main'"
+          @click="onPrimaryItemClick(item)"
         )
           svg.h-6.w-6(
             viewBox="0 0 24 24"
@@ -40,10 +70,11 @@
 
         ul(v-if="item.subMenu && checkIfSubmenuShouldDisplay(item, $route)")
           li(v-for="subItem in item.subMenu" :key="subItem.name")
-            router-link.flex.items-center.px-8.text-gray-800.no-underline.py-4(
-              class="hover:bg-main"
+            router-link.flex.items-center.text-gray-800.no-underline.py-4(
+              class="px-6 sm:px-8 hover:bg-main"
               :to="subItem.to"
               active-class="!text-sky-500 bg-main"
+              @click="close()"
             )
               span.ml-8 {{ subItem.name }}
 </template>
@@ -51,12 +82,14 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getFullImageUrl } from '@/imageUtils';
+import { getFullImageUrl } from '@/imageUtils'
+import { useSidebar } from '@/composables/useSidebar'
 
 const route = useRoute()
+const { isOpen, close } = useSidebar()
 const currentSubmenu = ref('')
 
-const menuItemClass = "flex items-center px-8 py-4 w-full text-gray-800 no-underline hover:bg-main"
+const menuItemClass = "flex items-center px-6 sm:px-8 py-4 w-full text-gray-800 no-underline hover:bg-main"
 
 const menu = [
   {
@@ -140,8 +173,15 @@ const setCurrentSubmenu = (name) => {
   currentSubmenu.value = (currentSubmenu.value === name ? '' : name)
 }
 
+const onPrimaryItemClick = (item) => {
+  if (item.subMenu) {
+    setCurrentSubmenu(item.name)
+    return
+  }
+  close()
+}
+
 setCurrentSubmenu(route.name)
 
-watch(route, () => setCurrentSubmenu(route.name)) 
-
+watch(route, () => setCurrentSubmenu(route.name))
 </script>
