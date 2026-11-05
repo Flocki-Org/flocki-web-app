@@ -7,28 +7,29 @@ button.fixed.inset-0.z-40.transition-opacity(
   @click="close()"
 )
 
-aside.bg-white.fixed.top-0.bottom-0.left-0.z-50.flex.flex-col.transition-transform.duration-200.ease-out(
-  class="w-[min(100%,300px)] shadow-[0px_0px_30px_rgba(0,0,0,0.15)] lg:translate-x-0"
+aside.fixed.top-0.bottom-0.left-0.z-50.flex.flex-col.transition-transform.duration-200.ease-out(
+  class="w-[min(100%,260px)] border-r border-gray-200 bg-white shadow-none lg:translate-x-0 lg:shadow-none"
   :class="isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
   :aria-hidden="!isOpen ? 'true' : undefined"
 )
   .h-full.overflow-y-auto.w-full
-    .logo.mt-2.flex.items-center.justify-between(
-      class="h-[76px] px-6 sm:px-8"
+    .logo.flex.items-center.justify-between.border-b.border-gray-100(
+      class="h-[64px] px-5 sm:px-6"
     )
-      router-link(
+      router-link.inline-flex.items-center.gap-2.no-underline(
         to="/"
         @click="close()"
       )
-        img.transition-all(
+        img.h-9.w-9.rounded-md.object-cover.transition-opacity(
           class="hover:opacity-80"
-          :src="getFullImageUrl('/church/logo')"
-          onerror="this.src = ''"
-          width="60"
+          :src="logoSrc"
+          alt="Flocki"
+          @error="useFallbackLogo"
         )
+        span.text-base.font-semibold.tracking-tight.text-gray-900 Flocki
       button.inline-flex.items-center.justify-center.w-10.h-10.rounded-md.text-gray-600(
         type="button"
-        class="hover:bg-main lg:hidden"
+        class="hover:bg-gray-100 lg:hidden"
         aria-label="Close navigation menu"
         @click="close()"
       )
@@ -47,7 +48,7 @@ aside.bg-white.fixed.top-0.bottom-0.left-0.z-50.flex.flex-col.transition-transfo
           :is="item.to ? 'router-link' : 'button'"
           :class="menuItemClass"
           :to="item.to ? item.to : ''"
-          :exact-active-class="item.subMenu ? '' : '!text-sky-500 bg-main'"
+          :exact-active-class="item.subMenu ? '' : '!text-sky-700 bg-sky-50'"
           @click="onPrimaryItemClick(item)"
         )
           svg.h-6.w-6(
@@ -70,13 +71,13 @@ aside.bg-white.fixed.top-0.bottom-0.left-0.z-50.flex.flex-col.transition-transfo
 
         ul(v-if="item.subMenu && checkIfSubmenuShouldDisplay(item, $route)")
           li(v-for="subItem in item.subMenu" :key="subItem.name")
-            router-link.flex.items-center.text-gray-800.no-underline.py-4(
-              class="px-6 sm:px-8 hover:bg-main"
+            router-link.flex.items-center.text-gray-600.no-underline.py-2(
+              class="px-5 sm:px-6 text-sm hover:bg-gray-50 hover:text-gray-900"
               :to="subItem.to"
-              active-class="!text-sky-500 bg-main"
+              active-class="!text-sky-700 bg-sky-50"
               @click="close()"
             )
-              span.ml-8 {{ subItem.name }}
+              span.ml-8.font-normal {{ subItem.name }}
 </template>
 
 <script setup>
@@ -84,12 +85,17 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getFullImageUrl } from '@/imageUtils'
 import { useSidebar } from '@/composables/useSidebar'
+import flockiLogo from '@/assets/flocki_logo.jpg'
 
 const route = useRoute()
 const { isOpen, close } = useSidebar()
 const currentSubmenu = ref('')
+const logoSrc = ref(getFullImageUrl('/church/logo'))
+const useFallbackLogo = () => {
+  logoSrc.value = flockiLogo
+}
 
-const menuItemClass = "flex items-center px-6 sm:px-8 py-4 w-full text-gray-800 no-underline hover:bg-main"
+const menuItemClass = "flex items-center gap-0 px-5 sm:px-6 py-2.5 w-full text-sm font-medium text-gray-700 no-underline transition-colors hover:bg-gray-50 hover:text-gray-900"
 
 const menu = [
   {

@@ -97,18 +97,18 @@ const handleLinkClick = (event) => {
 
 <template>
     <div class="user-profile-popup">
-      <router-link v-if="!shouldPreventDefault" class="no-underline group-hover:underline text-current group-hover:text-sky-500" :to="{ name: 'person', params: { id: person.id } }"
+      <router-link v-if="!shouldPreventDefault" class="profile-trigger no-underline text-current hover:text-sky-600" :to="{ name: 'person', params: { id: person.id } }"
                    @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
                    @click="handleLinkClick">
-        <div class="user-profile-container inline">
+        <div class="user-profile-container">
           <slot :getPersonImageUrl="getPersonImageUrl"></slot>
         </div>
 
       </router-link>
-      <a v-else class="no-underline group-hover:underline text-current group-hover:text-sky-500" :href="`/people/${person.id}`"
+      <a v-else class="profile-trigger no-underline text-current hover:text-sky-600" :href="`/people/${person.id}`"
          @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
          @click="handleLinkClick">
-        <div class="user-profile-container inline">
+        <div class="user-profile-container">
           <slot :getPersonImageUrl="getPersonImageUrl"></slot>
         </div>
       </a>
@@ -139,15 +139,29 @@ const handleLinkClick = (event) => {
 
 
 <style scoped>
-.user-profile-container {
-  display: inline-block;
-  align-items: center; /* Vertically align the items */
+.user-profile-popup {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  align-items: center;
+  line-height: 1.25;
 }
 
-.user-profile-popup {
-  position: relative; /* Parent container positioning */
-  display: inline;
-  vertical-align: top;
+.profile-trigger {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  align-items: center;
+  line-height: inherit;
+}
+
+.user-profile-container {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  align-items: center;
+  line-height: inherit;
 }
 
 /* Basic styling for the profile popup */

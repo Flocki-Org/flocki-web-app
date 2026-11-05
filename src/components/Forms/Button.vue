@@ -17,12 +17,12 @@ defineProps({
 </script>
 
 <template lang="pug">
-button.inline-flex.items-center.rounded-lg.py-2.cursor-pointer.transition-all(
+button.inline-flex.items-center.justify-center.rounded-md.text-sm.cursor-pointer.transition-colors(
   :type="type"
-  :class="{ 'font-medium text-white px-5': !stealth, 'bg-sky-300 hover:bg-sky-300 cursor-default': showLoader && !stealth, 'bg-sky-500 hover:bg-sky-400': !showLoader && !stealth, 'font-light text-gray-500 hover:bg-white px-3': stealth }"
+  :class="{ 'font-medium text-white px-3.5 py-2 shadow-sm': !stealth, 'bg-sky-400 cursor-default': showLoader && !stealth, 'bg-sky-600 hover:bg-sky-700': !showLoader && !stealth, 'font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-2': stealth }"
 )
   svg.mr-2.w-4.h-4.animate-spin.fill-sky-500(
-    :class="{ 'hidden': !showLoader, 'fill-sky-300': showLoader }"
+    :class="{ 'hidden': !showLoader, 'fill-sky-300 text-white': showLoader }"
     aria-hidden="true"
     viewBox="0 0 100 101"
     fill="none"

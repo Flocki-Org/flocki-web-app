@@ -53,17 +53,17 @@ TransitionRoot(
           leave-from="opacity-100 scale-100"
           leave-to="opacity-0 scale-95"
         )
-          DialogPanel.w-full.max-w-md.transform.overflow-hidden.bg-white.pt-6.text-left.align-middle.shadow-xl.transition-all(
-            class="max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl"
+          DialogPanel.w-full.max-w-md.transform.overflow-hidden.bg-white.pt-5.text-left.align-middle.shadow-xl.transition-all(
+            class="max-h-[90vh] overflow-y-auto rounded-t-xl border border-gray-100 sm:rounded-xl"
           )
-            .flex.items-center.mb-6(
-              class="px-4 sm:px-8"
+            .flex.items-center.mb-5(
+              class="px-4 sm:px-6"
             )
-              DialogTitle.grow.text-lg.font-bold.leading-6.text-gray-700(
+              DialogTitle.grow.text-base.font-semibold.leading-6.text-gray-900(
                 as="h3"
               ) {{ title }}
-              button.w-8.h-8.inline-flex.justify-center.items-center.rounded-md.text-gray-400.bg-gray-50.transition-all(
-                class="hover:bg-gray-100"
+              button.w-8.h-8.inline-flex.justify-center.items-center.rounded-md.text-gray-400.transition-colors(
+                class="hover:bg-gray-100 hover:text-gray-600"
                 @click="$emit('close')"
               )
                 svg(
@@ -78,12 +78,12 @@ TransitionRoot(
               :is="isForm ? 'form' : 'div'"
               @submit.prevent="$emit('submit')"
             )
-              .pb-6(
-                class="px-4 sm:px-8"
+              .pb-5(
+                class="px-4 sm:px-6"
               )
                 slot
-              .bg-gray-100.py-4(
-                class="px-4 sm:px-8"
+              .border-t.border-gray-100.bg-gray-50.py-3(
+                class="px-4 sm:px-6"
               )
                 slot(
                   name="controls"
