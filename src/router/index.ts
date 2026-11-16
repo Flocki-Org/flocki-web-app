@@ -53,6 +53,16 @@ const router = createRouter({
           component: () => import('@/views/People/HouseholdListView.vue'),
         },
         {
+          path: 'groups',
+          name: 'groups',
+          component: () => import('@/views/People/GroupListView.vue'),
+        },
+        {
+          path: 'groups/:id',
+          name: 'group',
+          component: () => import('@/views/People/GroupView.vue'),
+        },
+        {
           path: 'households/:id',
           name: 'household',
           component: () => import('@/views/People/HouseholdView.vue'),

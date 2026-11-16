@@ -18,6 +18,18 @@ describe('Person model', () => {
     })
 
     expect(person?.fullName).toBe('Ada Lovelace')
+    expect(person?.displayName).toBe('Ada Lovelace')
     expect(person?.gender).toBe('Female')
+  })
+
+  it('uses the preferred name in the display name', () => {
+    const person = useRepo(Person).save({
+      id: 2,
+      firstName: 'Ada',
+      preferredName: 'Addie',
+      lastName: 'Lovelace',
+    })
+
+    expect(person?.displayName).toBe('Addie Lovelace')
   })
 })

@@ -10,6 +10,9 @@ export default class Person extends Model {
   @Attr(null) id!: number | null
   @Str('') firstName!: string
   @Str('') lastName!: string
+  @Str('') preferredName!: string | null
+  @Str('') middleName!: string | null
+  @Str('') title!: string | null
   @Str('') email!: string | null
   @Str('') mobileNumber!: string | null
   @Str('') dateOfBirth!: string | null
@@ -17,6 +20,24 @@ export default class Person extends Model {
   @Str('') marriageDate!: string | null
   @Str('') maritalStatus!: string | null
   @Str('') registeredDate!: string | null
+  @Str('') lifecycleStatus!: string | null
+  @Str('') membershipStatus!: string | null
+  @Str('') memberSince!: string | null
+  @Str('') baptismStatus!: string | null
+  @Str('') baptismDate!: string | null
+  @Str('') baptismLocation!: string | null
+  @Str('') ministryInvolvement!: string | null
+  @Str('') occupation!: string | null
+  @Str('') biography!: string | null
+  @Str('') pastoralNotes!: string | null
+  @Attr([]) emergencyContacts!: { id?: number; name: string; relationshipLabel?: string | null; phone?: string | null; email?: string | null }[]
+  @Attr([]) emails!: { id?: number; email: string; isPrimary?: boolean; label?: string | null }[]
+  @Attr([]) phones!: { id?: number; number: string; phoneType?: string; isPrimary?: boolean }[]
+  @Attr([]) categories!: { id: number; name: string; colour?: string | null }[]
+  @Attr([]) customFields!: { fieldId: number; name: string; fieldType: string; value: unknown }[]
+  @Attr([]) relationships!: { id?: number; relationshipType?: string; direction?: string; relatedFirstName?: string | null; relatedLastName?: string | null; relatedPersonId?: number }[]
+  @Attr([]) groups!: { groupId: number; groupName: string; role?: string | null; status?: string | null; category?: string | null }[]
+  @Attr([]) socialMediaLinks!: { type?: string; url: string }[]
   @Attr([]) addresses!: Address[] | []
   @Attr([]) households!: Household[] | []
   @Attr(null) profileImage!: EntityImage | null
@@ -34,6 +55,11 @@ export default class Person extends Model {
   }
 
   get fullName() {
-    return `${this.firstName} ${this.lastName}`
+    return `${this.firstName} ${this.lastName}`.trim()
+  }
+
+  get displayName() {
+    const first = this.preferredName || this.firstName
+    return [first, this.lastName].filter(Boolean).join(' ')
   }
 }

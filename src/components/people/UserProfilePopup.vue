@@ -1,232 +1,176 @@
 <script setup>
-import { ref, defineProps } from 'vue';
-import { getPersonImageUrl } from '@/imageUtils';
+import { nextTick, ref } from 'vue'
+import { getPersonImageUrl } from '@/imageUtils'
 
 const { person, shouldPreventDefault } = defineProps([
   'personId',
   'person',
   'includeName',
-  'shouldPreventDefault'
-]);
-const showingPersonPopupModel = ref(false);
-const activeProfilePopup = ref(null);
-let popupTimeout;
+  'shouldPreventDefault',
+])
 
-const showProfilePopup = (event, personId) => {
-  const profileLink = event.currentTarget; // Get the router-link element
-  const profilePopup = document.getElementById(`profile-popup-${personId}`);
-  clearTimeout(popupTimeout);
+const popupEl = ref(null)
+const visible = ref(false)
+const position = ref({ top: 0, left: 0 })
+let showTimer
+let hideTimer
 
-  popupTimeout = setTimeout(() => {
-    activeProfilePopup.value = personId;
+const displayName = () => {
+  if (!person) return ''
+  const first = person.preferredName || person.firstName || ''
+  return [first, person.lastName].filter(Boolean).join(' ')
+}
 
-    showingPersonPopupModel.value = true;
-    if (profilePopup) {
-      setTimeout(() => {
-        const popupRect = profilePopup.getBoundingClientRect();
-        const popupHeight = popupRect.height;
-        const spaceAbove = profileLink.getBoundingClientRect().top;
-        const spaceBelow = window.innerHeight - profileLink.getBoundingClientRect().bottom;
+const statusLabel = () => {
+  const value = person?.lifecycleStatus
+  if (!value) return ''
+  return String(value).replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
 
-        let topPosition = profileLink.getBoundingClientRect().bottom; // Default position below the router-link element
+const placePopup = (trigger) => {
+  const popup = popupEl.value
+  if (!popup || !trigger) return
+  const rect = trigger.getBoundingClientRect()
+  const margin = 12
+  const width = popup.offsetWidth
+  const height = popup.offsetHeight
+  let left = rect.left
+  if (left + width > window.innerWidth - margin) {
+    left = window.innerWidth - width - margin
+  }
+  left = Math.max(margin, left)
 
-        // Check if there's not enough space below, and there's enough space above
-        if (spaceBelow < popupHeight && spaceAbove >= popupHeight) {
-          topPosition = profileLink.getBoundingClientRect().top - popupHeight; // Display above the router-link element
-          topPosition = topPosition + 5;
-        } else {
-          topPosition = topPosition - 5;
-        }
+  let top = rect.bottom + 8
+  if (top + height > window.innerHeight - margin && rect.top > height + margin) {
+    top = rect.top - height - 8
+  }
+  top = Math.max(margin, Math.min(top, window.innerHeight - height - margin))
+  position.value = { top, left }
+}
 
-        profilePopup.style.left = profileLink.getBoundingClientRect().left + 35 + 'px';
-        profilePopup.style.top = topPosition + 'px';
+const showProfilePopup = async (event) => {
+  clearTimeout(hideTimer)
+  clearTimeout(showTimer)
+  const trigger = event.currentTarget
+  showTimer = setTimeout(async () => {
+    visible.value = true
+    await nextTick()
+    placePopup(trigger)
+  }, 320)
+}
 
-      }, 0);
-      // Prevent the popup from hiding when moving the mouse over the popup itself
-      profilePopup.addEventListener('mouseenter', () => {
-        showingPersonPopupModel.value = true;
-      });
-    }
-    }, 800);
-};
+const scheduleHide = () => {
+  clearTimeout(showTimer)
+  clearTimeout(hideTimer)
+  hideTimer = setTimeout(() => {
+    visible.value = false
+  }, 160)
+}
 
-const hideProfilePopup = (event, personId) => {
-  clearTimeout(popupTimeout);
-
-  // Hide the popup unless the mouse is still over the popup
-  setTimeout(() => {
-    if (!profilePopupIsHovered(event, personId) && showingPersonPopupModel.value) {
-      activeProfilePopup.value = null;
-      showingPersonPopupModel.value = false; // Add this line to hide the popup
-    }
-  }, 100);
-};
-
-const profilePopupIsHovered = (event, personId) => {
-
-  const profilePopup = document.getElementById(`profile-popup-${personId}`);
-  if (!profilePopup) return false;
-
-  const popupRect = profilePopup.getBoundingClientRect();
-  const popupTop = popupRect.top;
-  const popupLeft = popupRect.left;
-  const popupRight = popupRect.right;
-  const popupBottom = popupRect.bottom;
-
-  const mouseX = event.clientX;
-  const mouseY = event.clientY;
-
-  return (
-      mouseX >= popupLeft &&
-      mouseX <= popupRight &&
-      mouseY >= popupTop &&
-      mouseY <= popupBottom
-  );
-};
+const cancelHide = () => {
+  clearTimeout(hideTimer)
+}
 
 const handleLinkClick = (event) => {
-  // Your logic to determine whether to prevent the default action
-  console.log('handleLinkClick');
-  console.log(shouldPreventDefault);
   if (shouldPreventDefault) {
-    event.preventDefault();
+    event.preventDefault()
   }
-};
-
+}
 </script>
 
 <template>
-    <div class="user-profile-popup">
-      <router-link v-if="!shouldPreventDefault" class="profile-trigger no-underline text-current hover:text-sky-600" :to="{ name: 'person', params: { id: person.id } }"
-                   @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
-                   @click="handleLinkClick">
-        <div class="user-profile-container">
-          <slot :getPersonImageUrl="getPersonImageUrl"></slot>
-        </div>
+  <div class="flex max-w-full items-center">
+    <router-link
+      v-if="!shouldPreventDefault"
+      class="flex w-full max-w-full items-center text-current no-underline hover:text-sky-700"
+      :to="{ name: 'person', params: { id: person.id } }"
+      @mouseenter="showProfilePopup"
+      @mouseleave="scheduleHide"
+      @click="handleLinkClick"
+    >
+      <slot :getPersonImageUrl="getPersonImageUrl"></slot>
+    </router-link>
+    <a
+      v-else
+      class="flex w-full max-w-full items-center text-current no-underline hover:text-sky-700"
+      :href="`/people/${person.id}`"
+      @mouseenter="showProfilePopup"
+      @mouseleave="scheduleHide"
+      @click="handleLinkClick"
+    >
+      <slot :getPersonImageUrl="getPersonImageUrl"></slot>
+    </a>
 
-      </router-link>
-      <a v-else class="profile-trigger no-underline text-current hover:text-sky-600" :href="`/people/${person.id}`"
-         @mouseenter="event => showProfilePopup(event, person.id)" @mouseleave="event => hideProfilePopup(event, person.id)"
-         @click="handleLinkClick">
-        <div class="user-profile-container">
-          <slot :getPersonImageUrl="getPersonImageUrl"></slot>
-        </div>
-      </a>
-      <transition name="fade" mode="out-in">
-        <!--template v-slot:enter="enterClass" v-slot:leave="leaveClass"-->
-          <div class="profile-popup" :id="`profile-popup-${person.id}`"
-               v-show="activeProfilePopup === person.id"
-               @mouseleave="event => hideProfilePopup(event, person.id)">
-
-            <router-link class="no-underline group-hover:underline text-current group-hover:text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
-              <img class="profile-image" v-if="person && person.profileImage" :src="getPersonImageUrl(person)">
-              <img class="profile-image" v-else src="@/assets/default-user-profile.png">
+    <Teleport to="body">
+      <div
+        v-show="visible"
+        ref="popupEl"
+        class="fixed z-[80] w-[min(19rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-[0_16px_40px_rgba(15,23,42,0.16)]"
+        :style="{ top: `${position.top}px`, left: `${position.left}px` }"
+        @mouseenter="cancelHide"
+        @mouseleave="scheduleHide"
+      >
+        <div class="flex items-start gap-3 border-b border-gray-100 px-3.5 py-3">
+          <img
+            class="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-gray-200"
+            v-if="person && person.profileImage"
+            :src="getPersonImageUrl(person)"
+            alt=""
+          >
+          <img
+            class="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-gray-200"
+            v-else
+            src="@/assets/default-user-profile.png"
+            alt=""
+          >
+          <div class="min-w-0 flex-1">
+            <router-link
+              class="block truncate text-sm font-semibold text-gray-900 no-underline hover:text-sky-700"
+              :to="{ name: 'person', params: { id: person.id } }"
+            >
+              {{ displayName() }}
             </router-link>
-            <router-link class="no-underline group-hover:underline text-current group-hover:text-sky-500" :to="{ name: 'person', params: { id: person.id } }">
-              <h2 class="profile-name">{{ person.firstName }} {{ person.lastName }}</h2>
-            </router-link>
-            <p class="profile-details"><span v-if="person.dateOfBirth">Age: {{ $filters.durationInYearsOrMonths(person.dateOfBirth) }} | Date of Birth:
-              {{ $filters.humanDate(person.dateOfBirth)}} </span><span v-if="person.gender"> | Gender: {{person.gender}}</span></p>
-
-            <p class="profile-details"> <span v-if="person.email">Email: {{ person.email }}</span><span v-if="person.email && person.mobileNumber"> | </span><span v-if="person.mobileNumber">Mobile: {{person.mobileNumber}}</span></p>
-            <!-- Add other details here -->
+            <p v-if="person.preferredName && person.firstName && person.preferredName !== person.firstName" class="truncate text-xs text-gray-500">
+              {{ person.firstName }} {{ person.lastName }}
+            </p>
+            <span
+              v-if="statusLabel()"
+              class="mt-1 inline-flex max-w-full truncate rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800"
+            >
+              {{ statusLabel() }}
+            </span>
           </div>
-        <!--/template-->
-      </transition>
-    </div>
+        </div>
+        <dl class="space-y-2 px-3.5 py-3 text-xs">
+          <div v-if="person.email" class="grid grid-cols-[4.25rem_minmax(0,1fr)] gap-2">
+            <dt class="text-gray-400">Email</dt>
+            <dd class="break-all text-gray-700">{{ person.email }}</dd>
+          </div>
+          <div v-if="person.mobileNumber" class="grid grid-cols-[4.25rem_minmax(0,1fr)] gap-2">
+            <dt class="text-gray-400">Mobile</dt>
+            <dd class="break-all text-gray-700">{{ person.mobileNumber }}</dd>
+          </div>
+          <div v-if="person.dateOfBirth" class="grid grid-cols-[4.25rem_minmax(0,1fr)] gap-2">
+            <dt class="text-gray-400">Birthday</dt>
+            <dd class="text-gray-700">
+              {{ $filters.humanDate(person.dateOfBirth) }}
+              <span class="text-gray-400">· {{ $filters.durationInYearsOrMonths(person.dateOfBirth) }}</span>
+            </dd>
+          </div>
+          <div v-if="person.categories && person.categories.length" class="grid grid-cols-[4.25rem_minmax(0,1fr)] gap-2">
+            <dt class="text-gray-400">Tags</dt>
+            <dd class="flex flex-wrap gap-1">
+              <span
+                v-for="category in person.categories.slice(0, 3)"
+                :key="category.id"
+                class="max-w-full truncate rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-700"
+              >
+                {{ category.name }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </Teleport>
+  </div>
 </template>
-
-
-
-<style scoped>
-.user-profile-popup {
-  position: relative;
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  align-items: center;
-  line-height: 1.25;
-}
-
-.profile-trigger {
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  align-items: center;
-  line-height: inherit;
-}
-
-.user-profile-container {
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  align-items: center;
-  line-height: inherit;
-}
-
-/* Basic styling for the profile popup */
-.profile-popup {
-  display: inline;
-  position: fixed;
-  align-items: center; /* Center horizontally */
-  justify-content: center; /* Center vertically */
-  text-align: center; /* Center text horizontally */
-  top: 0; /* Adjust as needed */
-  left: 0; /* Adjust as needed */
-  right: 0; /* Adjust as needed */
-  z-index: 1000;
-  background-color: whitesmoke;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  border-radius: 10px;
-  font-family: Arial, sans-serif; /* Set the desired font family */
-  font-size: 14px;
-  color: #333;
-  max-width: 200px; /* Adjust as needed */
-}
-
-/* Styling for the profile image */
-.profile-image {
-  margin: 0 auto; /* Center horizontally */
-  width: 150px;
-  height: 150px;
-  border-radius: 50%; /* Rounded image */
-  margin-bottom: 10px;
-  object-fit: cover; /* Ensure the image covers the container */
-}
-
-/* Styling for the profile name */
-.profile-name {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-/* Styling for the profile details */
-.profile-details {
-  margin-bottom: 10px;
-}
-
-/* Styling for the age and date of birth */
-.profile-details span {
-  margin-right: 10px;
-}
-
-/* Styling for the link */
-.profile-link {
-  color: #007bff; /* Link color */
-  text-decoration: none;
-}
-
-/* Hover effect for the link */
-.profile-link:hover + .profile-popup {
-  display: block;
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s;
-}
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-</style>
