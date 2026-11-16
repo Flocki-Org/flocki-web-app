@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { emptyDraft, eventsApi, type EventDraft, type EventType, type Occurrence } from '@/api/events'
 import EventForm from '@/components/events/EventForm.vue'
 import Button from '@/components/Forms/Button.vue'
@@ -11,6 +11,7 @@ import { groupByDate, isoDate, monthGrid, occurrenceRoute, startOfWeek, timeRang
 
 type ViewMode = 'month' | 'week' | 'agenda'
 
+const route = useRoute()
 const router = useRouter()
 const mode = ref<ViewMode>('month')
 const cursor = ref(dayjs())
@@ -88,9 +89,24 @@ const toggleType = (id: number) => {
 }
 
 const openCreate = (date?: string) => {
-  draft.value = emptyDraft(date || isoDate(cursor.value))
+  const next = emptyDraft(date || isoDate(cursor.value))
+  if (groupId.value) next.groupId = Number(groupId.value)
+  draft.value = next
   showCreate.value = true
 }
+
+const rawQuery = (value: unknown) => (Array.isArray(value) ? value[0] : value)
+const groupFromQuery = Number(rawQuery(route.query.group))
+if (groupFromQuery) groupId.value = groupFromQuery
+
+onMounted(() => {
+  if (rawQuery(route.query.create) === '1') {
+    openCreate()
+    const query = { ...route.query }
+    delete query.create
+    router.replace({ query })
+  }
+})
 
 const createEvent = async () => {
   if (!draft.value.title.trim() || !draft.value.eventTypeId || !draft.value.startDate) {

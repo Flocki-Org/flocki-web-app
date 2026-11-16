@@ -31,6 +31,16 @@ const total = ref(0)
 const totalPages = ref(0)
 const searchTerm = ref('')
 const statusFilter = ref('')
+const selectedIds = ref<number[]>([])
+const actionError = ref('')
+const actionNotice = ref('')
+const showTag = ref(false)
+const showHousehold = ref(false)
+const categories = ref<{ id: number; name: string }[]>([])
+const tagCategoryId = ref<number | ''>('')
+const householdName = ref('')
+const householdLeaderId = ref<number | ''>('')
+const working = ref(false)
 
 const newPerson = reactive({
   firstName: '',
@@ -91,6 +101,101 @@ const toggleAddPersonDialog = (val: boolean) => {
   isOpenAddPersonDialog.value = val
 }
 
+const selectedPeople = computed(() => people.value.filter((person) => selectedIds.value.includes(person.id)))
+const allOnPageSelected = computed(() => people.value.length > 0 && people.value.every((person) => selectedIds.value.includes(person.id)))
+
+const togglePerson = (id: number, checked: boolean) => {
+  selectedIds.value = checked ? [...new Set([...selectedIds.value, id])] : selectedIds.value.filter((value) => value !== id)
+}
+
+const togglePage = (checked: boolean) => {
+  const pageIds = people.value.map((person) => person.id)
+  selectedIds.value = checked
+    ? [...new Set([...selectedIds.value, ...pageIds])]
+    : selectedIds.value.filter((id) => !pageIds.includes(id))
+}
+
+const requireSelection = () => {
+  if (selectedIds.value.length) return true
+  actionError.value = 'Select at least one person.'
+  return false
+}
+
+const archiveSelected = async () => {
+  if (!requireSelection() || !confirm(`Archive ${selectedIds.value.length} ${selectedIds.value.length === 1 ? 'person' : 'people'}?`)) return
+  working.value = true
+  try {
+    await Promise.all(selectedIds.value.map((id) => axios.post(`/people/${id}/archive`)))
+    selectedIds.value = []
+    actionNotice.value = 'Archived.'
+    loadPeople(page.value, perPage.value)
+  } catch {
+    actionError.value = "Couldn't archive the selected people."
+  } finally {
+    working.value = false
+  }
+}
+
+const openTag = async () => {
+  if (!requireSelection()) return
+  if (categories.value.length === 0) {
+    const response = await axios.get('/people/categories')
+    categories.value = response.data || []
+  }
+  if (categories.value.length === 0) {
+    actionError.value = 'Add a category before tagging people.'
+    return
+  }
+  tagCategoryId.value = categories.value[0].id
+  showTag.value = true
+}
+
+const applyTag = async () => {
+  if (!tagCategoryId.value) return
+  working.value = true
+  try {
+    await Promise.all(selectedIds.value.map(async (id) => {
+      const response = await axios.get(`/people/${id}`)
+      const categoryId = Number(tagCategoryId.value)
+      const ids = (response.data.categories || []).map((category: { id: number }) => category.id)
+      if (!ids.includes(categoryId)) ids.push(categoryId)
+      await axios.patch(`/people/${id}`, { id, categoryIds: ids })
+    }))
+    showTag.value = false
+    actionNotice.value = 'Category added.'
+  } catch {
+    actionError.value = "Couldn't tag the selected people."
+  } finally {
+    working.value = false
+  }
+}
+
+const openHousehold = () => {
+  if (!requireSelection()) return
+  householdLeaderId.value = selectedIds.value[0]
+  const leader = selectedPeople.value[0]
+  householdName.value = leader ? `${leader.lastName} household` : 'Household'
+  showHousehold.value = true
+}
+
+const createHousehold = async () => {
+  if (!householdLeaderId.value) return
+  working.value = true
+  try {
+    const response = await axios.post('/households', {
+      name: householdName.value.trim() || null,
+      peopleIds: selectedIds.value,
+      leaderId: Number(householdLeaderId.value),
+    })
+    showHousehold.value = false
+    await router.push({ name: 'household', params: { id: response.data.id } })
+  } catch {
+    actionError.value = "Couldn't create that household."
+  } finally {
+    working.value = false
+  }
+}
+
 const createPerson = () => {
   if (!isCreatingPerson.value) {
     isCreatingPerson.value = true
@@ -117,6 +222,8 @@ const createPerson = () => {
 
 <template>  
   <Toaster message="Couldn't retrieve people. Please try again later." type="error" :show="showPeopleLoadingError" @close="showPeopleLoadingError = false"></Toaster>
+  <Toaster :message="actionError" type="error" :show="Boolean(actionError)" @close="actionError = ''"></Toaster>
+  <Toaster :message="actionNotice" type="success" :show="Boolean(actionNotice)" @close="actionNotice = ''"></Toaster>
   <div class="app-page" id="people-list">
     <div class="app-page-header">
       <h1 class="grow min-w-0">All People</h1>
@@ -139,16 +246,16 @@ const createPerson = () => {
       <div class="app-panel">
         <div class="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
           <div class="flex grow flex-wrap gap-1.5">
-            <button type="button" class="app-toolbar-btn" aria-label="Delete">
+            <button type="button" class="app-toolbar-btn" aria-label="Archive selected" @click="archiveSelected">
               <svg class="h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z"></path></svg>
             </button>
-            <button type="button" class="app-toolbar-btn" aria-label="Merge">
+            <button type="button" class="app-toolbar-btn" aria-label="Merge is not available" @click="actionError = 'Merging two people into one record is not available yet.'">
               <svg class="h-4 w-4 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M17,20.41L18.41,19L15,15.59L13.59,17M7.5,8H11V13.59L5.59,19L7,20.41L13,14.41V8H16.5L12,3.5"></path></svg>
             </button>
-            <button type="button" class="app-toolbar-btn" aria-label="Tag">
+            <button type="button" class="app-toolbar-btn" aria-label="Tag selected" @click="openTag">
               <svg class="h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M16,17H5V7H16L19.55,12M17.63,5.84C17.27,5.33 16.67,5 16,5H5A2,2 0 0,0 3,7V17A2,2 0 0,0 5,19H16C16.67,19 17.27,18.66 17.63,18.15L22,12L17.63,5.84Z"></path></svg>
             </button>
-            <button type="button" class="app-toolbar-btn" aria-label="Household">
+            <button type="button" class="app-toolbar-btn" aria-label="Create household" @click="openHousehold">
               <svg class="h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M12 5.69L17 10.19V18H15V12H9V18H7V10.19L12 5.69M12 3L2 12H5V20H11V14H13V20H19V12H22"></path></svg>
             </button>
           </div>
@@ -171,7 +278,7 @@ const createPerson = () => {
             >
               <option value="">All statuses</option>
               <option value="visitor">Visitors</option>
-              <option value="regular attender">Regular attenders</option>
+              <option value="regular_attender">Regular attenders</option>
               <option value="member">Members</option>
               <option value="inactive">Inactive</option>
               <option value="archived">Archived</option>
@@ -205,7 +312,7 @@ const createPerson = () => {
               <tr>
                 <th>
                   <div class="flex items-center justify-center">
-                    <input class="form-check-input appearance-none w-4 h-4 bg-white checked:bg-sky-600 rounded border border-gray-300 hover:border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked:bg-check" type="checkbox" value="" aria-label="Select all">
+                    <input class="form-check-input appearance-none w-4 h-4 bg-white checked:bg-sky-600 rounded border border-gray-300 hover:border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked:bg-check" type="checkbox" :checked="allOnPageSelected" aria-label="Select all" @change="togglePage(($event.target as HTMLInputElement).checked)">
                   </div>
                 </th>
                 <th>First name</th>
@@ -221,7 +328,7 @@ const createPerson = () => {
               <tr class="group" v-for="person in people" :key="person.id">
                 <td class="w-12">
                   <div class="flex items-center justify-center">
-                    <input class="form-check-input appearance-none w-4 h-4 bg-white checked:bg-sky-600 rounded border border-gray-300 hover:border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked:bg-check" type="checkbox" value="" :aria-label="`Select ${person.firstName}`">
+                    <input class="form-check-input appearance-none w-4 h-4 bg-white checked:bg-sky-600 rounded border border-gray-300 hover:border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked:bg-check" type="checkbox" :checked="selectedIds.includes(person.id)" :aria-label="`Select ${person.firstName}`" @change="togglePerson(person.id, ($event.target as HTMLInputElement).checked)">
                   </div>
                 </td>
                 <td class="overflow-hidden">
@@ -250,9 +357,7 @@ const createPerson = () => {
                 <td class="truncate leading-none text-gray-600" :title="person.mobileNumber || ''">{{ person.mobileNumber }}</td>
                 <td class="truncate leading-none text-gray-500" :title="person.registeredDate ? $filters.humanDate(person.registeredDate) : ''">{{ compactDate(person.registeredDate) }}</td>
                 <td class="w-12 text-right">
-                  <button type="button" class="invisible inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 group-hover:visible" aria-label="Row actions">
-                    <svg class="h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"></path></svg>
-                  </button>
+                  <router-link class="invisible text-xs font-medium text-sky-700 no-underline group-hover:visible" :to="{ name: 'person', params: { id: person.id } }">Edit</router-link>
                 </td>
               </tr>
             </tbody>
@@ -287,6 +392,37 @@ const createPerson = () => {
           <Button stealth @click="toggleAddPersonDialog(false)">Cancel</Button>
         </div>
         <Button type="submit" :show-loader="isCreatingPerson">Create</Button>
+      </div>
+    </template>
+  </Dialog>
+  <Dialog :show="showTag" title="Add a category" :is-form="true" @close="showTag = false" @submit="applyTag">
+    <label class="block text-sm">
+      <span class="app-label">Category</span>
+      <select v-model="tagCategoryId" class="app-field">
+        <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+      </select>
+    </label>
+    <template #controls>
+      <div class="flex items-center">
+        <div class="grow"><Button stealth @click="showTag = false">Cancel</Button></div>
+        <Button type="submit" :show-loader="working">Add</Button>
+      </div>
+    </template>
+  </Dialog>
+  <Dialog :show="showHousehold" title="Create household" :is-form="true" @close="showHousehold = false" @submit="createHousehold">
+    <div class="space-y-3">
+      <label class="block text-sm"><span class="app-label">Name</span><input v-model="householdName" class="app-field" /></label>
+      <label class="block text-sm">
+        <span class="app-label">Leader</span>
+        <select v-model="householdLeaderId" class="app-field">
+          <option v-for="person in selectedPeople" :key="person.id" :value="person.id">{{ person.firstName }} {{ person.lastName }}</option>
+        </select>
+      </label>
+    </div>
+    <template #controls>
+      <div class="flex items-center">
+        <div class="grow"><Button stealth @click="showHousehold = false">Cancel</Button></div>
+        <Button type="submit" :show-loader="working">Create</Button>
       </div>
     </template>
   </Dialog>

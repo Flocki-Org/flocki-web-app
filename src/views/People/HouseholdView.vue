@@ -1,579 +1,361 @@
 <script setup lang="ts">
-
 import type { AxiosInstance } from 'axios'
-import {ref, inject, onMounted, onBeforeUnmount} from 'vue'
-import {useRoute, onBeforeRouteUpdate} from 'vue-router'
-import {useRepo} from 'pinia-orm'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import { computed, inject, ref } from 'vue'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import { useRepo } from 'pinia-orm'
 import Toaster from '@/components/Widgets/Toaster.vue'
-import Person from '@/models/Person'
-import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
-import {getHouseholdImageUrl} from '@/imageUtils';
-import Household from "@/models/Household";
-import AddressDisplay from '../../components/AddressDisplay.vue';
-import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
-import Button from "@/components/Forms/Button.vue";
-import Dialog from "@/components/Widgets/Dialog.vue";
-import Label from "@/components/Forms/Label.vue";
-import UserSelect from "@/components/people/UserSelect.vue";
+import ImageCropperUploader from '../../components/ImageCropperUploader.vue'
+import { getHouseholdImageUrl, getPersonImageUrl } from '@/imageUtils'
+import Household from '@/models/Household'
+import AddressDisplay from '../../components/AddressDisplay.vue'
+import AddressMap from '@/components/AddressMap.vue'
+import UserProfilePopup from '../../components/people/UserProfilePopup.vue'
+import Button from '@/components/Forms/Button.vue'
+import Dialog from '@/components/Widgets/Dialog.vue'
+import PersonSearch, { type PersonHit } from '@/components/people/PersonSearch.vue'
 
-
-const axios = inject<AxiosInstance>('axios')
-
+const axios = inject<AxiosInstance>('axios')!
 const route = useRoute()
 
 const isLoadingHousehold = ref(true)
 const showLoadingError = ref(false)
 const household = ref<Household | null>(null)
+const actionError = ref('')
+const savedNotice = ref(false)
 
-const hovered = ref(false);
-const dropdownVisible = ref(false);
+const dropdownVisible = ref(false)
 const householdImageViewVisible = ref(false)
 const uploadHouseholdImage = ref(false)
-const croppedImage = ref<string | null>(null);
-const uploadHouseholdImageFailed = ref(false);
-const uploadHouseholdImageSuccess = ref(false);
-const memberRemovalSuccess = ref(false);
-const memberPromotedSuccess = ref(false);
+const uploadHouseholdImageFailed = ref(false)
+const uploadHouseholdImageSuccess = ref(false)
 
-const isOpenAddMemberDialog = ref(false);
-const initialFocusRef = ref(null);
-const isAddingMember = ref(false);
-const newmember = ref<Person | null>(null);
+const addingMember = ref(false)
+const savingMember = ref(false)
+const memberError = ref('')
+const pickedMember = ref<PersonHit | null>(null)
 
-const visibleDeleteIcons = ref<boolean[]>([]);
+const editing = ref(false)
+const savingEdit = ref(false)
+const editError = ref('')
+const draft = ref(emptyDraft())
 
-const showDeleteIcon = (event, memberId) => {
-  event.stopPropagation();
+const householdTitle = computed(() => {
+  if (!household.value) return 'Household'
+  return household.value.name || `${household.value.leader?.lastName || 'This'} household`
+})
 
-  // Hide all delete icons first
-  if(household.value && household.value && household.value.people) {
-    visibleDeleteIcons.value = Array(household.value.people.length).fill(false);
+const memberIds = computed(() => (household.value?.people || []).map((person) => person.id).filter(Boolean))
 
-    // Show delete icon for the clicked member
-    visibleDeleteIcons.value[memberId] = true;
+function emptyDraft() {
+  return {
+    name: '',
+    notes: '',
+    leaderId: null as number | null,
+    streetNumber: '',
+    street: '',
+    suburb: '',
+    city: '',
+    province: '',
+    country: 'South Africa',
+    postalCode: '',
   }
-};
-
-const clearAllDeleteIcons = () => {
-  visibleDeleteIcons.value = Array(household.value.people.length).fill(false);
-};
-
-const isDeleteIconVisible = (memberId) => {
-  // Check if delete icon is visible for a specific member
-  return visibleDeleteIcons.value[memberId] || false;
-};
-
-const promoteMemberToLeader = (memberId) => {
-  // Implement logic to promote the member to leader
-  // You can use household.leader = member
-  //check if member is leader and if so don't allow removal
-  if (household.value.leader.id === memberId) {
-    //show alert dialog with name of leader
-    alert(household.value.people.find(person => person.id === memberId).firstName + ' ' +
-        household.value.people.find(person => person.id === memberId).lastName + 'is already the leader');
-    return;
-  }
-
-  //check if user is sure of removal. show name
-  if (!confirm('Are you sure you want to promote ' + household.value.people.find(person => person.id === memberId).firstName +
-      ' ' + household.value.people.find(person => person.id === memberId).lastName + ' to leader of the household?')) {
-    return;
-  }
-
-  //do put to households endpoint with id as url param, newmember is already added to list above
-  const udpatedHousehold = {
-    id: household.value.id,
-    address_id: household.value.address.id,
-    people_ids: household.value.people.map(person => person.id),
-    household_image_id: household.value.householdImage ? household.value.householdImage.id : null,
-    leader_id: memberId
-  }
-
-  axios
-      .put('/households?id=' + household.value.id, udpatedHousehold)
-      .then(response => {
-        console.log(response);
-        loadHousehold(household.value.id);
-        memberPromotedSuccess.value = true;
-        clearAllDeleteIcons();
-        setTimeout(() => {
-          memberPromotedSuccess.value = false;
-        }, 3000);
-      })
-      .catch((err) => {
-        console.log(err)
-        clearAllDeleteIcons();
-      })
 }
 
-const removeMember = (memberId) => {
-  // Implement logic to remove the member from the household
-  // You can use household.people.splice(index, 1) or any other method
-  //check if member is leader and if so don't allow removal
-  if (household.value.leader.id === memberId) {
-    //show alert dialog
-    alert('Cannot remove leader from household')
-    return;
-  }
-
-  //check if user is sure of removal. show name
-  if (!confirm('Are you sure you want to remove ' + household.value.people.find(person => person.id === memberId).firstName +
-      ' ' + household.value.people.find(person => person.id === memberId).lastName + ' from the household?')) {
-    return;
-  }
-  //remove member from household
-  household.value.people = household.value.people.filter(person => person.id !== memberId)
-  //do put to households endpoint with id as url param, newmember is already added to list above
-  const udpatedHousehold = {
-    id: household.value.id,
-    address_id: household.value.address.id,
-    people_ids: household.value.people.map(person => person.id),
-    household_image_id: household.value.householdImage ? household.value.householdImage.id : null,
-    leader_id: household.value.leader.id
-  }
-  axios
-      .put('/households?id=' + household.value.id, udpatedHousehold)
-      .then(response => {
-        console.log(response);
-        loadHousehold(household.value.id);
-        memberRemovalSuccess.value = true;
-        clearAllDeleteIcons();
-        setTimeout(() => {
-          memberRemovalSuccess.value = false;
-        }, 3000);
-      })
-      .catch((err) => {
-        clearAllDeleteIcons();
-        console.log(err)
-      })
-  console.log('Remove member with ID:', memberId);
-};
-
-const toggleAddMemberDialog = (event) => {
-  event.stopPropagation();
-
-  isOpenAddMemberDialog.value = !isOpenAddMemberDialog.value;
-  console.log(isOpenAddMemberDialog);
+function errorMessage(error: unknown, fallback: string) {
+  const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail
+  if (typeof detail === 'string') return detail
+  if (Array.isArray(detail)) return detail.map((item) => item?.msg || String(item)).join(' ')
+  return fallback
 }
 
-
-onBeforeUnmount(() => {
-  // Remove the click event listener when the component is unmounted
-  document.body.removeEventListener('click', clearAllDeleteIcons);
-});
-
-const toggleDropdown = () => {
-  dropdownVisible.value = !dropdownVisible.value;
-};
-
-const handleCroppedImage = (dataUrl) => {
-  croppedImage.value = dataUrl;
-};
-
-const handlePersonSelected = (person: Person) => {
-  console.log('Selected person:', person);
-  newmember.value = person;
-}
-
-const loadHousehold = (id) => {
-  console.log('loadHousehold');
+const loadHousehold = (id: unknown) => {
+  isLoadingHousehold.value = true
   axios
-      .get('/households/' + id)
-      .then(response => {
-
-        useRepo(Household).save(response.data)
-        household.value = useRepo(Household).find(+id) as Household;
-        // TODO: remove timeout later
-        setTimeout(() => {
-          isLoadingHousehold.value = false
-        }, 2000)
-      })
-      .catch((err) => {
-        console.log(err)
-
-        showLoadingError.value = true
-      })
-}
-
-const addMemberToHousehold = (id) => {
-
-  isAddingMember.value = true;
-  household.value.people.push(newmember.value);
-  /* create a household from household but with the following fields
-
-   id: int
-    address_id: int = Field("An address")
-    people_ids: List[int] = Field(title="A list of IDs of the people to be added to the household")
-    household_image_id: int = Field(None, title="The ID of the image of this household")
-    leader_id:
-   */
-  const udpatedHousehold = {
-    id: household.value.id,
-    address_id: household.value.address.id,
-    people_ids: household.value.people.map(person => person.id),
-    household_image_id: household.value.householdImage ? household.value.householdImage.id : null,
-    leader_id: household.value.leader.id
-  }
-  //do put to households endpoint with id as url param, newmember is already added to list above
-  axios
-      .put('/households?id=' + household.value.id, udpatedHousehold)
-      .then(response => {
-        console.log(response);
-        isAddingMember.value = false;
-        isOpenAddMemberDialog.value = false;
-        loadHousehold(household.value.id);
-      })
-      .catch((err) => {
-        console.log(err)
-        isAddingMember.value = false;
-        isOpenAddMemberDialog.value = false;
-      })
+    .get('/households/' + id)
+    .then((response) => {
+      useRepo(Household).save(response.data)
+      household.value = useRepo(Household).find(+id) as Household
+      isLoadingHousehold.value = false
+    })
+    .catch(() => {
+      showLoadingError.value = true
+      isLoadingHousehold.value = false
+    })
 }
 
 loadHousehold(route.params.id)
+onBeforeRouteUpdate((to) => loadHousehold(to.params.id))
 
-onMounted(() => {
-  // Check if the map element already has a map associated with it
-  if (document.getElementById('map') && !document.getElementById('map')._leaflet_id) {
-    const map = L.map('map', {
-      center: [51.505, -0.09],
-      zoom: 13
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
+const openEdit = () => {
+  const current = household.value
+  const address = current?.address
+  draft.value = {
+    name: current?.name || '',
+    notes: current?.notes || '',
+    leaderId: current?.leader?.id ?? null,
+    streetNumber: address?.streetNumber || '',
+    street: address?.street || '',
+    suburb: address?.suburb || '',
+    city: address?.city || '',
+    province: address?.province || '',
+    country: address?.country || 'South Africa',
+    postalCode: address?.postalCode || '',
   }
-  document.body.addEventListener('click', clearAllDeleteIcons);
-
-});
-
-onBeforeRouteUpdate((to, from) => {
-  loadHousehold(to.params.id)
-})
-
-const viewHouseholdImage = () => {
-  householdImageViewVisible.value = true;
-  // Prevent scrolling
-  document.body.style.overflow = 'hidden';
-};
-
-const closeHouseholdImageView = () => {
-  householdImageViewVisible.value = false;
-
-  // Allow scrolling again
-  document.body.style.overflow = 'auto';
+  editError.value = ''
+  editing.value = true
 }
 
-const viewUploadHouseholdImage = () => {
-  uploadHouseholdImage.value = true;
-  // Prevent scrolling
-  document.body.style.overflow = 'hidden';
-};
-
-const closeUploadHouseholdImageView = () => {
-  uploadHouseholdImage.value = false;
-
-  // Allow scrolling again
-  document.body.style.overflow = 'auto';
+const saveEdit = async () => {
+  const current = household.value
+  if (!current) return
+  const next = draft.value
+  if (!next.streetNumber || !next.street || !next.suburb || !next.city || !next.province || !next.country) {
+    editError.value = 'Street number, street, suburb, city, province and country are required.'
+    return
+  }
+  if (!next.leaderId) {
+    editError.value = 'Choose a household leader.'
+    return
+  }
+  savingEdit.value = true
+  editError.value = ''
+  try {
+    const addressPayload = {
+      id: current.address?.id,
+      type: current.address?.type || 'home',
+      streetNumber: next.streetNumber,
+      street: next.street,
+      suburb: next.suburb,
+      city: next.city,
+      province: next.province,
+      country: next.country,
+      postalCode: next.postalCode || null,
+    }
+    let addressId = current.address?.id
+    if (addressId) {
+      await axios.put(`/addresses/?id=${addressId}`, addressPayload)
+    } else {
+      const created = await axios.post('/addresses', addressPayload)
+      addressId = created.data.id
+    }
+    await axios.put(`/households?id=${current.id}`, {
+      id: current.id,
+      addressId,
+      peopleIds: (current.people || []).map((person) => person.id),
+      leaderId: next.leaderId,
+      name: next.name.trim() || null,
+      notes: next.notes.trim() || null,
+    })
+    editing.value = false
+    savedNotice.value = true
+    setTimeout(() => { savedNotice.value = false }, 3000)
+    loadHousehold(current.id)
+  } catch (error) {
+    editError.value = errorMessage(error, 'Could not save the household.')
+  } finally {
+    savingEdit.value = false
+  }
 }
 
-const handleImageUploadedSuccess = () => {
-  uploadHouseholdImage.value = false;
-  uploadHouseholdImageSuccess.value = true;
-  setTimeout(() => {
-    uploadHouseholdImageSuccess.value = false;
-  }, 3000);
-
-  if (household.value && household.value)
+const addMember = async () => {
+  if (!household.value || !pickedMember.value) {
+    memberError.value = 'Choose a person to add.'
+    return
+  }
+  savingMember.value = true
+  memberError.value = ''
+  try {
+    await axios.post(`/households/${household.value.id}/members`, null, { params: { person_id: pickedMember.value.id } })
+    addingMember.value = false
+    pickedMember.value = null
     loadHousehold(household.value.id)
-
-  document.body.style.overflow = 'auto';
-
+  } catch (error) {
+    memberError.value = errorMessage(error, 'Could not add that person.')
+  } finally {
+    savingMember.value = false
+  }
 }
 
+const promoteMember = async (memberId: number, name: string) => {
+  if (!household.value || household.value.leader?.id === memberId) return
+  if (!confirm(`Make ${name} the household leader?`)) return
+  actionError.value = ''
+  try {
+    await axios.put(`/households/${household.value.id}/leader`, null, { params: { person_id: memberId } })
+    loadHousehold(household.value.id)
+  } catch (error) {
+    actionError.value = errorMessage(error, 'Could not change the leader.')
+  }
+}
+
+const removeMember = async (memberId: number, name: string) => {
+  if (!household.value) return
+  if (household.value.leader?.id === memberId) {
+    actionError.value = 'Choose another leader before removing this person.'
+    return
+  }
+  if (!confirm(`Remove ${name} from this household?`)) return
+  actionError.value = ''
+  try {
+    await axios.delete(`/households/${household.value.id}/members/${memberId}`)
+    loadHousehold(household.value.id)
+  } catch (error) {
+    actionError.value = errorMessage(error, 'Could not remove that person.')
+  }
+}
+
+const personName = (person: { preferredName?: string | null; firstName?: string | null; lastName?: string | null }) => {
+  const first = person.preferredName || person.firstName || ''
+  return [first, person.lastName].filter(Boolean).join(' ')
+}
+
+const toggleDropdown = () => { dropdownVisible.value = !dropdownVisible.value }
+const viewHouseholdImage = () => { householdImageViewVisible.value = true }
+const closeHouseholdImageView = () => { householdImageViewVisible.value = false }
+const viewUploadHouseholdImage = () => { uploadHouseholdImage.value = true }
+const closeUploadHouseholdImageView = () => { uploadHouseholdImage.value = false }
+const handleImageUploadedSuccess = () => {
+  uploadHouseholdImage.value = false
+  uploadHouseholdImageSuccess.value = true
+  setTimeout(() => { uploadHouseholdImageSuccess.value = false }, 3000)
+  if (household.value) loadHousehold(household.value.id)
+}
 const handleImageUploadFailed = () => {
-  uploadHouseholdImage.value = false;
-  setTimeout(() => {
-    uploadHouseholdImageFailed.value = false;
-  }, 8000);
-  uploadHouseholdImageFailed.value = true;
-
-  document.body.style.overflow = 'auto';
-
+  uploadHouseholdImage.value = false
+  uploadHouseholdImageFailed.value = true
 }
 </script>
 
 <template>
-  <Toaster message="Couldn't retrieve the household. Please try again later." type="error" :show="showLoadingError"
-           @close="showLoadingError = false"></Toaster>
-  <Toaster message="Uploading of household image failed" type="error" :show="uploadHouseholdImageFailed"
-           @close="uploadHouseholdImageFailed = false"></Toaster>
-  <Toaster message="New Household Image Uploaded" type="success" :show="uploadHouseholdImageSuccess"
-           @close="uploadHouseholdImageSuccess = false"></Toaster>
-  <Toaster message="Household member removed from household" type="success" :show="memberRemovalSuccess"
-           @close="memberRemovalSuccess = false"></Toaster>
-  <Toaster message="Household member promoted to leader" type="success" :show="memberPromotedSuccess"
-           @close="memberPromotedSuccess = false"></Toaster>
+  <Toaster message="Couldn't retrieve the household. Please try again later." type="error" :show="showLoadingError" @close="showLoadingError = false" />
+  <Toaster message="Uploading of household image failed" type="error" :show="uploadHouseholdImageFailed" @close="uploadHouseholdImageFailed = false" />
+  <Toaster message="New household image uploaded" type="success" :show="uploadHouseholdImageSuccess" @close="uploadHouseholdImageSuccess = false" />
+  <Toaster message="Household saved" type="success" :show="savedNotice" @close="savedNotice = false" />
 
-  <div class="app-page" id="household">
+  <div class="app-page">
     <div class="app-page-header">
-      <router-link
-          class="inline-flex shrink-0 no-underline text-gray-600 font-bold text-lg transition-all hover:text-sky-500"
-          :to="{ name: 'people' }"
-          aria-label="Back to people">
+      <router-link class="inline-flex shrink-0 text-gray-600 no-underline transition-all hover:text-sky-500" :to="{ name: 'households' }" aria-label="Back to households">
         <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M21,11H6.83L10.41,7.41L9,6L3,12L9,18L10.41,16.58L6.83,13H21V11Z"></path>
+          <path fill="currentColor" d="M21,11H6.83L10.41,7.41L9,6L3,12L9,18L10.41,16.58L6.83,13H21V11Z" />
         </svg>
       </router-link>
-      <h1 class="grow min-w-0 text-gray-600 break-words">
-        <Skeletor v-if="isLoadingHousehold" width="200"></Skeletor>
-        <template v-else>{{ household.leader.lastName }} Household</template>
-      </h1>
-      <button
-          class="w-10 h-8 inline-flex shrink-0 justify-center items-center rounded-md border border-sky-400 hover:border-sky-300 text-sky-400 bg-transparent hover:bg-sky-50 transition-all">
-        <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-          <path fill="currentColor"
-                d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"></path>
-        </svg>
-      </button>
+      <div class="min-w-0 grow">
+        <h1 class="break-words text-gray-700">
+          <Skeletor v-if="isLoadingHousehold" width="220" />
+          <template v-else>{{ householdTitle }}</template>
+        </h1>
+        <p v-if="household?.leader" class="text-sm text-gray-500">Led by {{ personName(household.leader) }}</p>
+      </div>
+      <button type="button" class="app-link-btn" @click="openEdit">Edit</button>
     </div>
-    <div class="app-detail-grid">
+
+    <p v-if="actionError" class="mx-main-lr mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{{ actionError }}</p>
+
+    <div v-if="household" class="app-detail-grid">
       <div class="app-detail-primary order-2 lg:order-1">
-        <div
-            class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
-          <div class="flex items-center app-panel-pad py-6 sm:py-8">
-            <h2 class="grow text-gray-700">Household Information</h2>
-            <button
-                class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
-              <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                <path fill="currentColor"
-                      d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
-              </svg>
+        <section class="rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+          <div class="flex items-center gap-3 app-panel-pad py-6">
+            <h2 class="grow text-gray-700">People</h2>
+            <button type="button" class="app-link-btn" @click="addingMember = true; pickedMember = null; memberError = ''">Add person</button>
+          </div>
+          <ul class="flex flex-row flex-wrap gap-3 app-panel-pad pb-6">
+            <li v-for="member in household.people" :key="member.id" class="flex w-40 shrink-0 flex-col items-center rounded-xl border border-gray-100 bg-gray-50 px-3 py-4 text-center">
+              <UserProfilePopup :person="member" :include-name="false">
+                <template #default>
+                  <img v-if="member.profileImage" class="h-16 w-16 rounded-full object-cover" :src="getPersonImageUrl(member)" alt="">
+                  <img v-else class="h-16 w-16 rounded-full object-cover" src="@/assets/default-user-profile.png" alt="">
+                </template>
+              </UserProfilePopup>
+              <router-link class="mt-2 text-sm font-medium text-gray-800 no-underline hover:text-sky-600" :to="{ name: 'person', params: { id: member.id } }">{{ personName(member) }}</router-link>
+              <p v-if="member.id === household.leader?.id" class="mt-1 text-xs font-medium text-sky-600">Leader</p>
+              <div v-else class="mt-2 flex flex-col gap-1">
+                <button type="button" class="text-xs text-sky-600 hover:text-sky-800" @click="promoteMember(member.id, personName(member))">Make leader</button>
+                <button type="button" class="text-xs text-gray-400 hover:text-red-600" @click="removeMember(member.id, personName(member))">Remove</button>
+              </div>
+            </li>
+          </ul>
+          <p v-if="household.notes" class="app-panel-pad pb-6 text-sm whitespace-pre-wrap text-gray-600">{{ household.notes }}</p>
+        </section>
+
+        <section class="rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+          <div class="flex items-center gap-3 app-panel-pad py-6">
+            <h2 class="grow text-gray-700">Address</h2>
+            <button type="button" class="w-8 h-8 inline-flex items-center justify-center rounded-md border border-gray-300 text-gray-400 hover:bg-gray-50" aria-label="Edit address" @click="openEdit">
+              <svg style="width:16px;height:16px" viewBox="0 0 24 24"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
             </button>
           </div>
-          <table class="table-auto w-full text-left text-sm">
-            <tbody>
-            <tr class="odd:bg-gray-50 even:bg-white">
-              <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Leader</td>
-              <td class="py-4">
-                <Skeletor v-if="isLoadingHousehold" width="350"></Skeletor>
-
-                <template v-else>
-                  <UserProfilePopup
-                      :person="household.leader"
-                      :includeName="false">
-                    <template v-slot:default="{ getPersonImageUrl }">
-                      <img class="w-12 h-12 mr-1 rounded-full inline cursor-pointer" v-if="household && household.leader && household.leader.profileImage" :src="getPersonImageUrl(household.leader)">
-                      <img class="w-12 h-12 rounded-full inline cursor-pointer" v-else src="@/assets/default-user-profile.png">
-
-                    </template>
-                  </UserProfilePopup> </template>
-              </td>
-            </tr>
-            <tr class="odd:bg-gray-50 even:bg-white">
-              <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Household Members</td>
-              <td class="py-4">
-                <Skeletor v-if="isLoadingHousehold" width="350"></Skeletor>
-                <template v-else>
-                  <div class="flex items-center">
-
-  <div>
-    <div
-      v-for="member in household.people"
-      :key="member.id"
-      class="inline relative"
-      @click="showDeleteIcon($event, member.id)"
-    >
-      <UserProfilePopup :person="member" :include-name="true" should-prevent-default="true">
-        <template v-slot:default="{ getPersonImageUrl }">
-          <img
-            class="h-12 w-12 mr-1 rounded-full inline cursor-pointer"
-            v-if="member && member.profileImage"
-            :src="getPersonImageUrl(member)"
-            :class="{'border border-2 border-black': isDeleteIconVisible(member.id)}"
-          />
-          <img
-            class="h-12 w-12 rounded-full inline cursor-pointer"
-            v-else
-            src="@/assets/default-user-profile.png"
-            :class="{'border border-2 border-black': isDeleteIconVisible(member.id)}"
-          />
-        </template>
-      </UserProfilePopup>
-
-      <!-- Delete icon, initially hidden -->
-      <button
-        v-if="isDeleteIconVisible(member.id)"
-        class="absolute top-1/2 right-9 transform -translate-y-1/2 bg-red-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
-        @click="removeMember(member.id)"
-      >
-        <!-- Add your delete icon here -->
-<svg width="800px" height="800px" viewBox="1 1 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="si-glyph si-glyph-delete">
-
-    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <path d="M12.566,8 L15.611,4.956 C16.031,4.535 16.031,3.853 15.611,3.434 L12.566,0.389 C12.146,-0.031 11.464,-0.031 11.043,0.389 L7.999,3.433 L4.955,0.389 C4.534,-0.031 3.852,-0.031 3.432,0.389 L0.388,3.434 C-0.034,3.854 -0.034,4.536 0.387,4.956 L3.431,8 L0.387,11.044 C-0.034,11.465 -0.034,12.147 0.388,12.567 L3.432,15.611 C3.852,16.032 4.534,16.032 4.955,15.611 L7.999,12.567 L11.043,15.611 C11.464,16.032 12.146,16.032 12.566,15.611 L15.611,12.567 C16.031,12.146 16.031,11.464 15.611,11.044 L12.566,8 L12.566,8 Z" fill="#FFF" class="si-glyph-fill">
-
-</path>
-    </g>
-</svg>
-      </button>
-            <button
-        v-if="isDeleteIconVisible(member.id)"
-        class="absolute top-1/2 left-8 transform -translate-y-1/2 bg-blue-500 text-white rounded-full p-1 w-4 h-4 cursor-pointer flex items-center justify-center"
-        @click="promoteMemberToLeader(member.id)"
-      >
-       <svg width="800px" height="800px" viewBox="1 1 15 15" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#FFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
-<polygon stroke-width="3" points="8 1.75,5.75 5.75,1.75 6.25,4.75 9.75,3.75 14.25,8.00 12.25,12.25 14.25,11.25 9.75,14.25 6.25,10.25 5.75"/>
-</svg>
-      </button>
-    </div>
-  </div>
-                  <!-- Add a button for adding a new member -->
-                  <button @click="toggleAddMemberDialog($event)" class="rounded-full bg-white border-dotted border-2 border-black w-10 h-10 flex items-center justify-center ml-1 hover:bg-blue-200 focus:outline-hidden">
-                    <span class="text-bold text-2xl font-bold">+</span>
-                  </button>
-                  </div>
-                </template>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-        <div
-                class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
-              <div class="flex items-center app-panel-pad py-6 sm:py-8">
-                <h2 class="grow text-gray-700">Address</h2>
-                <button
-                    class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
-                  <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                    <path fill="currentColor"
-                          d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
-                  </svg>
-                </button>
-              </div>
-              <div class="address app-panel-pad mb-4 text-gray-500 text-sm" v-if="household && household.address">
-                <AddressDisplay :address="household.address"
-                                addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]"/>
-                <div class="w-full h-60" id="map"></div>
-              </div>
-              <div v-else class="app-panel-pad mb-4 text-gray-500 text-sm">No address</div>
-
-        </div>
+          <div v-if="household.address" class="app-panel-pad pb-6 text-sm text-gray-600">
+            <AddressDisplay :address="household.address" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]] [[newline]] [[province]], [[country]]" />
+            <AddressMap :address="household.address" />
+          </div>
+          <p v-else class="app-panel-pad pb-6 text-sm text-gray-400">No address yet.</p>
+        </section>
       </div>
-      <div class="app-detail-aside order-1 lg:order-2">
-          <div class="flex items-center justify-center">
-            <div @click="toggleDropdown" class="relative"
-                 @mouseenter="hovered = true"
-                 @mouseleave="hovered=false, dropdownVisible = false ">
 
-              <img
-                  class="rounded-lg reduce-height-in-panel cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
-                  v-if="household && household.householdImage"
-                  :src="getHouseholdImageUrl(household)">
-              <img
-                  class="rounded-lg w-full cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
-                  v-else
-                  src="@/assets/default-user-profile.png">
-              <div v-if="dropdownVisible" class="absolute top-0 right-0 mt-2">
-                <ul class="custom-hover bg-white border rounded shadow-lg">
-                  <li v-if="household && household.householdImage">
-                    <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewHouseholdImage">View Household
-                      Image</a>
-                  </li>
-                  <li>
-                    <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewUploadHouseholdImage">Choose
-                      Household Image</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
+      <aside class="app-detail-aside order-1 lg:order-2">
+        <div class="overflow-hidden rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+          <button type="button" class="block w-full" @click="toggleDropdown">
+            <img v-if="household.householdImage" class="h-64 w-full object-cover" :src="getHouseholdImageUrl(household)" alt="">
+            <img v-else class="h-64 w-full object-cover" src="@/assets/default-user-profile.png" alt="">
+          </button>
+          <div class="flex items-center justify-between gap-3 px-4 py-3">
+            <p class="text-sm text-gray-500">Household photo</p>
+            <button type="button" class="text-sm text-sky-600 hover:text-sky-800" @click="viewUploadHouseholdImage">Change</button>
+          </div>
+          <div v-if="dropdownVisible" class="border-t border-gray-100">
+            <button v-if="household.householdImage" type="button" class="block w-full px-4 py-2 text-left text-sm hover:bg-gray-50" @click="viewHouseholdImage">View photo</button>
           </div>
         </div>
+      </aside>
     </div>
   </div>
-  <!-- Profile Image View -->
-  <div v-if="householdImageViewVisible"
-       class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">
-    <div class="bg-white p-4 rounded-lg shadow-lg relative w-full max-w-3xl overflow-hidden">
-      <button @click="closeHouseholdImageView"
-              class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl">×
-      </button>
-      <div class="flex items-center justify-center">
-        <img :src="getHouseholdImageUrl(household)" class="w-auto reduce-height" alt="Profile Image">
+
+  <div v-if="householdImageViewVisible" class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">
+    <div class="relative w-full max-w-3xl overflow-hidden rounded-lg bg-white p-4 shadow-lg">
+      <button type="button" class="absolute top-2 right-2 text-2xl text-gray-600" @click="closeHouseholdImageView">×</button>
+      <img :src="getHouseholdImageUrl(household)" class="mx-auto max-h-[70vh] w-auto" alt="Household photo">
+    </div>
+  </div>
+  <div v-if="uploadHouseholdImage" class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">
+    <ImageCropperUploader :upload-endpoint="'/households/household_image?id=' + household?.id" @image-cropper-cancelled="closeUploadHouseholdImageView" @image-cropper-uploaded-success="handleImageUploadedSuccess" @image-cropper-upload-failed="handleImageUploadFailed" />
+  </div>
+
+  <Dialog :show="addingMember" title="Add a person" :is-form="true" @close="addingMember = false" @submit="addMember">
+    <p v-if="memberError" class="mb-3 text-sm text-red-600">{{ memberError }}</p>
+    <PersonSearch :exclude-ids="memberIds" @select="pickedMember = $event" />
+    <p v-if="pickedMember" class="mt-3 text-sm text-gray-800">{{ pickedMember.firstName }} {{ pickedMember.lastName }}</p>
+    <template #controls>
+      <div class="flex items-center">
+        <div class="grow"><Button stealth @click="addingMember = false">Cancel</Button></div>
+        <Button type="submit" :show-loader="savingMember">Add</Button>
       </div>
+    </template>
+  </Dialog>
+
+  <Dialog :show="editing" title="Edit household" :is-form="true" size="lg" @close="editing = false" @submit="saveEdit">
+    <p v-if="editError" class="mb-3 text-sm text-red-600">{{ editError }}</p>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <label class="block text-sm sm:col-span-2"><span class="app-label">Name</span><input v-model="draft.name" class="app-field" /></label>
+      <label class="block text-sm sm:col-span-2"><span class="app-label">Notes</span><textarea v-model="draft.notes" rows="3" class="app-field"></textarea></label>
+      <label class="block text-sm sm:col-span-2">
+        <span class="app-label">Leader</span>
+        <select v-model="draft.leaderId" class="app-field">
+          <option v-for="member in household?.people || []" :key="member.id" :value="member.id">{{ personName(member) }}</option>
+        </select>
+      </label>
+      <label class="block text-sm"><span class="app-label">Street number</span><input v-model="draft.streetNumber" class="app-field" /></label>
+      <label class="block text-sm"><span class="app-label">Street</span><input v-model="draft.street" class="app-field" /></label>
+      <label class="block text-sm"><span class="app-label">Suburb</span><input v-model="draft.suburb" class="app-field" /></label>
+      <label class="block text-sm"><span class="app-label">City</span><input v-model="draft.city" class="app-field" /></label>
+      <label class="block text-sm"><span class="app-label">Province</span><input v-model="draft.province" class="app-field" /></label>
+      <label class="block text-sm"><span class="app-label">Country</span><input v-model="draft.country" class="app-field" /></label>
+      <label class="block text-sm sm:col-span-2"><span class="app-label">Postal code</span><input v-model="draft.postalCode" class="app-field" /></label>
     </div>
-  </div>
-  <div v-if="uploadHouseholdImage"
-       class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800/75 p-4">
-    <ImageCropperUploader @cropped="handleCroppedImage" :uploadEndpoint="'/households/household_image?id=' + household.id"
-                          @imageCropperCancelled="closeUploadHouseholdImageView"
-                          @imageCropperUploadedSuccess="handleImageUploadedSuccess"
-                          @imageCropperUploadFailed="handleImageUploadFailed"/>
-
-    <div v-if="croppedImage">
-      <h2>Cropped Image Preview</h2>
-      <img :src="croppedImage" alt="Cropped Image"/>
-    </div>
-  </div>
-  <div v-if="isOpenAddMemberDialog">
-
-    <Dialog :show="true" title="Add Member to Household" :is-form="true" :initial-focus="initialFocusRef" @close="toggleAddMemberDialog" @submit="addMemberToHousehold">
-      <template #default>
-
-      <div class="dialog-content">
-        <div class="mb-4">
-          <Label for-id="Person">Person</Label>
-          <UserSelect @person-selected="handlePersonSelected" v-model="newmember" :household-id="household.id" peopleUrl="/households/people"></UserSelect>
-        </div>
+    <template #controls>
+      <div class="flex items-center">
+        <div class="grow"><Button stealth @click="editing = false">Cancel</Button></div>
+        <Button type="submit" :show-loader="savingEdit">Save</Button>
       </div>
-      </template>
-      <template #controls>
-        <div class="flex items-center">
-          <div class="grow">
-            <Button stealth @click="toggleAddMemberDialog">cancel</Button>
-          </div>
-          <Button type="submit" :show-loader="isAddingMember">Add to Household</Button>
-        </div>
-      </template>
-    </Dialog>
-  </div>
+    </template>
+  </Dialog>
 </template>
-
-
-<style>
-#map {
-  z-index: 0; /* You can adjust this value based on your layout */
-}
-
-.hover-brightness:hover {
-  filter: brightness(1.1); /* Adjust the value to control brightness on hover */
-}
-
-/* Style the list items within the dropdown */
-ul.custom-hover li:hover {
-  background-color: lightgrey; /* Change to the desired hover background color */
-  cursor: pointer;
-}
-
-div.reduce-height {
-  max-height: min(70vh, 720px);
-}
-
-img.reduce-height {
-  max-height: min(70vh, 720px);
-  max-width: 100%;
-  height: auto;
-}
-
-img.reduce-height-in-panel {
-  max-height: min(50vh, 580px);
-  max-width: 100%;
-  width: auto;
-  height: auto;
-}
-
-</style>
