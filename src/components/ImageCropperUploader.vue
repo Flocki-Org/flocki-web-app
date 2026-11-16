@@ -1,11 +1,13 @@
 <script setup>
-import {ref, defineEmits , inject, onMounted, onUnmounted} from 'vue';
-import VueCropper from 'vue-cropperjs'; // Import VueCropper
+import {ref, defineEmits , inject} from 'vue';
+import cropperModule from 'vue-cropperjs';
 import 'cropperjs/dist/cropper.css';
 
-const fileInput = ref(null);
+// The package is CommonJS. Vite sometimes hands the module object through,
+// so the template ref is not the component and crop methods are missing.
+const VueCropper = cropperModule.render ? cropperModule : cropperModule.default
+
 const dropZone = ref(null);
-const hiddenFileInput = ref(null);
 const showCropper = ref(false);
 const imageUploadWrapper = ref(null);
 const imgSrc = ref('');
@@ -17,14 +19,12 @@ const { uploadEndpoint } = defineProps(['showImageCropper', 'uploadEndpoint']);
 const emit = defineEmits(['imageCropperUploadFailed', 'imageCropperCancelled', 'imageCropperUploadedSuccess']);
 const axios = inject('axios')
 
-const handleFileChange = () => {
-  const file = fileInput.value.files[0];
+const handleFileChange = (event) => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
   imgSrc.value = URL.createObjectURL(file);
   showCropper.value = true;
-};
-
-const handleClick = () => {
-  fileInput.value.click();
+  event.target.value = '';
 };
 
 const cropImage = () => {
@@ -55,11 +55,7 @@ const cropImage = () => {
   isUploading.value = true;
   // Make a PUT request to send the cropped image data to the server
   axios
-      .put(uploadEndpoint, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+      .put(uploadEndpoint, formData)
       .then((response) => {
         //console.log('Image uploaded successfully:', response.data);
         // Reset the cropper and hide it
@@ -120,27 +116,10 @@ const handleDrop = (event) => {
   }
 }
 
-const closeCropper = () => {
-  //console.log('got here in close cropper')
+const closeUploader = () => {
   showCropper.value = false;
   imgSrc.value = '';
   emit('imageCropperCancelled');
-};
-
-onMounted(() => {
-  // Attach the window click event listener
-  window.addEventListener('mousedown', (event) => handleWindowClick(event));
-});
-
-onUnmounted(() => {
-  // Remove the event listener when the component is unmounted
-  window.removeEventListener('mousedown', (event) => handleWindowClick(event));
-});
-
-const handleWindowClick = (event) => {
-  if (imageUploadWrapper.value  && !imageUploadWrapper.value.contains(event.target)) {
-      closeCropper();
-  }
 };
 
 </script>
@@ -158,6 +137,9 @@ const handleWindowClick = (event) => {
       </div>
     </div>
     <div class="image-uploader-wrapper" ref="imageUploadWrapper">
+      <div class="mb-2 flex justify-end">
+        <button type="button" class="text-sm text-gray-500 hover:text-gray-800" @click="closeUploader">Close</button>
+      </div>
       <div
           v-if = "!showCropper && !isUploading"
           class="drop-zone"
@@ -166,8 +148,15 @@ const handleWindowClick = (event) => {
           @dragover.prevent
           @dragleave="handleDragLeave"
           @drop="handleDrop"
-          @click="handleClick"
       >
+        <input
+            id="image-cropper-file"
+            type="file"
+            accept="image/*"
+            class="file-picker"
+            @change="handleFileChange"
+        />
+        <label for="image-cropper-file" class="drop-zone-label">
         <div class="flex justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="text-white mr-2" width="80" height="80" viewBox="0 0 80 80" fill="none"
                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -177,26 +166,8 @@ const handleWindowClick = (event) => {
           </svg>
 
         </div>
-        <p>Drag & drop an image here or <br> click to select one</p>
-        <input
-            type="file"
-            ref="fileInput"
-            @change="handleFileChange"
-            accept="image/*"
-            class="hidden"
-        />
-
-        <!-- Hidden input element to trigger the file input dialog -->
-        <input
-            type="file"
-            style="display: none;"
-            ref="hiddenFileInput"
-            @change="handleFileChange"
-            accept="image/*"
-        />
-
-        <!-- Label element to open the hidden file input -->
-        <label for="hiddenFileInput" style="display: none;"></label>
+        <p>Drag &amp; drop an image here or <br> click to select one</p>
+        </label>
       </div>
 
       <div v-if="showCropper && !isUploading" class="relative" >
@@ -270,17 +241,35 @@ const handleWindowClick = (event) => {
   box-sizing: border-box;
 }
 .drop-zone {
+  position: relative;
+  display: block;
   border: 2px dashed lightslategrey;
-  padding: clamp(2rem, 8vw, 100px);
   text-align: center;
   color: black;
   cursor: pointer;
   background-color: white;
 }
 
+.drop-zone-label {
+  display: block;
+  padding: clamp(2rem, 8vw, 100px);
+  cursor: pointer;
+}
+
+.file-picker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .drag-over {
   border: 4px solid #a4b8ed;
-  padding: clamp(2rem, 8vw, 100px);
   text-align: center;
   color: black;
   cursor: pointer;

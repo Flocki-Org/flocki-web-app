@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="whitespace-pre-line">
     {{ formattedAddress }}
   </div>
 </template>
