@@ -23,7 +23,6 @@ const isCreating = ref(false)
 const draft = reactive({
   name: '',
   description: '',
-  meetingDay: '',
 })
 
 const loadGroups = (currentPage, itemsPerPage) => {
@@ -51,7 +50,6 @@ const createGroup = () => {
     .post('/groups', {
       name: draft.name,
       description: draft.description || null,
-      meetingDay: draft.meetingDay || null,
       status: 'active',
     })
     .then((response) => {
@@ -63,9 +61,6 @@ const createGroup = () => {
     })
 }
 
-const meetingSummary = (group) => {
-  return [group.meetingDay, group.meetingFrequency, group.meetingLocation].filter(Boolean).join(' · ')
-}
 </script>
 
 <template>
@@ -91,7 +86,6 @@ const meetingSummary = (group) => {
               <tr>
                 <th>Name</th>
                 <th>Category</th>
-                <th>Meets</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -102,7 +96,6 @@ const meetingSummary = (group) => {
                   <p v-if="group.description" class="mt-0.5 max-w-md truncate text-xs text-gray-400">{{ group.description }}</p>
                 </td>
                 <td class="text-gray-600">{{ group.category?.name }}</td>
-                <td class="text-gray-600">{{ meetingSummary(group) }}</td>
                 <td>
                   <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium capitalize text-gray-700">{{ group.status }}</span>
                 </td>
@@ -123,10 +116,6 @@ const meetingSummary = (group) => {
       <div class="mb-4">
         <Label for-id="group_description">Description</Label>
         <Input class="w-full" id="group_description" type="text" v-model="draft.description"></Input>
-      </div>
-      <div class="mb-4">
-        <Label for-id="group_day">Meeting day</Label>
-        <Input class="w-full" id="group_day" type="text" v-model="draft.meetingDay"></Input>
       </div>
     </template>
     <template #controls>

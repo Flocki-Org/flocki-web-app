@@ -32,8 +32,10 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-full">
-    <MainSidebar />
-    <MainTopbar />
+    <div class="print-hidden">
+      <MainSidebar />
+      <MainTopbar />
+    </div>
     <RouterView />
   </div>
 </template>

@@ -142,6 +142,24 @@ const menu = [
     ]
   },
   {
+    name: "Worship",
+    to: {
+      name: 'songs'
+    },
+    svgIcon: "M12,3V12.26C11.5,12.09 11,12 10.5,12C8,12 6,14 6,16.5C6,19 8,21 10.5,21C13,21 15,19 15,16.5V6H19V3H12Z",
+    subMenu: [
+      {
+        name: "Song library",
+        to: { name: 'songs' },
+        openForPath: '/worship',
+      },
+      {
+        name: "CCLI report",
+        to: { name: 'ccli-report' },
+      },
+    ]
+  },
+  {
     name: "Sermons",
     to: {
       name: 'sermons'
@@ -160,7 +178,23 @@ const menu = [
     to: {
       name: 'events'
     },
-    svgIcon: "M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"
+    svgIcon: "M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z",
+    subMenu: [
+      {
+        name: "Calendar",
+        to: { name: 'events' },
+        openForPath: '/events',
+      },
+      {
+        name: "Services",
+        to: { name: 'services' },
+        openForPath: '/services',
+      },
+      {
+        name: "Event types",
+        to: { name: 'event-types' },
+      },
+    ]
   },
   {
     name: "Giving",
