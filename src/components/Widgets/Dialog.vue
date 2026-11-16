@@ -16,6 +16,11 @@ defineProps({
   initialFocus: {
     type: Object,
     default: null
+  },
+  size: {
+    type: String,
+    default: 'md',
+    validator: (val: unknown) => typeof val === 'string' && ['md', 'lg', 'xl'].includes(val),
   }
 });
 </script>
@@ -53,8 +58,9 @@ TransitionRoot(
           leave-from="opacity-100 scale-100"
           leave-to="opacity-0 scale-95"
         )
-          DialogPanel.w-full.max-w-md.transform.overflow-hidden.bg-white.pt-5.text-left.align-middle.shadow-xl.transition-all(
+          DialogPanel.w-full.transform.overflow-hidden.bg-white.pt-5.text-left.align-middle.shadow-xl.transition-all(
             class="max-h-[90vh] overflow-y-auto rounded-t-xl border border-gray-100 sm:rounded-xl"
+            :class="{ 'max-w-md': size === 'md', 'max-w-2xl': size === 'lg', 'max-w-4xl': size === 'xl' }"
           )
             .flex.items-center.mb-5(
               class="px-4 sm:px-6"

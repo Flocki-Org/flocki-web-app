@@ -80,7 +80,48 @@ const router = createRouter({
         {
           path: 'events',
           name: 'events',
-          component: () => import('@/views/EmptyView.vue'),
+          component: () => import('@/views/Events/EventsCalendarView.vue'),
+        },
+        {
+          path: 'events/types',
+          name: 'event-types',
+          component: () => import('@/views/Events/EventTypesView.vue'),
+        },
+        {
+          path: 'events/series/:seriesId/template',
+          name: 'service-template',
+          component: () => import('@/views/Events/ServicePlanView.vue'),
+          props: { template: true },
+        },
+        {
+          path: 'events/:seriesId/:date',
+          name: 'event-occurrence',
+          component: () => import('@/views/Events/EventOccurrenceView.vue'),
+        },
+        {
+          path: 'services',
+          name: 'services',
+          component: () => import('@/views/Events/ServicesView.vue'),
+        },
+        {
+          path: 'services/:seriesId/:date',
+          name: 'service-plan',
+          component: () => import('@/views/Events/ServicePlanView.vue'),
+        },
+        {
+          path: 'worship',
+          name: 'songs',
+          component: () => import('@/views/Worship/SongListView.vue'),
+        },
+        {
+          path: 'worship/ccli',
+          name: 'ccli-report',
+          component: () => import('@/views/Worship/CcliReportView.vue'),
+        },
+        {
+          path: 'worship/:id',
+          name: 'song',
+          component: () => import('@/views/Worship/SongView.vue'),
         },
         {
           path: 'giving',

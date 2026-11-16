@@ -4,12 +4,15 @@ import { inject, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import UserProfilePopup from '@/components/people/UserProfilePopup.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
+import { eventsApi, type EventSeries } from '@/api/events'
 import { getPersonImageUrl } from '@/imageUtils'
 import defaultAvatar from '@/assets/default-user-profile.png'
 
 const axios = inject<AxiosInstance>('axios')
 const route = useRoute()
 const group = ref<Record<string, any> | null>(null)
+const series = ref<EventSeries[]>([])
+const tab = ref<'members' | 'events'>('members')
 const isLoading = ref(true)
 const showError = ref(false)
 
@@ -25,6 +28,9 @@ const loadGroup = (id) => {
       showError.value = true
       isLoading.value = false
     })
+  eventsApi.seriesList({ groupId: Number(id) }).then((rows) => {
+    series.value = rows
+  })
 }
 
 loadGroup(route.params.id)
@@ -35,11 +41,6 @@ const useDefaultAvatar = (event: Event) => {
   img.src = defaultAvatar
 }
 
-const meetingLine = () => {
-  if (!group.value) return ''
-  const start = group.value.meetingStartTime ? String(group.value.meetingStartTime).slice(0, 5) : ''
-  return [group.value.meetingDay, group.value.meetingFrequency, start, group.value.meetingLocation].filter(Boolean).join(' · ')
-}
 </script>
 
 <template>
@@ -58,9 +59,23 @@ const meetingLine = () => {
     <div class="app-detail-grid" v-if="group">
       <div class="app-detail-primary">
         <div class="app-panel">
-          <div class="app-panel-pad py-6">
-            <h2>Members</h2>
+          <div class="app-panel-pad flex items-center gap-2 py-4">
+            <div class="app-segmented">
+              <button type="button" :class="{ 'is-active': tab === 'members' }" @click="tab = 'members'">Members</button>
+              <button type="button" :class="{ 'is-active': tab === 'events' }" @click="tab = 'events'">Events</button>
+            </div>
           </div>
+          <template v-if="tab === 'events'">
+            <p v-if="series.length === 0" class="app-panel-pad pb-6 text-sm text-gray-400">This group has no events yet. Add one from the calendar and choose this group.</p>
+            <ul v-else class="divide-y divide-gray-100">
+              <li v-for="item in series" :key="item.id" class="px-4 py-3 sm:px-6">
+                <router-link v-if="item.nextDate" class="font-medium no-underline" :to="{ name: 'event-occurrence', params: { seriesId: item.id, date: item.nextDate } }">{{ item.title }}</router-link>
+                <p v-else class="font-medium text-gray-900">{{ item.title }}</p>
+                <p class="text-xs text-gray-500">{{ item.scheduleLabel }}</p>
+              </li>
+            </ul>
+          </template>
+          <template v-else>
           <div v-if="!group.members?.length" class="app-panel-pad pb-6 text-sm text-gray-400">No members yet.</div>
           <ul v-else class="divide-y divide-gray-100">
             <li v-for="member in group.members" :key="member.person.id" class="flex items-center gap-3 px-4 py-3 sm:px-6">
@@ -78,6 +93,7 @@ const meetingLine = () => {
               </div>
             </li>
           </ul>
+          </template>
         </div>
       </div>
       <div class="app-detail-aside">
@@ -85,7 +101,7 @@ const meetingLine = () => {
           <h2>About</h2>
           <p v-if="group.category" class="mt-3 text-sm text-gray-600">{{ group.category.name }}</p>
           <p v-if="group.description" class="mt-2 text-sm leading-6 text-gray-600">{{ group.description }}</p>
-          <p v-if="meetingLine()" class="mt-3 text-sm text-gray-700">{{ meetingLine() }}</p>
+          <p v-if="series.length" class="mt-3 text-sm text-gray-700">{{ series.map((item) => item.scheduleLabel).join(' · ') }}</p>
           <p v-if="group.contactEmail" class="mt-3 break-all text-sm text-gray-600">{{ group.contactEmail }}</p>
           <p v-if="group.contactPhone" class="break-all text-sm text-gray-600">{{ group.contactPhone }}</p>
         </div>
