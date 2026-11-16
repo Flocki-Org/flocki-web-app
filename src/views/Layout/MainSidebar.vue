@@ -127,6 +127,13 @@ const menu = [
         openForPath: '/households',
       },
       {
+        name: "Groups",
+        to: {
+          name: 'groups'
+        },
+        openForPath: '/groups',
+      },
+      {
         name: "Settings",
         to: {
           name: 'people-settings'

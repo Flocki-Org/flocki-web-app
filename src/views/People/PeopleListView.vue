@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AxiosInstance } from 'axios'
+import dayjs from 'dayjs'
 import { ref, reactive, inject, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepo } from 'pinia-orm'
@@ -11,6 +12,7 @@ import Input from '@/components/Forms/Input.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
+import defaultAvatar from '@/assets/default-user-profile.png'
 import Paginator from "@/components/Paginator.vue";
 
 const axios = inject<AxiosInstance>('axios')
@@ -27,6 +29,8 @@ const page = ref(1)
 const perPage = ref(10)
 const total = ref(0)
 const totalPages = ref(0)
+const searchTerm = ref('')
+const statusFilter = ref('')
 
 const newPerson = reactive({
   firstName: '',
@@ -39,14 +43,29 @@ const people = computed(() => {
   return useRepo(Person).all()
 })
 
+const compactDate = (value?: string | null) => (value ? dayjs(value).format("D MMM YYYY") : '')
+
+const useDefaultAvatar = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  if (img.src.endsWith(defaultAvatar)) return
+  img.src = defaultAvatar
+}
+
 const loadPeople = (currentPage, itemsPerPage) => {
   isLoadingPeople.value = true
-  axios
+    const params: Record<string, string | number> = {
+      page: currentPage,
+      page_size: itemsPerPage,
+    }
+    const term = searchTerm.value.trim()
+    if (term.includes('@')) params.email = term
+    else if (term) params.full_name = term
+    if (statusFilter.value === 'archived') params.archived = 'true'
+    else if (statusFilter.value) params.lifecycle_status = statusFilter.value
+
+    axios
     .get('/people',{
-      params: {
-        page: currentPage,
-        page_size: itemsPerPage,
-      },
+      params,
     })
     .then(response => {
       const personRepo = useRepo(Person);
@@ -107,7 +126,7 @@ const createPerson = () => {
         </svg>Add person
       </Button>
     </div>
-    <div class="app-page-section" v-if="!isLoadingPeople && people.length === 0">
+    <div class="app-page-section" v-if="!isLoadingPeople && people.length === 0 && !searchTerm.trim() && !statusFilter">
       <div class="app-empty-state">
         <img class="h-24 w-auto opacity-80" src="@/assets/no-list-found.svg" alt="">
         <div>
@@ -116,7 +135,7 @@ const createPerson = () => {
         </div>
       </div>
     </div>
-    <div class="app-page-section" v-if="!isLoadingPeople && people.length > 0">
+    <div class="app-page-section" v-if="!isLoadingPeople && (people.length > 0 || searchTerm.trim() || statusFilter)">
       <div class="app-panel">
         <div class="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
           <div class="flex grow flex-wrap gap-1.5">
@@ -134,9 +153,29 @@ const createPerson = () => {
             </button>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <span class="app-filter-chip">Status: Member
-              <svg class="h-3 w-3" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></path></svg>
-            </span>
+            <label class="relative min-w-[12rem] flex-1">
+              <span class="sr-only">Search people</span>
+              <input
+                v-model="searchTerm"
+                type="search"
+                placeholder="Search name or email"
+                class="h-8 w-full rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-sky-400"
+                @keydown.enter.prevent="loadPeople(1, perPage)"
+              >
+            </label>
+            <select
+              v-model="statusFilter"
+              class="h-8 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-700"
+              aria-label="Filter by status"
+              @change="loadPeople(1, perPage)"
+            >
+              <option value="">All statuses</option>
+              <option value="visitor">Visitors</option>
+              <option value="regular attender">Regular attenders</option>
+              <option value="member">Members</option>
+              <option value="inactive">Inactive</option>
+              <option value="archived">Archived</option>
+            </select>
             <button type="button" class="inline-flex h-7 items-center rounded-md border border-dashed border-gray-300 px-2 text-xs font-medium text-gray-500 transition-colors hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700">
               <svg class="mr-1 h-3.5 w-3.5" viewBox="0 0 24 24"><path fill="currentColor" d="M15 17H18V14H20V17H23V19H20V22H18V19H15V17M13 19.88C13.04 20.18 12.94 20.5 12.72 20.71C12.32 21.1 11.69 21.1 11.3 20.71L7.29 16.7C7.06 16.47 6.96 16.16 7 15.87V10.75L2.21 4.62C1.87 4.19 1.95 3.56 2.38 3.22C2.57 3.08 2.78 3 3 3V3H17V3C17.22 3 17.43 3.08 17.62 3.22C18.05 3.56 18.13 4.19 17.79 4.62L13 10.75V19.88M5.04 5L9 10.07V15.58L11 17.58V10.05L14.96 5H5.04Z"></path></svg>
               Add filter
@@ -149,21 +188,33 @@ const createPerson = () => {
             </button>
           </div>
         </div>
-        <div class="app-table-wrap">
-          <table class="app-data-table min-w-[44rem]">
+        <p v-if="people.length === 0" class="px-4 py-8 text-center text-sm text-gray-500 sm:px-6">No people match these filters.</p>
+        <div class="app-table-wrap" v-else>
+          <table class="app-data-table table-fixed [&_td]:overflow-hidden [&_th]:overflow-hidden [&_td]:px-2.5 [&_th]:px-2.5 sm:[&_td]:px-2.5 sm:[&_th]:px-2.5">
+            <colgroup>
+              <col class="w-[5%]" />
+              <col class="w-[16%]" />
+              <col class="w-[12%]" />
+              <col class="w-[14%]" />
+              <col class="w-[18%]" />
+              <col class="w-[15%]" />
+              <col class="w-[14%]" />
+              <col class="w-[6%]" />
+            </colgroup>
             <thead>
               <tr>
-                <th class="w-12">
+                <th>
                   <div class="flex items-center justify-center">
                     <input class="form-check-input appearance-none w-4 h-4 bg-white checked:bg-sky-600 rounded border border-gray-300 hover:border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked:bg-check" type="checkbox" value="" aria-label="Select all">
                   </div>
                 </th>
                 <th>First name</th>
                 <th>Last name</th>
+                <th>Status</th>
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Created</th>
-                <th class="w-12"></th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -173,25 +224,31 @@ const createPerson = () => {
                     <input class="form-check-input appearance-none w-4 h-4 bg-white checked:bg-sky-600 rounded border border-gray-300 hover:border-sky-500 transition-all align-top bg-no-repeat bg-center bg-contain checked:bg-check" type="checkbox" value="" :aria-label="`Select ${person.firstName}`">
                   </div>
                 </td>
-                <td>
+                <td class="overflow-hidden">
                   <UserProfilePopup
                       :person="person"
                       :includeName="true">
                     <template v-slot:default="{ getPersonImageUrl }">
                       <span class="flex items-center gap-2.5 leading-none">
                         <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 ring-1 ring-inset ring-gray-200">
-                          <img class="h-full w-full object-cover" v-if="person && person.profileImage" :src="getPersonImageUrl(person)" alt="">
+                          <img class="h-full w-full object-cover" v-if="person && person.profileImage" :src="getPersonImageUrl(person)" alt="" @error="useDefaultAvatar">
                           <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" alt="">
                         </span>
-                        <span class="truncate text-sm font-medium leading-none text-gray-900">{{ person.firstName }}</span>
+                        <span class="min-w-0">
+                          <span class="block truncate text-sm font-medium leading-none text-gray-900">{{ person.preferredName || person.firstName }}</span>
+                          <span v-if="person.preferredName && person.preferredName !== person.firstName" class="mt-0.5 block truncate text-xs leading-none text-gray-400">{{ person.firstName }}</span>
+                        </span>
                       </span>
                     </template>
                   </UserProfilePopup>
                 </td>
-                <td class="leading-none">{{ person.lastName }}</td>
-                <td class="leading-none text-gray-600">{{ person.email }}</td>
-                <td class="leading-none text-gray-600">{{ person.mobileNumber }}</td>
-                <td class="whitespace-nowrap leading-none text-gray-500">{{ $filters.shortDateTime(person.registeredDate) }}</td>
+                <td class="truncate leading-none">{{ person.lastName }}</td>
+                <td class="overflow-hidden leading-none">
+                  <span v-if="person.lifecycleStatus" class="block max-w-full truncate rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700" :title="person.lifecycleStatus">{{ person.lifecycleStatus }}</span>
+                </td>
+                <td class="truncate leading-none text-gray-600" :title="person.email || ''">{{ person.email }}</td>
+                <td class="truncate leading-none text-gray-600" :title="person.mobileNumber || ''">{{ person.mobileNumber }}</td>
+                <td class="truncate leading-none text-gray-500" :title="person.registeredDate ? $filters.humanDate(person.registeredDate) : ''">{{ compactDate(person.registeredDate) }}</td>
                 <td class="w-12 text-right">
                   <button type="button" class="invisible inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 group-hover:visible" aria-label="Row actions">
                     <svg class="h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"></path></svg>
@@ -234,63 +291,3 @@ const createPerson = () => {
     </template>
   </Dialog>
 </template>
-
-<style>
-/* Basic styling for the profile popup */
-.profile-popup {
-  position: absolute;
-  align-items: center; /* Center horizontally */
-  justify-content: center; /* Center vertically */
-  text-align: center; /* Center text horizontally */
-  top: calc(100% + 10px); /* Position below the link */
-  left: 0;
-  z-index: 1;
-  background-color: whitesmoke;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  border-radius: 10px;
-  font-family: Arial, sans-serif; /* Set the desired font family */
-  font-size: 14px;
-  color: #333;
-  max-width: 200px; /* Adjust as needed */
-}
-
-/* Styling for the profile image */
-.profile-image {
-  margin: 0 auto; /* Center horizontally */
-  width: 150px;
-  height: 150px;
-  border-radius: 50%; /* Rounded image */
-  margin-bottom: 10px;
-  object-fit: cover; /* Ensure the image covers the container */
-
-}
-
-/* Styling for the profile name */
-.profile-name {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-/* Styling for the profile details */
-.profile-details {
-  margin-bottom: 10px;
-}
-
-/* Styling for the age and date of birth */
-.profile-details span {
-  margin-right: 10px;
-}
-
-/* Styling for the link */
-.profile-link {
-  color: #007bff; /* Link color */
-  text-decoration: none;
-}
-
-/* Hover effect for the link */
-.profile-link:hover + .profile-popup {
-  display: block;
-}
-</style>

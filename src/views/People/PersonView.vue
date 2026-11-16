@@ -24,6 +24,7 @@ const person = ref<Person | null>(null)
 
 const hovered = ref(false);
 const dropdownVisible = ref(false);
+const profileImageFailed = ref(false)
 const profileImageViewVisible = ref(false)
 const uploadProfileImage = ref(false)
 const croppedImage = ref<string | null>(null);
@@ -38,23 +39,40 @@ const handleCroppedImage = (dataUrl) => {
   croppedImage.value = dataUrl;
 };
 
+const labelize = (value) => {
+  if (!value) return ''
+  return String(value).replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
+const formatCustomValue = (value) => {
+  if (Array.isArray(value)) return value.join(', ')
+  if (value === true) return 'Yes'
+  if (value === false) return 'No'
+  if (value === null || value === undefined || value === '') return ''
+  return String(value)
+}
+
 const loadPerson = (id) => {
-
-  axios
-      .get('/people/' + id)
-      .then(response => {
-
-        useRepo(Person).save(response.data)
+  isLoadingPerson.value = true
+  profileImageFailed.value = false
+  Promise.all([
+    axios.get('/people/' + id),
+    axios.get(`/people/${id}/groups`).catch(() => ({ data: [] })),
+    axios.get(`/people/${id}/relationships`).catch(() => ({ data: [] })),
+  ])
+      .then(([personResponse, groupsResponse, relationshipsResponse]) => {
+        useRepo(Person).save({
+          ...personResponse.data,
+          groups: groupsResponse.data || [],
+          relationships: relationshipsResponse.data || [],
+        })
         person.value = useRepo(Person).find(+id)
-        // TODO: remove timeout later
-        setTimeout(() => {
-          isLoadingPerson.value = false
-        }, 2000)
+        isLoadingPerson.value = false
       })
       .catch((err) => {
         console.log(err)
-
         showLoadingError.value = true
+        isLoadingPerson.value = false
       })
 }
 
@@ -145,7 +163,12 @@ const handleImageUploadFailed = () => {
       </router-link>
       <h1 class="grow min-w-0 text-gray-600 break-words">
         <Skeletor v-if="isLoadingPerson" width="200"></Skeletor>
-        <template v-else>{{ person.fullName }}</template>
+        <template v-else>
+          <span class="inline-flex flex-wrap items-center gap-2">
+            {{ person.displayName }}
+            <span v-if="person.lifecycleStatus" class="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-800">{{ labelize(person.lifecycleStatus) }}</span>
+          </span>
+        </template>
       </h1>
       <button class="w-10 h-8 inline-flex shrink-0 justify-center items-center rounded-md border border-sky-400 hover:border-sky-300 text-sky-400 bg-transparent hover:bg-sky-50 transition-all">
         <svg style="width:16px;height:16px" viewBox="0 0 24 24">
@@ -166,6 +189,15 @@ const handleImageUploadFailed = () => {
           </div>
           <table class="table-auto w-full text-left text-sm">
             <tbody>
+              <tr class="odd:bg-gray-50 even:bg-white" v-if="!isLoadingPerson && (person?.preferredName || person?.title || person?.middleName)">
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Name</td>
+                <td class="py-4 pr-4 break-words">
+                  <span v-if="person.title">{{ person.title }}&nbsp;</span>{{ person.firstName }}
+                  <span v-if="person.middleName"> {{ person.middleName }}</span>
+                  {{ person.lastName }}
+                  <span v-if="person.preferredName && person.preferredName !== person.firstName" class="text-gray-400"> · goes by {{ person.preferredName }}</span>
+                </td>
+              </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Date of birth</td>
                 <td class="py-4">
@@ -194,39 +226,46 @@ const handleImageUploadFailed = () => {
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Email address</td>
-                <td class="py-4">
+                <td class="py-4 pr-4">
                   <Skeletor v-if="isLoadingPerson" width="160"></Skeletor>
-                  <template v-else>{{ person?.email }}</template>
+                  <ul v-else-if="person?.emails?.length" class="space-y-1">
+                    <li v-for="item in person.emails" :key="item.id || item.email" class="break-all">
+                      {{ item.email }}
+                      <span v-if="item.isPrimary" class="ml-1 text-xs font-medium text-sky-700">Primary</span>
+                    </li>
+                  </ul>
+                  <span v-else class="break-all">{{ person?.email }}</span>
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Phone number</td>
-                <td class="py-4">
+                <td class="py-4 pr-4">
                   <Skeletor v-if="isLoadingPerson" width="120"></Skeletor>
-                  <template v-else>{{ person?.mobileNumber }}</template>
+                  <ul v-else-if="person?.phones?.length" class="space-y-1">
+                    <li v-for="item in person.phones" :key="item.id || item.number" class="break-all">
+                      {{ item.number }}
+                      <span class="text-gray-400">{{ labelize(item.phoneType) }}</span>
+                      <span v-if="item.isPrimary" class="ml-1 text-xs font-medium text-sky-700">Primary</span>
+                    </li>
+                  </ul>
+                  <span v-else class="break-all">{{ person?.mobileNumber }}</span>
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Social profiles</td>
-                <td class="py-4 flex">
+                <td class="py-4 pr-4">
                   <Skeletor v-if="isLoadingPerson" width="100"></Skeletor>
-                  <template v-else><a class="mr-1 hover:opacity-80 transition-all text-[#0077B5]" href="#">
-                      <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M19 3A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H19M18.5 18.5V13.2A3.26 3.26 0 0 0 15.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17A1.4 1.4 0 0 1 15.71 13.57V18.5H18.5M6.88 8.56A1.68 1.68 0 0 0 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19A1.69 1.69 0 0 0 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56M8.27 18.5V10.13H5.5V18.5H8.27Z"></path>
-                      </svg></a><a class="mr-1 hover:opacity-80 transition-all text-[#4267B2]" href="#">
-                      <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"></path>
-                      </svg></a><a class="mr-1 hover:opacity-80 transition-all text-[#1DA1F2]" href="#">
-                      <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M22.46,6C21.69,6.35 20.86,6.58 20,6.69C20.88,6.16 21.56,5.32 21.88,4.31C21.05,4.81 20.13,5.16 19.16,5.36C18.37,4.5 17.26,4 16,4C13.65,4 11.73,5.92 11.73,8.29C11.73,8.63 11.77,8.96 11.84,9.27C8.28,9.09 5.11,7.38 3,4.79C2.63,5.42 2.42,6.16 2.42,6.94C2.42,8.43 3.17,9.75 4.33,10.5C3.62,10.5 2.96,10.3 2.38,10C2.38,10 2.38,10 2.38,10.03C2.38,12.11 3.86,13.85 5.82,14.24C5.46,14.34 5.08,14.39 4.69,14.39C4.42,14.39 4.15,14.36 3.89,14.31C4.43,16 6,17.26 7.89,17.29C6.43,18.45 4.58,19.13 2.56,19.13C2.22,19.13 1.88,19.11 1.54,19.07C3.44,20.29 5.7,21 8.12,21C16,21 20.33,14.46 20.33,8.79C20.33,8.6 20.33,8.42 20.32,8.23C21.16,7.63 21.88,6.87 22.46,6Z"></path>
-                      </svg></a></template>
+                  <template v-else-if="person?.socialMediaLinks?.length">
+                    <a v-for="link in person.socialMediaLinks" :key="link.url" class="mr-3 break-all" :href="link.url" target="_blank" rel="noreferrer">{{ link.type || link.url }}</a>
+                  </template>
+                  <span v-else class="text-gray-400">—</span>
                 </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 align-top">Registered at</td>
                 <td class="py-4">
                   <Skeletor v-if="isLoadingPerson" width="230"></Skeletor>
-                  <template v-else-if="!!person.registeredDate">{{ $filters.fullDateTime(person.registeredDate) }} ({{ $filters.humanize(person.registeredDate) }} ago)</template>
+                  <template v-else-if="!!person.registeredDate">{{ $filters.humanDate(person.registeredDate) }} ({{ $filters.humanize(person.registeredDate) }} ago)</template>
                 </td>
               </tr>
             </tbody>
@@ -244,39 +283,74 @@ const handleImageUploadFailed = () => {
           <table class="table-auto w-full text-left text-sm">
             <tbody>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Role</td>
-                <td class="py-4">Member, Deacon</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Status</td>
+                <td class="py-4 pr-4">{{ labelize(person?.lifecycleStatus) || '—' }}<span v-if="person?.membershipStatus && person.membershipStatus !== person.lifecycleStatus"> · {{ labelize(person.membershipStatus) }}</span></td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Date baptized</td>
-                <td class="py-4">25 February 1992</td>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Member since</td>
+                <td class="py-4 pr-4">{{ person?.memberSince ? $filters.humanDate(person.memberSince) : '—' }}</td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Member from</td>
-                <td class="py-4">30 June 1991</td>
-              </tr>
-              <tr class="odd:bg-gray-50 even:bg-white">
-                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Leading ministries</td>
-                <td class="py-4">
-                  <ul>
-                    <li>
-                      <router-link to="#">Hospitality Ministry</router-link>
-                    </li>
-                    <li>
-                      <router-link to="#">Web & IT Ministry</router-link>
-                    </li>
-                  </ul>
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Baptism</td>
+                <td class="py-4 pr-4 break-words">
+                  <template v-if="person?.baptismStatus || person?.baptismDate || person?.baptismLocation">
+                    {{ labelize(person.baptismStatus) }}
+                    <span v-if="person.baptismDate"> · {{ $filters.humanDate(person.baptismDate) }}</span>
+                    <span v-if="person.baptismLocation"> · {{ person.baptismLocation }}</span>
+                  </template>
+                  <template v-else>—</template>
                 </td>
+              </tr>
+              <tr class="odd:bg-gray-50 even:bg-white">
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Categories</td>
+                <td class="py-4 pr-4">
+                  <div v-if="person?.categories?.length" class="flex flex-wrap gap-1.5">
+                    <span v-for="category in person.categories" :key="category.id" class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">{{ category.name }}</span>
+                  </div>
+                  <template v-else>—</template>
+                </td>
+              </tr>
+              <tr class="odd:bg-gray-50 even:bg-white">
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Ministry</td>
+                <td class="py-4 pr-4 break-words">{{ person?.ministryInvolvement || '—' }}</td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Groups</td>
-                <td class="py-4">
-                  <ul>
-                    <li>
-                      <router-link to="#">The Book Club</router-link>
+                <td class="py-4 pr-4">
+                  <ul v-if="person?.groups?.length" class="space-y-1">
+                    <li v-for="group in person.groups" :key="group.groupId">
+                      <router-link :to="{ name: 'group', params: { id: group.groupId } }">{{ group.groupName }}</router-link>
+                      <span v-if="group.role" class="text-gray-400"> · {{ group.role }}</span>
                     </li>
                   </ul>
+                  <template v-else>—</template>
                 </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-if="person?.relationships?.length" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+          <div class="flex items-center app-panel-pad py-6 sm:py-8">
+            <h2 class="grow text-gray-700">Family</h2>
+          </div>
+          <ul class="divide-y divide-gray-100 text-sm">
+            <li v-for="relationship in person.relationships" :key="relationship.id" class="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+              <span class="text-gray-500">{{ labelize(relationship.relationshipType) }}</span>
+              <router-link v-if="relationship.relatedPersonId" :to="{ name: 'person', params: { id: relationship.relatedPersonId } }">
+                {{ relationship.relatedFirstName }} {{ relationship.relatedLastName }}
+              </router-link>
+            </li>
+          </ul>
+        </div>
+        <div v-if="person?.customFields?.length" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+          <div class="flex items-center app-panel-pad py-6 sm:py-8">
+            <h2 class="grow text-gray-700">Additional details</h2>
+          </div>
+          <table class="table-auto w-full text-left text-sm">
+            <tbody>
+              <tr v-for="field in person.customFields" :key="field.fieldId" class="odd:bg-gray-50 even:bg-white">
+                <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">{{ field.name }}</td>
+                <td class="py-4 pr-4 break-words">{{ formatCustomValue(field.value) }}</td>
               </tr>
             </tbody>
           </table>
@@ -293,24 +367,25 @@ const handleImageUploadFailed = () => {
           <div class="address app-panel-pad mb-4 text-gray-500 text-sm" v-if="person && person.addresses && person.addresses[0]"><AddressDisplay :address="person.addresses[0]" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" />
             <div class="w-full h-60" id="map"></div>
           </div>
-          <div class="address app-panel-pad mb-4 text-gray-500 text-sm" v-if="person && person.households && person.households[0] && person.households[0].address">
+          <div class="address app-panel-pad mb-4 text-gray-500 text-sm" v-else-if="person && person.households && person.households[0] && person.households[0].address">
             <AddressDisplay :address="person.households[0].address" addressFormat="[[streetNumber]] [[street]] [[newline]] [[suburb]], [[city]], [[postalCode]]" />
             <div class="w-full h-60" id="map"></div>
           </div>
           <div v-else class="app-panel-pad mb-4 text-gray-500 text-sm">No address</div>
 
         </div>
-        <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+        <div v-if="person?.emergencyContacts?.length" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
           <div class="flex items-center app-panel-pad py-6 sm:py-8">
-            <h2 class="grow text-gray-700">Prayer Requests</h2>
-            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
-              <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
-              </svg>
-            </button>
+            <h2 class="grow text-gray-700">Emergency contacts</h2>
           </div>
-          <div class="text-sm font-bold text-gray-500 app-panel-pad">27 February 2022</div>
-          <div class="text-sm text-gray-500 app-panel-pad mb-6">Please pray for my grandmother that she may be saved, pray for my family for strength and comfort in this difficult time.</div>
+          <ul class="divide-y divide-gray-100">
+            <li v-for="contact in person.emergencyContacts" :key="contact.id || contact.name" class="px-4 py-3 sm:px-6 lg:px-10">
+              <p class="text-sm font-medium text-gray-800">{{ contact.name }}</p>
+              <p class="text-xs text-gray-500">{{ labelize(contact.relationshipLabel) }}</p>
+              <p v-if="contact.phone" class="mt-1 break-all text-sm text-gray-600">{{ contact.phone }}</p>
+              <p v-if="contact.email" class="break-all text-sm text-gray-600">{{ contact.email }}</p>
+            </li>
+          </ul>
         </div>
       </div>
       <div class="app-detail-aside order-1 lg:order-2">
@@ -319,10 +394,11 @@ const handleImageUploadFailed = () => {
                @mouseenter="hovered = true"
                @mouseleave="hovered=false, dropdownVisible = false ">
 
-            <img class="rounded-lg reduce-height-in-panel cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
-                 v-if="person && person.profileImage"
-                 :src="getPersonImageUrl(person)">
-            <img class="rounded-lg w-full cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
+            <img class="w-full max-w-sm rounded-lg reduce-height-in-panel cursor-pointer object-cover transition-transform duration-300 transform hover:scale-110 hover-brightness"
+                 v-if="person && person.profileImage && !profileImageFailed"
+                 :src="getPersonImageUrl(person)"
+                 @error="profileImageFailed = true">
+            <img class="w-full max-w-sm rounded-lg cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
                  v-else
                  src="@/assets/default-user-profile.png">
             <div v-if="dropdownVisible" class="absolute top-0 right-0 mt-2">
@@ -340,7 +416,7 @@ const handleImageUploadFailed = () => {
         <div v-if="person && person.households && person.households[0]" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center app-panel-pad py-6 sm:py-8">
             <router-link  class="grow" :to="{name: 'household', params: {id: person.households[0].id} }">
-              <h2 class="text-gray-700">{{person.lastName}} Household</h2>
+              <h2 class="text-gray-700">{{ person.households[0].name || (person.lastName + ' Household') }}</h2>
             </router-link>
               <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
@@ -383,7 +459,7 @@ const handleImageUploadFailed = () => {
                             <svg class="mr-1 text-gray-400" style="width:14px;height:14px" viewBox="0 0 24 24">
                               <path fill="currentColor" d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path>
                             </svg>
-                            <div class="text-sm text-gray-400">{{householdPerson.email}}</div>
+                            <div class="min-w-0 break-all text-sm text-gray-400">{{householdPerson.email}}</div>
                           </div>
                         </div>
                       </div>
@@ -402,17 +478,17 @@ const handleImageUploadFailed = () => {
         </div>
         <div class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center app-panel-pad py-6 sm:py-8">
-            <h2 class="grow text-gray-700">Private Notes</h2>
-            <button class="w-8 h-8 inline-flex justify-center items-center rounded-md border border-gray-300 hover:border-gray-200 text-gray-400 bg-transparent hover:bg-gray-50 transition-all">
-              <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"></path>
-              </svg>
-            </button>
+            <h2 class="grow text-gray-700">Notes</h2>
           </div>
-          <div class="text-sm font-bold text-gray-500 app-panel-pad">All Stewards only</div>
-          <div class="text-sm text-gray-500 app-panel-pad mb-6">Haven’t been to church in 2 months. Need to check in.
-            <div></div>
+          <div v-if="person?.pastoralNotes" class="app-panel-pad mb-4">
+            <div class="text-xs font-medium uppercase tracking-wide text-gray-400">Pastoral</div>
+            <p class="mt-1 whitespace-pre-wrap text-sm text-gray-600">{{ person.pastoralNotes }}</p>
           </div>
+          <div v-if="person?.biography" class="app-panel-pad mb-6">
+            <div class="text-xs font-medium uppercase tracking-wide text-gray-400">Biography</div>
+            <p class="mt-1 whitespace-pre-wrap text-sm text-gray-600">{{ person.biography }}</p>
+          </div>
+          <p v-if="!person?.pastoralNotes && !person?.biography" class="app-panel-pad mb-6 text-sm text-gray-400">No notes yet.</p>
         </div>
       </div>
     </div>
@@ -463,8 +539,6 @@ img.reduce-height {
 
 img.reduce-height-in-panel {
   max-height: min(50vh, 580px);
-  max-width: 100%;
-  width: auto;
   height: auto;
 }
 
