@@ -74,7 +74,7 @@ const createGroup = () => {
       <div class="app-empty-state">
         <div>
           <p class="font-medium text-gray-800">No groups yet</p>
-          <p class="mt-1 text-sm text-gray-500">Create a small group, team, or ministry group.</p>
+          <p class="mt-1 text-sm text-gray-500">A group created here is not in a ministry until you assign one.</p>
         </div>
       </div>
     </div>
@@ -85,6 +85,7 @@ const createGroup = () => {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Ministry</th>
                 <th>Category</th>
                 <th>Status</th>
               </tr>
@@ -94,6 +95,9 @@ const createGroup = () => {
                 <td>
                   <router-link class="font-medium no-underline" :to="{ name: 'group', params: { id: group.id } }">{{ group.name }}</router-link>
                   <p v-if="group.description" class="mt-0.5 max-w-md truncate text-xs text-gray-400">{{ group.description }}</p>
+                </td>
+                <td class="text-gray-600">
+                  <router-link v-if="group.ministry" class="no-underline" :to="{ name: 'ministry', params: { id: group.ministry.id } }">{{ group.ministry.name }}</router-link>
                 </td>
                 <td class="text-gray-600">{{ group.category?.name }}</td>
                 <td>
@@ -117,6 +121,7 @@ const createGroup = () => {
         <Label for-id="group_description">Description</Label>
         <Input class="w-full" id="group_description" type="text" v-model="draft.description"></Input>
       </div>
+      <p class="text-sm text-gray-500">This group stays unassigned. Open a ministry to create a group that belongs to it, or assign this one later.</p>
     </template>
     <template #controls>
       <div class="flex items-center">

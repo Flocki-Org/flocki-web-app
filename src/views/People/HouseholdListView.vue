@@ -287,7 +287,7 @@ const redirectToPersonPage = (member) =>  {
                       <UserProfilePopup :person="member">
                         <template v-slot:default="{ getPersonImageUrl }">
                           <span class="inline-flex h-7 w-7 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-gray-100 ring-2 ring-white">
-                            <img class="h-full w-full object-cover" v-if="member && member.profileImage" :src="getPersonImageUrl(member)" :title="member.firstName" alt="">
+                            <img class="h-full w-full object-cover" v-if="getPersonImageUrl(member)" :src="getPersonImageUrl(member)" :title="member.firstName" alt="">
                             <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" :title="member.firstName" alt="">
                           </span>
                         </template>

@@ -7,12 +7,15 @@ export function getFullImageUrl(path: string): string {
   return `${baseURL}${path}`;
 }
 
-export function getPersonImageUrl(person: { profileImage?: ImageRef } | null | undefined): string {
-    if(person && person.profileImage) {
+export function getPersonImageUrl(person: { profileImage?: ImageRef; externalImageUrl?: string | null } | null | undefined): string {
+    if (person?.profileImage?.id) {
       return getFullImageUrl('/images/'+person.profileImage.id)
-    } else {
-      return "";
     }
+    const external = person?.externalImageUrl?.trim() || ''
+    if (/^https?:\/\//i.test(external)) {
+      return external
+    }
+    return ''
 }
 
 export function getHouseholdImageUrl(household: { householdImage?: ImageRef } | null | undefined): string {

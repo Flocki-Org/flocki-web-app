@@ -252,7 +252,7 @@ const handleImageUploadFailed = () => {
     <p v-if="actionError" class="mx-main-lr mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{{ actionError }}</p>
 
     <div v-if="household" class="app-detail-grid">
-      <div class="app-detail-primary order-2 lg:order-1">
+      <div class="app-detail-primary order-2 lg:order-1 lg:w-1/2">
         <section class="rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
           <div class="flex items-center gap-3 app-panel-pad py-6">
             <h2 class="grow text-gray-700">People</h2>
@@ -262,7 +262,7 @@ const handleImageUploadFailed = () => {
             <li v-for="member in household.people" :key="member.id" class="flex w-40 shrink-0 flex-col items-center rounded-xl border border-gray-100 bg-gray-50 px-3 py-4 text-center">
               <UserProfilePopup :person="member" :include-name="false">
                 <template #default>
-                  <img v-if="member.profileImage" class="h-16 w-16 rounded-full object-cover" :src="getPersonImageUrl(member)" alt="">
+                  <img v-if="getPersonImageUrl(member)" class="h-16 w-16 rounded-full object-cover" :src="getPersonImageUrl(member)" alt="">
                   <img v-else class="h-16 w-16 rounded-full object-cover" src="@/assets/default-user-profile.png" alt="">
                 </template>
               </UserProfilePopup>
@@ -292,11 +292,11 @@ const handleImageUploadFailed = () => {
         </section>
       </div>
 
-      <aside class="app-detail-aside order-1 lg:order-2">
+      <aside class="app-detail-aside order-1 lg:order-2 lg:w-1/2">
         <div class="overflow-hidden rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
-          <button type="button" class="block w-full" @click="toggleDropdown">
-            <img v-if="household.householdImage" class="h-64 w-full object-cover" :src="getHouseholdImageUrl(household)" alt="">
-            <img v-else class="h-64 w-full object-cover" src="@/assets/default-user-profile.png" alt="">
+          <button type="button" class="block w-full p-3" @click="toggleDropdown">
+            <img v-if="household.householdImage" class="max-h-[70vh] w-full rounded-lg object-contain" :src="getHouseholdImageUrl(household)" alt="">
+            <img v-else class="max-h-80 w-full rounded-lg object-contain" src="@/assets/default-user-profile.png" alt="">
           </button>
           <div class="flex items-center justify-between gap-3 px-4 py-3">
             <p class="text-sm text-gray-500">Household photo</p>
@@ -317,7 +317,7 @@ const handleImageUploadFailed = () => {
     </div>
   </div>
   <div v-if="uploadHouseholdImage" class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">
-    <ImageCropperUploader :upload-endpoint="'/households/household_image?id=' + household?.id" @image-cropper-cancelled="closeUploadHouseholdImageView" @image-cropper-uploaded-success="handleImageUploadedSuccess" @image-cropper-upload-failed="handleImageUploadFailed" />
+    <ImageCropperUploader :aspect-ratio="3 / 2" :upload-endpoint="'/households/household_image?id=' + household?.id" @image-cropper-cancelled="closeUploadHouseholdImageView" @image-cropper-uploaded-success="handleImageUploadedSuccess" @image-cropper-upload-failed="handleImageUploadFailed" />
   </div>
 
   <Dialog :show="addingMember" title="Add a person" :is-form="true" @close="addingMember = false" @submit="addMember">

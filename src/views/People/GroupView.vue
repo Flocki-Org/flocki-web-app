@@ -23,10 +23,14 @@ const notice = ref('')
 const actionError = ref('')
 const roles = ref<{ id: number; name: string }[]>([])
 const categories = ref<{ id: number; name: string }[]>([])
+const ministries = ref<{ id: number; name: string }[]>([])
+const adminName = ref('')
+const renamingAdmin = ref(false)
+const pickedAdmin = ref<PersonHit | null>(null)
+const addingAdmin = ref(false)
 const editing = ref(false)
 const saving = ref(false)
 const adding = ref(false)
-const picked = ref<PersonHit | null>(null)
 const roleName = ref('Member')
 const draft = ref({
   name: '',
@@ -48,6 +52,7 @@ const loadGroup = (id) => {
     .get(`/groups/${id}`, { params: { include_members: true } })
     .then((response) => {
       group.value = response.data
+      adminName.value = response.data.administratorRoleName || 'Group Administrator'
       isLoading.value = false
     })
     .catch(() => {
@@ -69,6 +74,11 @@ axios.get('/groups/categories').then((response) => {
   categories.value = response.data || []
 }).catch(() => {
   categories.value = []
+})
+axios.get('/departments').then((response) => {
+  ministries.value = response.data || []
+}).catch(() => {
+  ministries.value = []
 })
 
 const useDefaultAvatar = (event: Event) => {
@@ -117,18 +127,18 @@ const saveGroup = async () => {
 
 const memberIds = () => (group.value?.members || []).map((member: { person: { id: number } }) => member.person.id)
 
-const addMember = async () => {
-  if (!group.value || !picked.value) return
+const addMember = async (person: PersonHit) => {
+  if (!group.value || adding.value) return
   adding.value = true
   actionError.value = ''
   try {
     await axios.post(`/groups/${group.value.id}/members`, {
-      personId: picked.value.id,
+      personId: person.id,
       roleName: roleName.value || 'Member',
     })
-    picked.value = null
-    notice.value = 'Person added.'
-    loadGroup(group.value.id)
+    notice.value = `${person.firstName} ${person.lastName} added.`
+    const response = await axios.get(`/groups/${group.value.id}`, { params: { include_members: true } })
+    group.value = response.data
   } catch (err) {
     actionError.value = messageOf(err, "Couldn't add that person.")
   } finally {
@@ -155,6 +165,61 @@ const removeMember = async (personId: number, name: string) => {
     loadGroup(group.value.id)
   } catch (err) {
     actionError.value = messageOf(err, "Couldn't remove that person.")
+  }
+}
+
+const assignMinistry = async (event: Event) => {
+  if (!group.value) return
+  const value = (event.target as HTMLSelectElement).value
+  try {
+    const response = await axios.patch(`/groups/${group.value.id}`, {
+      departmentId: value ? Number(value) : null,
+    })
+    group.value = { ...response.data, members: response.data.members || group.value.members }
+    notice.value = value ? 'Ministry assigned.' : 'Group removed from its ministry.'
+  } catch (err) {
+    actionError.value = messageOf(err, "Couldn't update the ministry.")
+  }
+}
+
+const adminIds = () => (group.value?.administrators || []).map((admin: { person: { id: number } }) => admin.person.id)
+
+const addAdministrator = async () => {
+  if (!group.value || !pickedAdmin.value) return
+  addingAdmin.value = true
+  try {
+    const response = await axios.post(`/groups/${group.value.id}/administrators`, { personId: pickedAdmin.value.id })
+    group.value = response.data
+    pickedAdmin.value = null
+  } catch (err) {
+    actionError.value = messageOf(err, "Couldn't add that administrator.")
+  } finally {
+    addingAdmin.value = false
+  }
+}
+
+const removeAdministrator = async (personId: number, name: string) => {
+  if (!group.value || !confirm(`Remove ${name} as an administrator of this group?`)) return
+  try {
+    const response = await axios.delete(`/groups/${group.value.id}/administrators/${personId}`)
+    group.value = response.data
+  } catch (err) {
+    actionError.value = messageOf(err, "Couldn't remove that administrator.")
+  }
+}
+
+const renameAdministratorRole = async () => {
+  const name = adminName.value.trim()
+  if (!name) return
+  renamingAdmin.value = true
+  try {
+    await axios.patch('/groups/administrator-role', { name })
+    notice.value = 'Role renamed for every group.'
+    if (group.value) loadGroup(group.value.id)
+  } catch (err) {
+    actionError.value = messageOf(err, "Couldn't rename that role.")
+  } finally {
+    renamingAdmin.value = false
   }
 }
 
@@ -206,22 +271,22 @@ const addEvent = () => {
           <template v-else>
             <div class="app-panel-pad space-y-3 border-b border-gray-100 pb-4">
               <p class="text-sm font-medium text-gray-700">Add a person</p>
-              <PersonSearch :exclude-ids="memberIds()" @select="picked = $event" />
-              <p v-if="picked" class="text-sm text-gray-700">{{ picked.firstName }} {{ picked.lastName }}</p>
               <div class="flex flex-wrap items-center gap-2">
-                <select v-model="roleName" class="app-field max-w-48" aria-label="Role">
+                <label class="text-sm text-gray-500" for="new-member-role">Role</label>
+                <select id="new-member-role" v-model="roleName" class="app-field max-w-48" :disabled="adding">
                   <option v-for="role in roles" :key="role.id" :value="role.name">{{ role.name }}</option>
                   <option v-if="roles.length === 0" value="Member">Member</option>
                 </select>
-                <Button :show-loader="adding" :disabled="!picked" @click="addMember">Add to group</Button>
               </div>
+              <PersonSearch :exclude-ids="memberIds()" @select="addMember" />
+              <p class="text-xs text-gray-400">{{ adding ? 'Adding…' : 'Click a name to add them.' }}</p>
             </div>
             <div v-if="!group.members?.length" class="app-panel-pad pb-6 text-sm text-gray-400">No members yet.</div>
             <ul v-else class="divide-y divide-gray-100">
               <li v-for="member in group.members" :key="member.person.id" class="flex items-center gap-3 px-4 py-3 sm:px-6">
                 <UserProfilePopup :person="member.person">
                   <span class="inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-1 ring-gray-200">
-                    <img class="h-full w-full object-cover" v-if="member.person.profileImage" :src="getPersonImageUrl(member.person)" alt="" @error="useDefaultAvatar">
+                    <img class="h-full w-full object-cover" v-if="getPersonImageUrl(member.person)" :src="getPersonImageUrl(member.person)" alt="" @error="useDefaultAvatar">
                     <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" alt="">
                   </span>
                 </UserProfilePopup>
@@ -239,7 +304,34 @@ const addEvent = () => {
           </template>
         </div>
       </div>
-      <div class="app-detail-aside">
+      <div class="app-detail-aside space-y-4">
+        <div class="app-panel app-panel-pad py-6">
+          <h2>Ministry</h2>
+          <p class="mt-1 text-sm text-gray-500">Leave this empty until the group should belong to a ministry.</p>
+          <select class="app-field mt-3" :value="group.ministry?.id || ''" aria-label="Ministry" @change="assignMinistry">
+            <option value="">No ministry</option>
+            <option v-for="ministry in ministries" :key="ministry.id" :value="ministry.id">{{ ministry.name }}</option>
+          </select>
+        </div>
+        <div class="app-panel app-panel-pad py-6">
+          <h2>{{ group.administratorRoleName || 'Group Administrator' }}</h2>
+          <p class="mt-1 text-sm text-gray-500">Who can manage this group. Assigning someone here does not add them to the member list. The role name is shared by every group.</p>
+          <form class="mt-3 flex gap-2" @submit.prevent="renameAdministratorRole">
+            <input v-model="adminName" class="app-field" :placeholder="group.administratorRoleName" aria-label="Administrator role name" />
+            <Button type="submit" stealth :show-loader="renamingAdmin">Rename</Button>
+          </form>
+          <ul class="mt-4 space-y-2">
+            <li v-for="admin in group.administrators || []" :key="admin.person.id" class="flex items-center gap-2 text-sm">
+              <router-link class="min-w-0 grow no-underline" :to="{ name: 'person', params: { id: admin.person.id } }">{{ admin.person.firstName }} {{ admin.person.lastName }}</router-link>
+              <button type="button" class="text-gray-400 hover:text-red-600" @click="removeAdministrator(admin.person.id, `${admin.person.firstName} ${admin.person.lastName}`)">Remove</button>
+            </li>
+          </ul>
+          <div class="mt-3 space-y-2">
+            <PersonSearch :exclude-ids="adminIds()" @select="pickedAdmin = $event" />
+            <p v-if="pickedAdmin" class="text-sm text-gray-700">{{ pickedAdmin.firstName }} {{ pickedAdmin.lastName }}</p>
+            <Button :show-loader="addingAdmin" :disabled="!pickedAdmin" @click="addAdministrator">Add administrator</Button>
+          </div>
+        </div>
         <div class="app-panel app-panel-pad py-6">
           <h2>About</h2>
           <p v-if="group.category" class="mt-3 text-sm text-gray-600">{{ group.category.name }}</p>

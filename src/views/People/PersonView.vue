@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import type { AxiosInstance } from 'axios'
-import { ref, inject, watch } from 'vue'
+import { computed, ref, inject, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
 import { useRepo } from 'pinia-orm'
 import Toaster from '@/components/Widgets/Toaster.vue'
@@ -25,12 +25,15 @@ const router = useRouter()
 const isLoadingPerson = ref(true)
 const showLoadingError = ref(false)
 const person = ref<Person | null>(null)
+const ministryLinks = ref<{ departmentId: number; name: string; roleName: string }[]>([])
+const groupAdminLinks = ref<{ groupId: number; groupName: string; roleName: string }[]>([])
 
 const hovered = ref(false);
 const dropdownVisible = ref(false);
 const profileImageFailed = ref(false)
 const profileImageViewVisible = ref(false)
 const uploadProfileImage = ref(false)
+const householdCropUrl = ref('')
 const croppedImage = ref<string | null>(null);
 const uploadProfileImageFailed = ref(false);
 const uploadProfileImageSuccess = ref(false);
@@ -73,14 +76,13 @@ const formatCustomValue = (value) => {
   return String(value)
 }
 
-const onProfileImageError = (event) => {
-  const failedId = Number(event.currentTarget?.dataset?.imageId)
-  if (person.value?.profileImage?.id === failedId) {
-    profileImageFailed.value = true
-  }
+const personImageSrc = computed(() => getPersonImageUrl(person.value))
+
+const onProfileImageError = () => {
+  profileImageFailed.value = true
 }
 
-watch(() => person.value?.profileImage?.id, () => {
+watch(personImageSrc, () => {
   profileImageFailed.value = false
 })
 
@@ -90,8 +92,11 @@ const loadPerson = (id) => {
     axios.get('/people/' + id),
     axios.get(`/people/${id}/groups`).catch(() => ({ data: [] })),
     axios.get(`/people/${id}/relationships`).catch(() => ({ data: [] })),
+    axios.get(`/people/${id}/ministries`).catch(() => ({ data: { ministries: [], groupAdministrations: [] } })),
   ])
-      .then(([personResponse, groupsResponse, relationshipsResponse]) => {
+      .then(([personResponse, groupsResponse, relationshipsResponse, ministriesResponse]) => {
+        ministryLinks.value = ministriesResponse.data?.ministries || []
+        groupAdminLinks.value = ministriesResponse.data?.groupAdministrations || []
         useRepo(Person).save({
           ...personResponse.data,
           groups: groupsResponse.data || [],
@@ -126,14 +131,31 @@ const closeProfileImageView = () => {
   document.body.style.overflow = 'auto';
 }
 
+const canCropFromHousehold = computed(() => {
+  const household = person.value?.households?.[0]
+  return Boolean(household?.householdImage)
+})
+
 const viewUploadProfileImage = () => {
+  householdCropUrl.value = ''
+  dropdownVisible.value = false
   uploadProfileImage.value=true;
   // Prevent scrolling
   document.body.style.overflow = 'hidden';
 };
 
+const cropFromHousehold = () => {
+  const household = person.value?.households?.[0]
+  if (!household?.householdImage) return
+  householdCropUrl.value = getHouseholdImageUrl(household)
+  uploadProfileImage.value = true
+  dropdownVisible.value = false
+  document.body.style.overflow = 'hidden'
+}
+
 const closeUploadProfileImageView = () => {
   uploadProfileImage.value = false;
+  householdCropUrl.value = ''
 
   // Allow scrolling again
   document.body.style.overflow = 'auto';
@@ -456,7 +478,22 @@ const handleImageUploadFailed = () => {
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Ministry</td>
-                <td class="py-4 pr-4 break-words">{{ person?.ministryInvolvement || '—' }}</td>
+                <td class="py-4 pr-4 break-words">
+                  <ul v-if="ministryLinks.length" class="space-y-1">
+                    <li v-for="ministry in ministryLinks" :key="ministry.departmentId">
+                      <router-link :to="{ name: 'ministry', params: { id: ministry.departmentId } }">{{ ministry.name }}</router-link>
+                      <span class="text-gray-400"> · {{ ministry.roleName }}</span>
+                    </li>
+                  </ul>
+                  <ul v-if="groupAdminLinks.length" class="mt-1 space-y-1">
+                    <li v-for="admin in groupAdminLinks" :key="admin.groupId">
+                      <router-link :to="{ name: 'group', params: { id: admin.groupId } }">{{ admin.groupName }}</router-link>
+                      <span class="text-gray-400"> · {{ admin.roleName }}</span>
+                    </li>
+                  </ul>
+                  <p v-if="person?.ministryInvolvement" :class="{ 'mt-1': ministryLinks.length || groupAdminLinks.length }">{{ person.ministryInvolvement }}</p>
+                  <template v-if="!ministryLinks.length && !groupAdminLinks.length && !person?.ministryInvolvement">—</template>
+                </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Groups</td>
@@ -527,30 +564,31 @@ const handleImageUploadFailed = () => {
         </div>
       </div>
       <div class="app-detail-aside order-1 lg:order-2">
-        <div class="flex items-center justify-center">
-          <div @click="toggleDropdown" class="relative"
-               @mouseenter="hovered = true"
-               @mouseleave="hovered=false, dropdownVisible = false ">
-
-            <img class="w-full max-w-sm rounded-lg reduce-height-in-panel cursor-pointer object-cover transition-transform duration-300 transform hover:scale-110 hover-brightness"
-                 v-if="person && person.profileImage && !profileImageFailed"
-                 :key="person.profileImage.id"
-                 :data-image-id="person.profileImage.id"
-                 :src="getPersonImageUrl(person)"
+        <div class="relative flex w-full justify-center"
+             @mouseenter="hovered = true"
+             @mouseleave="hovered=false, dropdownVisible = false">
+          <div @click="toggleDropdown" class="max-w-full overflow-hidden rounded-lg bg-gray-100">
+            <img class="max-h-80 max-w-full cursor-pointer object-contain"
+                 v-if="personImageSrc && !profileImageFailed"
+                 :key="personImageSrc"
+                 :src="personImageSrc"
                  @error="onProfileImageError">
-            <img class="w-full max-w-sm rounded-lg cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
+            <img class="max-h-80 max-w-full cursor-pointer object-contain"
                  v-else
                  src="@/assets/default-user-profile.png">
-            <div v-if="dropdownVisible" class="absolute top-0 right-0 mt-2">
-              <ul class="custom-hover bg-white border rounded shadow-lg">
-                <li v-if="person && person.profileImage">
-                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewProfileImage">View Profile Image</a>
-                </li>
-                <li>
-                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewUploadProfileImage">Choose Profile Image</a>
-                </li>
-              </ul>
-            </div>
+          </div>
+          <div v-if="dropdownVisible" class="absolute top-0 right-0 z-20 mt-2">
+            <ul class="custom-hover bg-white border rounded shadow-lg">
+              <li v-if="personImageSrc && !profileImageFailed">
+                <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewProfileImage">View Profile Image</a>
+              </li>
+              <li>
+                <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewUploadProfileImage">Choose Profile Image</a>
+              </li>
+              <li v-if="canCropFromHousehold">
+                <a href="#" class="block whitespace-nowrap px-4 py-2 hover:bg-gray-200" @click.prevent="cropFromHousehold">From household photo</a>
+              </li>
+            </ul>
           </div>
         </div>
         <div v-if="person" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
@@ -567,7 +605,7 @@ const handleImageUploadFailed = () => {
             </button>
           </div>
           <p v-if="!person.households?.[0]" class="app-panel-pad pb-6 text-sm text-gray-500">This person is not in a household yet. Adding a family member starts one, with this person as the leader.</p>
-          <img v-if="person.households?.[0]" class="w-full" :src="getHouseholdImageUrl(person.households[0])">
+          <img v-if="person.households?.[0]" class="w-full rounded-lg object-contain" :src="getHouseholdImageUrl(person.households[0])">
           <div>
             <template v-if="!isLoadingPerson && person">
               <template v-if="person && person.households && person.households[0]">
@@ -580,7 +618,7 @@ const handleImageUploadFailed = () => {
                             :person="householdPerson"
                             :includeName="true">
                           <template v-slot:default="{ getPersonImageUrl }">
-                              <img class="rounded-lg" v-if="householdPerson && householdPerson.profileImage" :src="getPersonImageUrl(householdPerson)" width="82">
+                              <img class="rounded-lg" v-if="getPersonImageUrl(householdPerson)" :src="getPersonImageUrl(householdPerson)" width="82">
                               <img class="rounded-lg" v-else src="@/assets/default-user-profile.png" width="82">
                           </template>
                         </UserProfilePopup>
@@ -642,12 +680,13 @@ const handleImageUploadFailed = () => {
     <div class="bg-white p-4 rounded-lg shadow-lg relative w-full max-w-3xl overflow-hidden">
       <button @click="closeProfileImageView" class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl">×</button>
       <div class="flex items-center justify-center">
-        <img :src="getPersonImageUrl(person)" class="w-auto reduce-height" alt="Profile Image">
+        <img :src="personImageSrc" class="w-auto reduce-height" alt="Profile Image">
       </div>
     </div>
   </div>
   <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800/75 p-4">
-    <ImageCropperUploader @cropped="handleCroppedImage" :uploadEndpoint="'/people/profile_image?id=' + person.id"
+    <ImageCropperUploader :key="householdCropUrl || 'upload'" @cropped="handleCroppedImage" :uploadEndpoint="'/people/profile_image?id=' + person.id"
+                          :initial-image-url="householdCropUrl"
                           @imageCropperCancelled="closeUploadProfileImageView"
                           @imageCropperUploadedSuccess="handleImageUploadedSuccess"
                           @imageCropperUploadFailed="handleImageUploadFailed" />
@@ -704,9 +743,5 @@ img.reduce-height {
   height: auto;
 }
 
-img.reduce-height-in-panel {
-  max-height: min(50vh, 580px);
-  height: auto;
-}
 
 </style>
