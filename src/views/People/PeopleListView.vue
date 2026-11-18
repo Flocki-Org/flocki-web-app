@@ -338,7 +338,7 @@ const createPerson = () => {
                     <template v-slot:default="{ getPersonImageUrl }">
                       <span class="flex items-center gap-2.5 leading-none">
                         <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 ring-1 ring-inset ring-gray-200">
-                          <img class="h-full w-full object-cover" v-if="person && person.profileImage" :src="getPersonImageUrl(person)" alt="" @error="useDefaultAvatar">
+                          <img class="h-full w-full object-cover" v-if="getPersonImageUrl(person)" :src="getPersonImageUrl(person)" alt="" @error="useDefaultAvatar">
                           <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" alt="">
                         </span>
                         <span class="min-w-0">

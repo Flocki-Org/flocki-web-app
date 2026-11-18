@@ -101,7 +101,7 @@ const clearInput = () => {
             :style="{ paddingLeft: selectedPerson ? '50px' : '10px' }"
         />
         <span v-if="selectedPerson" class="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <img class="w-8 h-8 mr-1 rounded-full inline" v-if="selectedPerson && selectedPerson.profileImage" :src="getPersonImageUrl(selectedPerson)" >
+              <img class="w-8 h-8 mr-1 rounded-full inline" v-if="getPersonImageUrl(selectedPerson)" :src="getPersonImageUrl(selectedPerson)" >
               <img class="w-8 h-8 rounded-full inline" v-else src="@/assets/default-user-profile.png">
       </span>
 
@@ -134,7 +134,7 @@ const clearInput = () => {
               @click="selectPerson(person)"
           >
 
-            <img class="w-8 h-8 mr-1 rounded-full inline" v-if="person && person.profileImage" :src="getPersonImageUrl(person)" :title="person.firstName">
+            <img class="w-8 h-8 mr-1 rounded-full inline" v-if="getPersonImageUrl(person)" :src="getPersonImageUrl(person)" :title="person.firstName">
             <img class="w-8 h-8 rounded-full inline" v-else src="@/assets/default-user-profile.png" :title="person.firstName">
 
             {{ person.firstName }} {{ person.lastName }}

@@ -262,7 +262,7 @@ const handleImageUploadFailed = () => {
             <li v-for="member in household.people" :key="member.id" class="flex w-40 shrink-0 flex-col items-center rounded-xl border border-gray-100 bg-gray-50 px-3 py-4 text-center">
               <UserProfilePopup :person="member" :include-name="false">
                 <template #default>
-                  <img v-if="member.profileImage" class="h-16 w-16 rounded-full object-cover" :src="getPersonImageUrl(member)" alt="">
+                  <img v-if="getPersonImageUrl(member)" class="h-16 w-16 rounded-full object-cover" :src="getPersonImageUrl(member)" alt="">
                   <img v-else class="h-16 w-16 rounded-full object-cover" src="@/assets/default-user-profile.png" alt="">
                 </template>
               </UserProfilePopup>

@@ -113,7 +113,7 @@ const handleLinkClick = (event) => {
         <div class="flex items-start gap-3 border-b border-gray-100 px-3.5 py-3">
           <img
             class="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-gray-200"
-            v-if="person && person.profileImage"
+            v-if="getPersonImageUrl(person)"
             :src="getPersonImageUrl(person)"
             alt=""
           >

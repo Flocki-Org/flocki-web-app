@@ -41,6 +41,7 @@ export default class Person extends Model {
   @Attr([]) addresses!: Address[] | []
   @Attr([]) households!: Household[] | []
   @Attr(null) profileImage!: EntityImage | null
+  @Str('') externalImageUrl!: string | null
 
 
   static mutators() {

@@ -76,14 +76,13 @@ const formatCustomValue = (value) => {
   return String(value)
 }
 
-const onProfileImageError = (event) => {
-  const failedId = Number(event.currentTarget?.dataset?.imageId)
-  if (person.value?.profileImage?.id === failedId) {
-    profileImageFailed.value = true
-  }
+const personImageSrc = computed(() => getPersonImageUrl(person.value))
+
+const onProfileImageError = () => {
+  profileImageFailed.value = true
 }
 
-watch(() => person.value?.profileImage?.id, () => {
+watch(personImageSrc, () => {
   profileImageFailed.value = false
 })
 
@@ -570,10 +569,9 @@ const handleImageUploadFailed = () => {
              @mouseleave="hovered=false, dropdownVisible = false">
           <div @click="toggleDropdown" class="max-w-full overflow-hidden rounded-lg bg-gray-100">
             <img class="max-h-80 max-w-full cursor-pointer object-contain"
-                 v-if="person && person.profileImage && !profileImageFailed"
-                 :key="person.profileImage.id"
-                 :data-image-id="person.profileImage.id"
-                 :src="getPersonImageUrl(person)"
+                 v-if="personImageSrc && !profileImageFailed"
+                 :key="personImageSrc"
+                 :src="personImageSrc"
                  @error="onProfileImageError">
             <img class="max-h-80 max-w-full cursor-pointer object-contain"
                  v-else
@@ -581,7 +579,7 @@ const handleImageUploadFailed = () => {
           </div>
           <div v-if="dropdownVisible" class="absolute top-0 right-0 z-20 mt-2">
             <ul class="custom-hover bg-white border rounded shadow-lg">
-              <li v-if="person && person.profileImage && !profileImageFailed">
+              <li v-if="personImageSrc && !profileImageFailed">
                 <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewProfileImage">View Profile Image</a>
               </li>
               <li>
@@ -620,7 +618,7 @@ const handleImageUploadFailed = () => {
                             :person="householdPerson"
                             :includeName="true">
                           <template v-slot:default="{ getPersonImageUrl }">
-                              <img class="rounded-lg" v-if="householdPerson && householdPerson.profileImage" :src="getPersonImageUrl(householdPerson)" width="82">
+                              <img class="rounded-lg" v-if="getPersonImageUrl(householdPerson)" :src="getPersonImageUrl(householdPerson)" width="82">
                               <img class="rounded-lg" v-else src="@/assets/default-user-profile.png" width="82">
                           </template>
                         </UserProfilePopup>
@@ -682,7 +680,7 @@ const handleImageUploadFailed = () => {
     <div class="bg-white p-4 rounded-lg shadow-lg relative w-full max-w-3xl overflow-hidden">
       <button @click="closeProfileImageView" class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl">×</button>
       <div class="flex items-center justify-center">
-        <img :src="getPersonImageUrl(person)" class="w-auto reduce-height" alt="Profile Image">
+        <img :src="personImageSrc" class="w-auto reduce-height" alt="Profile Image">
       </div>
     </div>
   </div>

@@ -286,7 +286,7 @@ const addEvent = () => {
               <li v-for="member in group.members" :key="member.person.id" class="flex items-center gap-3 px-4 py-3 sm:px-6">
                 <UserProfilePopup :person="member.person">
                   <span class="inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-1 ring-gray-200">
-                    <img class="h-full w-full object-cover" v-if="member.person.profileImage" :src="getPersonImageUrl(member.person)" alt="" @error="useDefaultAvatar">
+                    <img class="h-full w-full object-cover" v-if="getPersonImageUrl(member.person)" :src="getPersonImageUrl(member.person)" alt="" @error="useDefaultAvatar">
                     <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" alt="">
                   </span>
                 </UserProfilePopup>
