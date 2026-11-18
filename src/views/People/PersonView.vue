@@ -25,6 +25,8 @@ const router = useRouter()
 const isLoadingPerson = ref(true)
 const showLoadingError = ref(false)
 const person = ref<Person | null>(null)
+const ministryLinks = ref<{ departmentId: number; name: string; roleName: string }[]>([])
+const groupAdminLinks = ref<{ groupId: number; groupName: string; roleName: string }[]>([])
 
 const hovered = ref(false);
 const dropdownVisible = ref(false);
@@ -90,8 +92,11 @@ const loadPerson = (id) => {
     axios.get('/people/' + id),
     axios.get(`/people/${id}/groups`).catch(() => ({ data: [] })),
     axios.get(`/people/${id}/relationships`).catch(() => ({ data: [] })),
+    axios.get(`/people/${id}/ministries`).catch(() => ({ data: { ministries: [], groupAdministrations: [] } })),
   ])
-      .then(([personResponse, groupsResponse, relationshipsResponse]) => {
+      .then(([personResponse, groupsResponse, relationshipsResponse, ministriesResponse]) => {
+        ministryLinks.value = ministriesResponse.data?.ministries || []
+        groupAdminLinks.value = ministriesResponse.data?.groupAdministrations || []
         useRepo(Person).save({
           ...personResponse.data,
           groups: groupsResponse.data || [],
@@ -456,7 +461,22 @@ const handleImageUploadFailed = () => {
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Ministry</td>
-                <td class="py-4 pr-4 break-words">{{ person?.ministryInvolvement || '—' }}</td>
+                <td class="py-4 pr-4 break-words">
+                  <ul v-if="ministryLinks.length" class="space-y-1">
+                    <li v-for="ministry in ministryLinks" :key="ministry.departmentId">
+                      <router-link :to="{ name: 'ministry', params: { id: ministry.departmentId } }">{{ ministry.name }}</router-link>
+                      <span class="text-gray-400"> · {{ ministry.roleName }}</span>
+                    </li>
+                  </ul>
+                  <ul v-if="groupAdminLinks.length" class="mt-1 space-y-1">
+                    <li v-for="admin in groupAdminLinks" :key="admin.groupId">
+                      <router-link :to="{ name: 'group', params: { id: admin.groupId } }">{{ admin.groupName }}</router-link>
+                      <span class="text-gray-400"> · {{ admin.roleName }}</span>
+                    </li>
+                  </ul>
+                  <p v-if="person?.ministryInvolvement" :class="{ 'mt-1': ministryLinks.length || groupAdminLinks.length }">{{ person.ministryInvolvement }}</p>
+                  <template v-if="!ministryLinks.length && !groupAdminLinks.length && !person?.ministryInvolvement">—</template>
+                </td>
               </tr>
               <tr class="odd:bg-gray-50 even:bg-white">
                 <td class="py-3 pl-4 sm:py-4 sm:pl-6 lg:pl-10 text-gray-500 w-2/5 align-top">Groups</td>

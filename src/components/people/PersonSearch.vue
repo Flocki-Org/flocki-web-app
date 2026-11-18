@@ -9,7 +9,7 @@ export interface PersonHit {
   email?: string | null
 }
 
-const props = defineProps<{ excludeIds?: number[] }>()
+const props = defineProps<{ excludeIds?: number[]; inline?: boolean }>()
 const emit = defineEmits<{ select: [person: PersonHit] }>()
 
 const axios = inject<AxiosInstance>('axios')!
@@ -41,7 +41,7 @@ const choose = (person: PersonHit) => {
 <template>
   <div class="relative">
     <input v-model="query" class="app-field" placeholder="Search by name" @input="search" />
-    <ul v-if="results.length" class="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+    <ul v-if="results.length" class="mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg" :class="inline ? '' : 'absolute z-10'">
       <li v-for="person in results" :key="person.id">
         <button type="button" class="block w-full px-3 py-2 text-left text-sm hover:bg-sky-50" @click="choose(person)">
           {{ person.firstName }} {{ person.lastName }}
