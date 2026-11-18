@@ -1,5 +1,5 @@
 <script setup>
-import {ref, defineEmits , inject} from 'vue';
+import {computed, ref, watch, defineEmits , inject} from 'vue';
 import cropperModule from 'vue-cropperjs';
 import 'cropperjs/dist/cropper.css';
 
@@ -15,9 +15,40 @@ const isUploading = ref(false); // Add a loading state variable
 
 const cropper = ref(null);
 const cropButton = ref(null);
-const { uploadEndpoint } = defineProps(['showImageCropper', 'uploadEndpoint']);
+const props = defineProps({
+  showImageCropper: { type: Boolean, default: false },
+  uploadEndpoint: { type: String, default: '' },
+  aspectRatio: { type: Number, default: 1 },
+  initialImageUrl: { type: String, default: '' },
+})
+const isPreparing = ref(false)
+const cropperStyle = computed(() => {
+  const width = 560
+  const height = Math.round(width / (props.aspectRatio || 1))
+  return { width: `${width}px`, height: `${height}px` }
+})
 const emit = defineEmits(['imageCropperUploadFailed', 'imageCropperCancelled', 'imageCropperUploadedSuccess']);
 const axios = inject('axios')
+
+const loadInitialImage = async (url) => {
+  if (!url) return
+  isPreparing.value = true
+  try {
+    const response = await axios.get(url, { responseType: 'blob' })
+    if (imgSrc.value.startsWith('blob:')) URL.revokeObjectURL(imgSrc.value)
+    imgSrc.value = URL.createObjectURL(response.data)
+    showCropper.value = true
+  } catch (error) {
+    console.error('Could not open that photo', error)
+    emit('imageCropperUploadFailed')
+  } finally {
+    isPreparing.value = false
+  }
+}
+
+watch(() => props.initialImageUrl, (url) => {
+  if (url) loadInitialImage(url)
+}, { immediate: true })
 
 const handleFileChange = (event) => {
   const file = event.target.files && event.target.files[0];
@@ -55,7 +86,7 @@ const cropImage = () => {
   isUploading.value = true;
   // Make a PUT request to send the cropped image data to the server
   axios
-      .put(uploadEndpoint, formData)
+      .put(props.uploadEndpoint, formData)
       .then((response) => {
         //console.log('Image uploaded successfully:', response.data);
         // Reset the cropper and hide it
@@ -140,8 +171,9 @@ const closeUploader = () => {
       <div class="mb-2 flex justify-end">
         <button type="button" class="text-sm text-gray-500 hover:text-gray-800" @click="closeUploader">Close</button>
       </div>
+      <p v-if="isPreparing" class="py-16 text-center text-sm text-gray-500">Loading the household photo…</p>
       <div
-          v-if = "!showCropper && !isUploading"
+          v-if = "!showCropper && !isUploading && !isPreparing"
           class="drop-zone"
           ref="dropZone"
           @dragenter="handleDragEnter"
@@ -175,10 +207,10 @@ const closeUploader = () => {
             ref="cropper"
             :src="imgSrc"
             :view-mode="2"
-            :aspectRatio="1"
+            :aspectRatio="props.aspectRatio"
             drag-mode="crop"
             alt="Selected Image"
-            :img-style="{ width: '580px', height: '580px' }"
+            :img-style="cropperStyle"
         ></vue-cropper>
       </div>
       <div class="mt-2" v-if="showCropper && !isUploading">

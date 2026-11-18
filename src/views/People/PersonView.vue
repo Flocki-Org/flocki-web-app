@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import type { AxiosInstance } from 'axios'
-import { ref, inject, watch } from 'vue'
+import { computed, ref, inject, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
 import { useRepo } from 'pinia-orm'
 import Toaster from '@/components/Widgets/Toaster.vue'
@@ -33,6 +33,7 @@ const dropdownVisible = ref(false);
 const profileImageFailed = ref(false)
 const profileImageViewVisible = ref(false)
 const uploadProfileImage = ref(false)
+const householdCropUrl = ref('')
 const croppedImage = ref<string | null>(null);
 const uploadProfileImageFailed = ref(false);
 const uploadProfileImageSuccess = ref(false);
@@ -131,14 +132,31 @@ const closeProfileImageView = () => {
   document.body.style.overflow = 'auto';
 }
 
+const canCropFromHousehold = computed(() => {
+  const household = person.value?.households?.[0]
+  return Boolean(household?.householdImage)
+})
+
 const viewUploadProfileImage = () => {
+  householdCropUrl.value = ''
+  dropdownVisible.value = false
   uploadProfileImage.value=true;
   // Prevent scrolling
   document.body.style.overflow = 'hidden';
 };
 
+const cropFromHousehold = () => {
+  const household = person.value?.households?.[0]
+  if (!household?.householdImage) return
+  householdCropUrl.value = getHouseholdImageUrl(household)
+  uploadProfileImage.value = true
+  dropdownVisible.value = false
+  document.body.style.overflow = 'hidden'
+}
+
 const closeUploadProfileImageView = () => {
   uploadProfileImage.value = false;
+  householdCropUrl.value = ''
 
   // Allow scrolling again
   document.body.style.overflow = 'auto';
@@ -547,30 +565,32 @@ const handleImageUploadFailed = () => {
         </div>
       </div>
       <div class="app-detail-aside order-1 lg:order-2">
-        <div class="flex items-center justify-center">
-          <div @click="toggleDropdown" class="relative"
-               @mouseenter="hovered = true"
-               @mouseleave="hovered=false, dropdownVisible = false ">
-
-            <img class="w-full max-w-sm rounded-lg reduce-height-in-panel cursor-pointer object-cover transition-transform duration-300 transform hover:scale-110 hover-brightness"
+        <div class="relative flex w-full justify-center"
+             @mouseenter="hovered = true"
+             @mouseleave="hovered=false, dropdownVisible = false">
+          <div @click="toggleDropdown" class="max-w-full overflow-hidden rounded-lg bg-gray-100">
+            <img class="max-h-80 max-w-full cursor-pointer object-contain"
                  v-if="person && person.profileImage && !profileImageFailed"
                  :key="person.profileImage.id"
                  :data-image-id="person.profileImage.id"
                  :src="getPersonImageUrl(person)"
                  @error="onProfileImageError">
-            <img class="w-full max-w-sm rounded-lg cursor-pointer transition-transform duration-300 transform hover:scale-110 hover-brightness"
+            <img class="max-h-80 max-w-full cursor-pointer object-contain"
                  v-else
                  src="@/assets/default-user-profile.png">
-            <div v-if="dropdownVisible" class="absolute top-0 right-0 mt-2">
-              <ul class="custom-hover bg-white border rounded shadow-lg">
-                <li v-if="person && person.profileImage">
-                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewProfileImage">View Profile Image</a>
-                </li>
-                <li>
-                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click="viewUploadProfileImage">Choose Profile Image</a>
-                </li>
-              </ul>
-            </div>
+          </div>
+          <div v-if="dropdownVisible" class="absolute top-0 right-0 z-20 mt-2">
+            <ul class="custom-hover bg-white border rounded shadow-lg">
+              <li v-if="person && person.profileImage && !profileImageFailed">
+                <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewProfileImage">View Profile Image</a>
+              </li>
+              <li>
+                <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewUploadProfileImage">Choose Profile Image</a>
+              </li>
+              <li v-if="canCropFromHousehold">
+                <a href="#" class="block whitespace-nowrap px-4 py-2 hover:bg-gray-200" @click.prevent="cropFromHousehold">From household photo</a>
+              </li>
+            </ul>
           </div>
         </div>
         <div v-if="person" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
@@ -587,7 +607,7 @@ const handleImageUploadFailed = () => {
             </button>
           </div>
           <p v-if="!person.households?.[0]" class="app-panel-pad pb-6 text-sm text-gray-500">This person is not in a household yet. Adding a family member starts one, with this person as the leader.</p>
-          <img v-if="person.households?.[0]" class="w-full" :src="getHouseholdImageUrl(person.households[0])">
+          <img v-if="person.households?.[0]" class="w-full rounded-lg object-contain" :src="getHouseholdImageUrl(person.households[0])">
           <div>
             <template v-if="!isLoadingPerson && person">
               <template v-if="person && person.households && person.households[0]">
@@ -667,7 +687,8 @@ const handleImageUploadFailed = () => {
     </div>
   </div>
   <div v-if="uploadProfileImage" class="fixed inset-0 flex items-center justify-center justify-around bg-gray-800/75 p-4">
-    <ImageCropperUploader @cropped="handleCroppedImage" :uploadEndpoint="'/people/profile_image?id=' + person.id"
+    <ImageCropperUploader :key="householdCropUrl || 'upload'" @cropped="handleCroppedImage" :uploadEndpoint="'/people/profile_image?id=' + person.id"
+                          :initial-image-url="householdCropUrl"
                           @imageCropperCancelled="closeUploadProfileImageView"
                           @imageCropperUploadedSuccess="handleImageUploadedSuccess"
                           @imageCropperUploadFailed="handleImageUploadFailed" />
@@ -724,9 +745,5 @@ img.reduce-height {
   height: auto;
 }
 
-img.reduce-height-in-panel {
-  max-height: min(50vh, 580px);
-  height: auto;
-}
 
 </style>
