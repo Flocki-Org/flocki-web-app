@@ -8,10 +8,11 @@ import { useRepo } from 'pinia-orm'
 import { getHouseholdImageUrl } from '@/imageUtils';
 import CachedImage from '@/components/CachedImage.vue'
 import PersonAvatar from '@/components/people/PersonAvatar.vue'
+import AddressEntry from '@/components/AddressEntry.vue'
+import { addressProblem, emptyAddress } from '@/addressForm'
 
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
-import Input from '@/components/Forms/Input.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Household from "@/models/Household";
@@ -32,54 +33,20 @@ const showHouseholdLoadingError = ref(false)
 const initialFocusRef = ref(null)
 const createHouseholdSuccess = ref(false)
 const createHouseholdFailed = ref(false)
-let clickCount = 0; // Click count tracker
+const householdAddressError = ref('')
 
 const page = ref(1)
 const perPage = ref(10)
 const total = ref(0)
 const totalPages = ref(0)
 
-// Function to handle the triple click event
-const handleClick = () => {
-  clickCount++;
-  console.log(clickCount);
-
-  if (clickCount >= 3) {
-    // Generate and fill in random address values
-    fillInRandomAddress();
-    clickCount = 0; // Reset the click count
-  }
-};
-
-
 const newHousehold = reactive({
   leader_id: null as number | null,
   leader: null as Person | null,
   people_ids: [] as Array<number | null>,
   address_id: null as number | null,
-  address: {
-    street_number: '',
-    street: '',
-    suburb: '',
-    city: '',
-    province: '',
-    country: '',
-    postal_code: '',
-    type: 'home'
-  }
+  address: emptyAddress(),
 })
-
-// Function to generate and fill in random address values
-const fillInRandomAddress = () => {
-  // Generate random address values (you can customize this part)
-  newHousehold.address.street_number = String(Math.floor(Math.random() * 100) + 1); // Example: Random street number from 1 to 100
-  newHousehold.address.street = 'Random Street Name';
-  newHousehold.address.suburb = 'Random Suburb';
-  newHousehold.address.city = 'Random City';
-  newHousehold.address.province = 'Random Province';
-  newHousehold.address.country = 'South Africa';
-  newHousehold.address.postal_code = '1685';
-};
 
 const households = computed(() => {
   return useRepo(Household).all()
@@ -134,6 +101,8 @@ const handleSuccessfulHouseholdCreation = (household: Household) => {
 }
 
 const createHousehold = () => {
+  householdAddressError.value = addressProblem(newHousehold.address)
+  if (householdAddressError.value) return
   if (!isCreatingHousehold.value) {
     isCreatingHousehold.value = true
 
@@ -316,44 +285,8 @@ const redirectToPersonPage = (member) =>  {
         <!-- Address Entry Form -->
 
         <div class="mb-4">
-          <div class="flex flex-col gap-3 sm:flex-row sm:gap-0">
-            <div class="w-full sm:w-1/3 sm:pr-2">
-              <Label for-id="streetNumber">Street Number</Label>
-              <Input v-model="newHousehold.address.street_number" @click="handleClick" />
-            </div>
-            <div class="w-full sm:w-2/3">
-              <Label for-id="Street">Street</Label>
-              <Input v-model="newHousehold.address.street" />
-            </div>
-          </div>
-        </div>
-        <div class="mb-4">
-          <div class="flex flex-col gap-3 sm:flex-row sm:gap-0">
-            <div class="w-full sm:w-1/2 sm:pr-2">
-              <Label for-id="Suburb">Suburb</Label>
-              <Input v-model="newHousehold.address.suburb" />
-            </div>
-            <div class="w-full sm:w-1/2">
-              <Label for-id="City">City</Label>
-              <Input v-model="newHousehold.address.city" />
-            </div>
-          </div>
-        </div>
-        <div class="mb-4">
-          <div class="flex flex-col gap-3 sm:flex-row sm:gap-0">
-            <div class="w-full sm:w-2/5 sm:pr-2">
-              <Label for-id="Province">Province</Label>
-              <Input v-model="newHousehold.address.province" />
-            </div>
-            <div class="w-full sm:w-2/5">
-              <Label for-id="Country">Country</Label>
-              <Input v-model="newHousehold.address.country" />
-            </div>
-            <div class="w-full sm:w-1/5 sm:pl-2">
-              <Label for-id="PostalCode">Code</Label>
-              <Input v-model="newHousehold.address.postal_code" />
-            </div>
-          </div>
+          <AddressEntry v-model="newHousehold.address" />
+          <p v-if="householdAddressError" class="mt-2 text-sm text-red-600">{{ householdAddressError }}</p>
         </div>
       </div>
       </template>

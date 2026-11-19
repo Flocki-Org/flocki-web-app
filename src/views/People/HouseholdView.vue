@@ -8,6 +8,8 @@ import ImageCropperUploader from '../../components/ImageCropperUploader.vue'
 import { getHouseholdImageUrl } from '@/imageUtils'
 import CachedImage from '@/components/CachedImage.vue'
 import PersonAvatar from '@/components/people/PersonAvatar.vue'
+import AddressEntry, { type AddressDraft } from '@/components/AddressEntry.vue'
+import { addressProblem, emptyAddress } from '@/addressForm'
 import Household from '@/models/Household'
 import AddressDisplay from '../../components/AddressDisplay.vue'
 import AddressMap from '@/components/AddressMap.vue'
@@ -53,13 +55,7 @@ function emptyDraft() {
     name: '',
     notes: '',
     leaderId: null as number | null,
-    streetNumber: '',
-    street: '',
-    suburb: '',
-    city: '',
-    province: '',
-    country: 'South Africa',
-    postalCode: '',
+    address: emptyAddress() as AddressDraft,
   }
 }
 
@@ -95,13 +91,22 @@ const openEdit = () => {
     name: current?.name || '',
     notes: current?.notes || '',
     leaderId: current?.leader?.id ?? null,
-    streetNumber: address?.streetNumber || '',
-    street: address?.street || '',
-    suburb: address?.suburb || '',
-    city: address?.city || '',
-    province: address?.province || '',
-    country: address?.country || 'South Africa',
-    postalCode: address?.postalCode || '',
+    address: {
+      ...emptyAddress(address?.country || 'South Africa'),
+      id: address?.id ?? null,
+      type: address?.type || 'home',
+      streetNumber: address?.streetNumber || '',
+      street: address?.street || '',
+      suburb: address?.suburb || '',
+      city: address?.city || '',
+      province: address?.province || '',
+      country: address?.country || 'South Africa',
+      postalCode: address?.postalCode || '',
+      building: address?.building || '',
+      unit: address?.unit || '',
+      latitude: address?.latitude ?? null,
+      longitude: address?.longitude ?? null,
+    },
   }
   editError.value = ''
   editing.value = true
@@ -111,8 +116,9 @@ const saveEdit = async () => {
   const current = household.value
   if (!current) return
   const next = draft.value
-  if (!next.streetNumber || !next.street || !next.suburb || !next.city || !next.province || !next.country) {
-    editError.value = 'Street number, street, suburb, city, province and country are required.'
+  const problem = addressProblem(next.address)
+  if (problem) {
+    editError.value = problem
     return
   }
   if (!next.leaderId) {
@@ -123,15 +129,10 @@ const saveEdit = async () => {
   editError.value = ''
   try {
     const addressPayload = {
+      ...next.address,
       id: current.address?.id,
-      type: current.address?.type || 'home',
-      streetNumber: next.streetNumber,
-      street: next.street,
-      suburb: next.suburb,
-      city: next.city,
-      province: next.province,
-      country: next.country,
-      postalCode: next.postalCode || null,
+      type: next.address.type || current.address?.type || 'home',
+      postalCode: next.address.postalCode || null,
     }
     let addressId = current.address?.id
     if (addressId) {
@@ -342,13 +343,7 @@ const handleImageUploadFailed = () => {
           <option v-for="member in household?.people || []" :key="member.id" :value="member.id">{{ personName(member) }}</option>
         </select>
       </label>
-      <label class="block text-sm"><span class="app-label">Street number</span><input v-model="draft.streetNumber" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Street</span><input v-model="draft.street" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Suburb</span><input v-model="draft.suburb" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">City</span><input v-model="draft.city" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Province</span><input v-model="draft.province" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Country</span><input v-model="draft.country" class="app-field" /></label>
-      <label class="block text-sm sm:col-span-2"><span class="app-label">Postal code</span><input v-model="draft.postalCode" class="app-field" /></label>
+      <AddressEntry v-model="draft.address" />
     </div>
     <template #controls>
       <div class="flex items-center">

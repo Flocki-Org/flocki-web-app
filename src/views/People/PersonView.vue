@@ -10,6 +10,8 @@ import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
 import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
 import CachedImage from '@/components/CachedImage.vue'
 import PersonAvatar from '@/components/people/PersonAvatar.vue'
+import AddressEntry from '@/components/AddressEntry.vue'
+import { addressProblem, emptyAddress } from '@/addressForm'
 import AddressDisplay from '../../components/AddressDisplay.vue';
 import AddressMap from '@/components/AddressMap.vue';
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
@@ -46,15 +48,7 @@ const addingMember = ref(false)
 const savingMember = ref(false)
 const memberError = ref('')
 const pickedMember = ref<PersonHit | null>(null)
-const householdAddress = ref({
-  streetNumber: '',
-  street: '',
-  suburb: '',
-  city: '',
-  province: '',
-  country: 'South Africa',
-  postalCode: '',
-})
+const householdAddress = ref(emptyAddress())
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
@@ -214,15 +208,7 @@ const householdOf = () => person.value?.households?.[0] ?? null
 const openAddMember = () => {
   pickedMember.value = null
   memberError.value = ''
-  householdAddress.value = {
-    streetNumber: '',
-    street: '',
-    suburb: '',
-    city: '',
-    province: '',
-    country: 'South Africa',
-    postalCode: '',
-  }
+  householdAddress.value = emptyAddress()
   addingMember.value = true
 }
 
@@ -254,8 +240,9 @@ const addHouseholdMember = async () => {
       let addressId = person.value.addresses?.[0]?.id
       if (!addressId) {
         const draft = householdAddress.value
-        if (!draft.streetNumber || !draft.street || !draft.suburb || !draft.city || !draft.province || !draft.country) {
-          memberError.value = 'A household needs an address. Street number, street, suburb, city, province and country are required.'
+        const problem = addressProblem(draft)
+        if (problem) {
+          memberError.value = problem
           return
         }
         const created = await axios.post('/addresses', { ...draft, type: 'home' })
@@ -694,15 +681,9 @@ const handleImageUploadFailed = () => {
     <p class="mb-3 text-sm text-gray-500">They join this person's household. The household keeps one address and one leader.</p>
     <PersonSearch :exclude-ids="[person?.id, ...(person?.households?.[0]?.people || []).map((member) => member.id)].filter(Boolean)" @select="pickedMember = $event" />
     <p v-if="pickedMember" class="mt-3 text-sm text-gray-800">{{ pickedMember.firstName }} {{ pickedMember.lastName }}</p>
-    <div v-if="!person?.households?.[0] && !person?.addresses?.[0]?.id" class="mt-4 grid gap-3 sm:grid-cols-2">
-      <p class="sm:col-span-2 text-sm text-gray-500">A new household needs an address.</p>
-      <label class="block text-sm"><span class="app-label">Street number</span><input v-model="householdAddress.streetNumber" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Street</span><input v-model="householdAddress.street" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Suburb</span><input v-model="householdAddress.suburb" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">City</span><input v-model="householdAddress.city" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Province</span><input v-model="householdAddress.province" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Country</span><input v-model="householdAddress.country" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Postal code</span><input v-model="householdAddress.postalCode" class="app-field" /></label>
+    <div v-if="!person?.households?.[0] && !person?.addresses?.[0]?.id" class="mt-4">
+      <p class="mb-3 text-sm text-gray-500">A new household needs an address.</p>
+      <AddressEntry v-model="householdAddress" />
     </div>
     <template #controls>
       <div class="flex items-center">
