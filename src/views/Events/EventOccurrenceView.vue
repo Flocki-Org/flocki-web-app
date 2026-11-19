@@ -19,6 +19,7 @@ import Button from '@/components/Forms/Button.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import { getFullImageUrl } from '@/imageUtils'
+import CachedImage from '@/components/CachedImage.vue'
 import { humanDate } from '@/utils/dates'
 import { locationLine, planRoute, timeRange, typeColour } from '@/utils/events'
 
@@ -253,7 +254,7 @@ function messageOf(err: unknown) {
           <p v-if="occurrence.overriddenFields.length" class="mt-3 text-xs text-gray-500">
             This date differs from the series: {{ occurrence.overriddenFields.join(', ') }}.
           </p>
-          <img v-if="occurrence.imageId" class="mt-4 max-h-56 rounded-lg object-cover" :src="getFullImageUrl('/images/' + occurrence.imageId)" alt="" />
+          <CachedImage v-if="occurrence.imageId" class="mt-4 max-h-56 rounded-lg object-cover" :src="getFullImageUrl('/images/' + occurrence.imageId)" alt="" />
         </div>
 
         <div v-if="occurrence.eventType.hasOrderOfService" class="app-panel app-panel-pad py-6">

@@ -3,7 +3,7 @@
 import {ref, defineProps, defineEmits, computed, inject} from 'vue';
 import {useRepo} from "pinia-orm";
 import Person from "@/models/Person";
-import { getPersonImageUrl } from '@/imageUtils';
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 
 const emit = defineEmits(['person-selected']);
 
@@ -101,8 +101,7 @@ const clearInput = () => {
             :style="{ paddingLeft: selectedPerson ? '50px' : '10px' }"
         />
         <span v-if="selectedPerson" class="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <img class="w-8 h-8 mr-1 rounded-full inline" v-if="getPersonImageUrl(selectedPerson)" :src="getPersonImageUrl(selectedPerson)" >
-              <img class="w-8 h-8 rounded-full inline" v-else src="@/assets/default-user-profile.png">
+              <PersonAvatar :person="selectedPerson" size="md" />
       </span>
 
 
@@ -134,8 +133,7 @@ const clearInput = () => {
               @click="selectPerson(person)"
           >
 
-            <img class="w-8 h-8 mr-1 rounded-full inline" v-if="getPersonImageUrl(person)" :src="getPersonImageUrl(person)" :title="person.firstName">
-            <img class="w-8 h-8 rounded-full inline" v-else src="@/assets/default-user-profile.png" :title="person.firstName">
+            <PersonAvatar :person="person" size="md" />
 
             {{ person.firstName }} {{ person.lastName }}
           </li>

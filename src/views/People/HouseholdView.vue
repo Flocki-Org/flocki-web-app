@@ -5,7 +5,11 @@ import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { useRepo } from 'pinia-orm'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import ImageCropperUploader from '../../components/ImageCropperUploader.vue'
-import { getHouseholdImageUrl, getPersonImageUrl } from '@/imageUtils'
+import { getHouseholdImageUrl } from '@/imageUtils'
+import CachedImage from '@/components/CachedImage.vue'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
+import AddressEntry, { type AddressDraft } from '@/components/AddressEntry.vue'
+import { addressProblem, emptyAddress } from '@/addressForm'
 import Household from '@/models/Household'
 import AddressDisplay from '../../components/AddressDisplay.vue'
 import AddressMap from '@/components/AddressMap.vue'
@@ -51,13 +55,7 @@ function emptyDraft() {
     name: '',
     notes: '',
     leaderId: null as number | null,
-    streetNumber: '',
-    street: '',
-    suburb: '',
-    city: '',
-    province: '',
-    country: 'South Africa',
-    postalCode: '',
+    address: emptyAddress() as AddressDraft,
   }
 }
 
@@ -93,13 +91,22 @@ const openEdit = () => {
     name: current?.name || '',
     notes: current?.notes || '',
     leaderId: current?.leader?.id ?? null,
-    streetNumber: address?.streetNumber || '',
-    street: address?.street || '',
-    suburb: address?.suburb || '',
-    city: address?.city || '',
-    province: address?.province || '',
-    country: address?.country || 'South Africa',
-    postalCode: address?.postalCode || '',
+    address: {
+      ...emptyAddress(address?.country || 'South Africa'),
+      id: address?.id ?? null,
+      type: address?.type || 'home',
+      streetNumber: address?.streetNumber || '',
+      street: address?.street || '',
+      suburb: address?.suburb || '',
+      city: address?.city || '',
+      province: address?.province || '',
+      country: address?.country || 'South Africa',
+      postalCode: address?.postalCode || '',
+      building: address?.building || '',
+      unit: address?.unit || '',
+      latitude: address?.latitude ?? null,
+      longitude: address?.longitude ?? null,
+    },
   }
   editError.value = ''
   editing.value = true
@@ -109,8 +116,9 @@ const saveEdit = async () => {
   const current = household.value
   if (!current) return
   const next = draft.value
-  if (!next.streetNumber || !next.street || !next.suburb || !next.city || !next.province || !next.country) {
-    editError.value = 'Street number, street, suburb, city, province and country are required.'
+  const problem = addressProblem(next.address)
+  if (problem) {
+    editError.value = problem
     return
   }
   if (!next.leaderId) {
@@ -121,15 +129,10 @@ const saveEdit = async () => {
   editError.value = ''
   try {
     const addressPayload = {
+      ...next.address,
       id: current.address?.id,
-      type: current.address?.type || 'home',
-      streetNumber: next.streetNumber,
-      street: next.street,
-      suburb: next.suburb,
-      city: next.city,
-      province: next.province,
-      country: next.country,
-      postalCode: next.postalCode || null,
+      type: next.address.type || current.address?.type || 'home',
+      postalCode: next.address.postalCode || null,
     }
     let addressId = current.address?.id
     if (addressId) {
@@ -261,10 +264,7 @@ const handleImageUploadFailed = () => {
           <ul class="flex flex-row flex-wrap gap-3 app-panel-pad pb-6">
             <li v-for="member in household.people" :key="member.id" class="flex w-40 shrink-0 flex-col items-center rounded-xl border border-gray-100 bg-gray-50 px-3 py-4 text-center">
               <UserProfilePopup :person="member" :include-name="false">
-                <template #default>
-                  <img v-if="getPersonImageUrl(member)" class="h-16 w-16 rounded-full object-cover" :src="getPersonImageUrl(member)" alt="">
-                  <img v-else class="h-16 w-16 rounded-full object-cover" src="@/assets/default-user-profile.png" alt="">
-                </template>
+                <PersonAvatar :person="member" size="xl" />
               </UserProfilePopup>
               <router-link class="mt-2 text-sm font-medium text-gray-800 no-underline hover:text-sky-600" :to="{ name: 'person', params: { id: member.id } }">{{ personName(member) }}</router-link>
               <p v-if="member.id === household.leader?.id" class="mt-1 text-xs font-medium text-sky-600">Leader</p>
@@ -295,7 +295,7 @@ const handleImageUploadFailed = () => {
       <aside class="app-detail-aside order-1 lg:order-2 lg:w-1/2">
         <div class="overflow-hidden rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
           <button type="button" class="block w-full p-3" @click="toggleDropdown">
-            <img v-if="household.householdImage" class="max-h-[70vh] w-full rounded-lg object-contain" :src="getHouseholdImageUrl(household)" alt="">
+            <CachedImage v-if="household.householdImage" class="max-h-[70vh] w-full rounded-lg object-contain" :src="getHouseholdImageUrl(household)" alt="" />
             <img v-else class="max-h-80 w-full rounded-lg object-contain" src="@/assets/default-user-profile.png" alt="">
           </button>
           <div class="flex items-center justify-between gap-3 px-4 py-3">
@@ -313,7 +313,7 @@ const handleImageUploadFailed = () => {
   <div v-if="householdImageViewVisible" class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">
     <div class="relative w-full max-w-3xl overflow-hidden rounded-lg bg-white p-4 shadow-lg">
       <button type="button" class="absolute top-2 right-2 text-2xl text-gray-600" @click="closeHouseholdImageView">×</button>
-      <img :src="getHouseholdImageUrl(household)" class="mx-auto max-h-[70vh] w-auto" alt="Household photo">
+      <CachedImage :src="getHouseholdImageUrl(household)" class="mx-auto max-h-[70vh] w-auto" alt="Household photo" />
     </div>
   </div>
   <div v-if="uploadHouseholdImage" class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">
@@ -343,13 +343,7 @@ const handleImageUploadFailed = () => {
           <option v-for="member in household?.people || []" :key="member.id" :value="member.id">{{ personName(member) }}</option>
         </select>
       </label>
-      <label class="block text-sm"><span class="app-label">Street number</span><input v-model="draft.streetNumber" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Street</span><input v-model="draft.street" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Suburb</span><input v-model="draft.suburb" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">City</span><input v-model="draft.city" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Province</span><input v-model="draft.province" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Country</span><input v-model="draft.country" class="app-field" /></label>
-      <label class="block text-sm sm:col-span-2"><span class="app-label">Postal code</span><input v-model="draft.postalCode" class="app-field" /></label>
+      <AddressEntry v-model="draft.address" />
     </div>
     <template #controls>
       <div class="flex items-center">

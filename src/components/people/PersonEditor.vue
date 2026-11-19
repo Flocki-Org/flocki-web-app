@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { AxiosInstance } from 'axios'
 import { inject, ref, watch } from 'vue'
+import AddressEntry from '@/components/AddressEntry.vue'
+import { addressProblem } from '@/addressForm'
 import Button from '@/components/Forms/Button.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 
@@ -77,6 +79,10 @@ function emptyAddress() {
     province: '',
     country: 'South Africa',
     postalCode: '',
+    building: '',
+    unit: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
   }
 }
 
@@ -141,6 +147,10 @@ const fill = () => {
         province: current.province || '',
         country: current.country || 'South Africa',
         postalCode: current.postalCode || '',
+        building: current.building || '',
+        unit: current.unit || '',
+        latitude: current.latitude ?? null,
+        longitude: current.longitude ?? null,
       }
     : emptyAddress()
   contacts.value = (person.emergencyContacts || []).map((contact: ContactRow) => ({
@@ -228,8 +238,9 @@ const save = async () => {
       })
     } else if (props.section === 'address') {
       const draft = address.value
-      if (!draft.streetNumber || !draft.street || !draft.suburb || !draft.city || !draft.province || !draft.country) {
-        error.value = 'Street number, street, suburb, city, province and country are required.'
+      const problem = addressProblem(draft)
+      if (problem) {
+        error.value = problem
         return
       }
       if (draft.id) {
@@ -353,13 +364,7 @@ const labelize = (value: string) => value.replaceAll('_', ' ')
     </div>
     <div v-else-if="section === 'address'" class="grid gap-3 sm:grid-cols-2">
       <p v-if="!address.id && person?.households?.[0]?.address" class="sm:col-span-2 text-sm text-gray-500">This person currently uses a household address. Saving here gives them their own address.</p>
-      <label class="block text-sm"><span class="app-label">Street number</span><input v-model="address.streetNumber" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Street</span><input v-model="address.street" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Suburb</span><input v-model="address.suburb" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">City</span><input v-model="address.city" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Province</span><input v-model="address.province" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Country</span><input v-model="address.country" class="app-field" /></label>
-      <label class="block text-sm"><span class="app-label">Postal code</span><input v-model="address.postalCode" class="app-field" /></label>
+      <AddressEntry v-model="address" />
     </div>
     <div v-else-if="section === 'emergency'" class="space-y-3">
       <div v-for="(contact, index) in contacts" :key="index" class="grid gap-2 rounded-md border border-gray-100 p-3 sm:grid-cols-2">

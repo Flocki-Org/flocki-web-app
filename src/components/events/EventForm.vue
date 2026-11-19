@@ -2,6 +2,8 @@
 import type { AxiosInstance } from 'axios'
 import { computed, inject, onMounted, ref } from 'vue'
 import type { Address, EventDraft, EventType } from '@/api/events'
+import AddressEntry from '@/components/AddressEntry.vue'
+import { addressProblem, emptyAddress } from '@/addressForm'
 import RecurrenceEditor from '@/components/events/RecurrenceEditor.vue'
 
 const props = defineProps<{
@@ -19,15 +21,7 @@ const groups = ref<{ id: number; name: string }[]>([])
 const addresses = ref<Address[]>([])
 const addingAddress = ref(false)
 const addressError = ref('')
-const newAddress = ref({
-  streetNumber: '',
-  street: '',
-  suburb: '',
-  city: '',
-  province: '',
-  country: 'South Africa',
-  postalCode: '',
-})
+const newAddress = ref(emptyAddress())
 
 const seriesFields = computed(() => props.mode !== 'occurrence')
 const selectedType = computed(() => types.value.find((type) => type.id === props.modelValue.eventTypeId) ?? null)
@@ -67,8 +61,9 @@ const chooseType = (id: number) => {
 const saveAddress = async () => {
   addressError.value = ''
   const draft = newAddress.value
-  if (!draft.streetNumber || !draft.street || !draft.suburb || !draft.city || !draft.province || !draft.country) {
-    addressError.value = 'Street number, street, suburb, city, province and country are required.'
+  const problem = addressProblem(draft)
+  if (problem) {
+    addressError.value = problem
     return
   }
   const response = await axios.post<Address>('/addresses', { ...draft, type: 'event' })
@@ -152,16 +147,10 @@ const saveAddress = async () => {
         <button type="button" class="text-sm font-medium text-sky-700" @click="addingAddress = !addingAddress">
           {{ addingAddress ? 'Hide new address' : 'Add an address' }}
         </button>
-        <div v-if="addingAddress" class="grid gap-2 rounded-lg border border-gray-200 p-3 sm:grid-cols-2">
-          <input v-model="newAddress.streetNumber" class="app-field" placeholder="Street number" />
-          <input v-model="newAddress.street" class="app-field" placeholder="Street" />
-          <input v-model="newAddress.suburb" class="app-field" placeholder="Suburb" />
-          <input v-model="newAddress.city" class="app-field" placeholder="City" />
-          <input v-model="newAddress.province" class="app-field" placeholder="Province" />
-          <input v-model="newAddress.country" class="app-field" placeholder="Country" />
-          <input v-model="newAddress.postalCode" class="app-field" placeholder="Postal code" />
+        <div v-if="addingAddress" class="space-y-3 rounded-lg border border-gray-200 p-3">
+          <AddressEntry v-model="newAddress" />
           <button type="button" class="app-link-btn" @click="saveAddress">Save address</button>
-          <p v-if="addressError" class="text-sm text-red-600 sm:col-span-2">{{ addressError }}</p>
+          <p v-if="addressError" class="text-sm text-red-600">{{ addressError }}</p>
         </div>
       </div>
       <input
