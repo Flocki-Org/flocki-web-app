@@ -4,6 +4,8 @@ import dayjs from 'dayjs'
 import { computed, inject, ref } from 'vue'
 import { eventsApi, type Occurrence, type SongUsage } from '@/api/events'
 import Button from '@/components/Forms/Button.vue'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
+import UserProfilePopup from '@/components/people/UserProfilePopup.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import { isoDate, occurrenceRoute, planRoute, startOfWeek, timeRange } from '@/utils/events'
 
@@ -165,22 +167,31 @@ const statusLabel = (status: string) => status.replaceAll('_', ' ')
 
           <template v-else-if="widget.id === 'birthdays'">
             <p v-if="birthdays.length === 0" class="text-gray-500">No birthdays in the next 30 days.</p>
-            <router-link v-for="person in birthdays" :key="person.id" class="block py-1 no-underline" :to="{ name: 'person', params: { id: person.id } }">
-              {{ personName(person) }} <span class="text-xs text-gray-500">{{ person.dateOfBirth ? dayjs(person.dateOfBirth).format('D MMM') : '' }}</span>
-            </router-link>
+            <UserProfilePopup v-for="person in birthdays" :key="person.id" class="py-1" :person="person">
+              <span class="inline-flex min-w-0 items-center gap-2">
+                <PersonAvatar :person="person" />
+                <span>{{ personName(person) }} <span class="text-xs text-gray-500">{{ person.dateOfBirth ? dayjs(person.dateOfBirth).format('D MMM') : '' }}</span></span>
+              </span>
+            </UserProfilePopup>
           </template>
 
           <template v-else-if="widget.id === 'anniversaries'">
             <p v-if="anniversaries.length === 0" class="text-gray-500">No anniversaries in the next 30 days.</p>
-            <router-link v-for="person in anniversaries" :key="person.id" class="block py-1 no-underline" :to="{ name: 'person', params: { id: person.id } }">
-              {{ personName(person) }} <span class="text-xs text-gray-500">{{ person.marriageDate ? dayjs(person.marriageDate).format('D MMM') : '' }}</span>
-            </router-link>
+            <UserProfilePopup v-for="person in anniversaries" :key="person.id" class="py-1" :person="person">
+              <span class="inline-flex min-w-0 items-center gap-2">
+                <PersonAvatar :person="person" />
+                <span>{{ personName(person) }} <span class="text-xs text-gray-500">{{ person.marriageDate ? dayjs(person.marriageDate).format('D MMM') : '' }}</span></span>
+              </span>
+            </UserProfilePopup>
           </template>
 
           <template v-else-if="widget.id === 'recent_people'">
-            <router-link v-for="person in recentPeople" :key="person.id" class="block py-1 no-underline" :to="{ name: 'person', params: { id: person.id } }">
-              {{ personName(person) }}
-            </router-link>
+            <UserProfilePopup v-for="person in recentPeople" :key="person.id" class="py-1" :person="person">
+              <span class="inline-flex min-w-0 items-center gap-2">
+                <PersonAvatar :person="person" />
+                <span>{{ personName(person) }}</span>
+              </span>
+            </UserProfilePopup>
           </template>
 
           <template v-else-if="widget.id === 'contact_gaps' && summary">

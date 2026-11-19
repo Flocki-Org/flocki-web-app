@@ -2,14 +2,13 @@
 import type { AxiosInstance } from 'axios'
 import { inject, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 import UserProfilePopup from '@/components/people/UserProfilePopup.vue'
 import PersonSearch, { type PersonHit } from '@/components/people/PersonSearch.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Button from '@/components/Forms/Button.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 import { eventsApi, type EventSeries } from '@/api/events'
-import { getPersonImageUrl } from '@/imageUtils'
-import defaultAvatar from '@/assets/default-user-profile.png'
 
 const axios = inject<AxiosInstance>('axios')!
 const route = useRoute()
@@ -80,12 +79,6 @@ axios.get('/departments').then((response) => {
 }).catch(() => {
   ministries.value = []
 })
-
-const useDefaultAvatar = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  if (img.src.endsWith(defaultAvatar)) return
-  img.src = defaultAvatar
-}
 
 const openEdit = () => {
   if (!group.value) return
@@ -284,17 +277,12 @@ const addEvent = () => {
             <div v-if="!group.members?.length" class="app-panel-pad pb-6 text-sm text-gray-400">No members yet.</div>
             <ul v-else class="divide-y divide-gray-100">
               <li v-for="member in group.members" :key="member.person.id" class="flex items-center gap-3 px-4 py-3 sm:px-6">
-                <UserProfilePopup :person="member.person">
-                  <span class="inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-1 ring-gray-200">
-                    <img class="h-full w-full object-cover" v-if="getPersonImageUrl(member.person)" :src="getPersonImageUrl(member.person)" alt="" @error="useDefaultAvatar">
-                    <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" alt="">
+                <UserProfilePopup class="min-w-0 grow" :person="member.person">
+                  <span class="inline-flex min-w-0 items-center gap-2.5">
+                    <PersonAvatar :person="member.person" size="md" />
+                    <span class="truncate font-medium text-gray-900">{{ member.person.firstName }} {{ member.person.lastName }}</span>
                   </span>
                 </UserProfilePopup>
-                <div class="min-w-0 grow">
-                  <router-link class="font-medium no-underline" :to="{ name: 'person', params: { id: member.person.id } }">
-                    {{ member.person.firstName }} {{ member.person.lastName }}
-                  </router-link>
-                </div>
                 <select class="app-field max-w-44" :value="member.role?.name" aria-label="Member role" @change="changeRole(member.person.id, ($event.target as HTMLSelectElement).value)">
                   <option v-for="role in roles" :key="role.id" :value="role.name">{{ role.name }}</option>
                 </select>
@@ -322,7 +310,12 @@ const addEvent = () => {
           </form>
           <ul class="mt-4 space-y-2">
             <li v-for="admin in group.administrators || []" :key="admin.person.id" class="flex items-center gap-2 text-sm">
-              <router-link class="min-w-0 grow no-underline" :to="{ name: 'person', params: { id: admin.person.id } }">{{ admin.person.firstName }} {{ admin.person.lastName }}</router-link>
+              <UserProfilePopup class="min-w-0 grow" :person="admin.person">
+                <span class="inline-flex min-w-0 items-center gap-2">
+                  <PersonAvatar :person="admin.person" />
+                  <span class="truncate font-medium text-gray-800">{{ admin.person.firstName }} {{ admin.person.lastName }}</span>
+                </span>
+              </UserProfilePopup>
               <button type="button" class="text-gray-400 hover:text-red-600" @click="removeAdministrator(admin.person.id, `${admin.person.firstName} ${admin.person.lastName}`)">Remove</button>
             </li>
           </ul>

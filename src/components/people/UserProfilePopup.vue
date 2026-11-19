@@ -1,6 +1,7 @@
 <script setup>
 import { nextTick, ref } from 'vue'
 import { getPersonImageUrl } from '@/imageUtils'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 
 const { person, shouldPreventDefault } = defineProps([
   'personId',
@@ -83,7 +84,7 @@ const handleLinkClick = (event) => {
     <router-link
       v-if="!shouldPreventDefault"
       class="flex w-full max-w-full items-center text-current no-underline hover:text-sky-700"
-      :to="{ name: 'person', params: { id: person.id } }"
+      :to="{ name: 'person', params: { id: person.id || person.personId } }"
       @mouseenter="showProfilePopup"
       @mouseleave="scheduleHide"
       @click="handleLinkClick"
@@ -93,7 +94,7 @@ const handleLinkClick = (event) => {
     <a
       v-else
       class="flex w-full max-w-full items-center text-current no-underline hover:text-sky-700"
-      :href="`/people/${person.id}`"
+      :href="`/people/${person.id || person.personId}`"
       @mouseenter="showProfilePopup"
       @mouseleave="scheduleHide"
       @click="handleLinkClick"
@@ -111,22 +112,11 @@ const handleLinkClick = (event) => {
         @mouseleave="scheduleHide"
       >
         <div class="flex items-start gap-3 border-b border-gray-100 px-3.5 py-3">
-          <img
-            class="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-gray-200"
-            v-if="getPersonImageUrl(person)"
-            :src="getPersonImageUrl(person)"
-            alt=""
-          >
-          <img
-            class="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-gray-200"
-            v-else
-            src="@/assets/default-user-profile.png"
-            alt=""
-          >
+          <PersonAvatar :person="person" size="lg" />
           <div class="min-w-0 flex-1">
             <router-link
               class="block truncate text-sm font-semibold text-gray-900 no-underline hover:text-sky-700"
-              :to="{ name: 'person', params: { id: person.id } }"
+              :to="{ name: 'person', params: { id: person.id || person.personId } }"
             >
               {{ displayName() }}
             </router-link>

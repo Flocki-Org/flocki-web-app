@@ -5,7 +5,9 @@ import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { useRepo } from 'pinia-orm'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import ImageCropperUploader from '../../components/ImageCropperUploader.vue'
-import { getHouseholdImageUrl, getPersonImageUrl } from '@/imageUtils'
+import { getHouseholdImageUrl } from '@/imageUtils'
+import CachedImage from '@/components/CachedImage.vue'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 import Household from '@/models/Household'
 import AddressDisplay from '../../components/AddressDisplay.vue'
 import AddressMap from '@/components/AddressMap.vue'
@@ -261,10 +263,7 @@ const handleImageUploadFailed = () => {
           <ul class="flex flex-row flex-wrap gap-3 app-panel-pad pb-6">
             <li v-for="member in household.people" :key="member.id" class="flex w-40 shrink-0 flex-col items-center rounded-xl border border-gray-100 bg-gray-50 px-3 py-4 text-center">
               <UserProfilePopup :person="member" :include-name="false">
-                <template #default>
-                  <img v-if="getPersonImageUrl(member)" class="h-16 w-16 rounded-full object-cover" :src="getPersonImageUrl(member)" alt="">
-                  <img v-else class="h-16 w-16 rounded-full object-cover" src="@/assets/default-user-profile.png" alt="">
-                </template>
+                <PersonAvatar :person="member" size="xl" />
               </UserProfilePopup>
               <router-link class="mt-2 text-sm font-medium text-gray-800 no-underline hover:text-sky-600" :to="{ name: 'person', params: { id: member.id } }">{{ personName(member) }}</router-link>
               <p v-if="member.id === household.leader?.id" class="mt-1 text-xs font-medium text-sky-600">Leader</p>
@@ -295,7 +294,7 @@ const handleImageUploadFailed = () => {
       <aside class="app-detail-aside order-1 lg:order-2 lg:w-1/2">
         <div class="overflow-hidden rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
           <button type="button" class="block w-full p-3" @click="toggleDropdown">
-            <img v-if="household.householdImage" class="max-h-[70vh] w-full rounded-lg object-contain" :src="getHouseholdImageUrl(household)" alt="">
+            <CachedImage v-if="household.householdImage" class="max-h-[70vh] w-full rounded-lg object-contain" :src="getHouseholdImageUrl(household)" alt="" />
             <img v-else class="max-h-80 w-full rounded-lg object-contain" src="@/assets/default-user-profile.png" alt="">
           </button>
           <div class="flex items-center justify-between gap-3 px-4 py-3">
@@ -313,7 +312,7 @@ const handleImageUploadFailed = () => {
   <div v-if="householdImageViewVisible" class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">
     <div class="relative w-full max-w-3xl overflow-hidden rounded-lg bg-white p-4 shadow-lg">
       <button type="button" class="absolute top-2 right-2 text-2xl text-gray-600" @click="closeHouseholdImageView">×</button>
-      <img :src="getHouseholdImageUrl(household)" class="mx-auto max-h-[70vh] w-auto" alt="Household photo">
+      <CachedImage :src="getHouseholdImageUrl(household)" class="mx-auto max-h-[70vh] w-auto" alt="Household photo" />
     </div>
   </div>
   <div v-if="uploadHouseholdImage" class="fixed inset-0 flex items-center justify-center bg-gray-800/75 p-4">

@@ -5,6 +5,7 @@ import { computed, inject, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { eventsApi, type Plan, type PlanItem, type PlanItemType } from '@/api/events'
 import Button from '@/components/Forms/Button.vue'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import { PLAN_ITEM_TYPES, formatTime, planItemLabel, timeRange } from '@/utils/events'
 
@@ -234,8 +235,9 @@ const printPlan = () => window.print()
             <input v-model="personQuery[index]" class="app-field" placeholder="Search people, or type a guest name below" @input="searchPeople(index)" />
             <ul v-if="personResults[index]?.length" class="rounded-md border border-gray-200">
               <li v-for="person in personResults[index]" :key="person.id">
-                <button type="button" class="block w-full px-3 py-2 text-left text-sm hover:bg-gray-50" @click="choosePerson(index, person)">
-                  {{ person.preferredName || person.firstName }} {{ person.lastName }}
+                <button type="button" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50" @click="choosePerson(index, person)">
+                  <PersonAvatar :person="person" />
+                  <span>{{ person.preferredName || person.firstName }} {{ person.lastName }}</span>
                 </button>
               </li>
             </ul>

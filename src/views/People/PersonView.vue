@@ -8,6 +8,8 @@ import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
 import ImageCropperUploader from '../../components/ImageCropperUploader.vue';
 import { getPersonImageUrl, getHouseholdImageUrl } from '@/imageUtils';
+import CachedImage from '@/components/CachedImage.vue'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 import AddressDisplay from '../../components/AddressDisplay.vue';
 import AddressMap from '@/components/AddressMap.vue';
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
@@ -28,7 +30,6 @@ const person = ref<Person | null>(null)
 const ministryLinks = ref<{ departmentId: number; name: string; roleName: string }[]>([])
 const groupAdminLinks = ref<{ groupId: number; groupName: string; roleName: string }[]>([])
 
-const hovered = ref(false);
 const dropdownVisible = ref(false);
 const profileImageFailed = ref(false)
 const profileImageViewVisible = ref(false)
@@ -77,6 +78,7 @@ const formatCustomValue = (value) => {
 }
 
 const personImageSrc = computed(() => getPersonImageUrl(person.value))
+const householdImageSrc = computed(() => getHouseholdImageUrl(person.value?.households?.[0]))
 
 const onProfileImageError = () => {
   profileImageFailed.value = true
@@ -119,6 +121,7 @@ onBeforeRouteUpdate((to, from) => {
 })
 
 const viewProfileImage = () => {
+  dropdownVisible.value = false
   profileImageViewVisible.value=true;
   // Prevent scrolling
   document.body.style.overflow = 'hidden';
@@ -320,6 +323,23 @@ const handleImageUploadFailed = () => {
           <path fill="currentColor" d="M21,11H6.83L10.41,7.41L9,6L3,12L9,18L10.41,16.58L6.83,13H21V11Z"></path>
         </svg>
       </router-link>
+      <div v-if="person" class="relative shrink-0" @mouseleave="dropdownVisible = false">
+        <button type="button" class="rounded-full" aria-label="Profile photo" @click="toggleDropdown">
+          <PersonAvatar :person="person" size="xl" @error="onProfileImageError" />
+        </button>
+        <ul v-if="dropdownVisible" class="absolute left-0 top-full z-20 mt-2 w-max rounded-md border bg-white shadow-lg">
+          <li v-if="personImageSrc && !profileImageFailed">
+            <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewProfileImage">View Profile Image</a>
+          </li>
+          <li>
+            <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewUploadProfileImage">Choose Profile Image</a>
+          </li>
+          <li v-if="canCropFromHousehold">
+            <a href="#" class="block whitespace-nowrap px-4 py-2 hover:bg-gray-200" @click.prevent="cropFromHousehold">From household photo</a>
+          </li>
+        </ul>
+      </div>
+      <span v-else class="h-16 w-16 shrink-0 rounded-full bg-gray-200"></span>
       <h1 class="grow min-w-0 text-gray-600 break-words">
         <Skeletor v-if="isLoadingPerson" width="200"></Skeletor>
         <template v-else>
@@ -564,33 +584,6 @@ const handleImageUploadFailed = () => {
         </div>
       </div>
       <div class="app-detail-aside order-1 lg:order-2">
-        <div class="relative flex w-full justify-center"
-             @mouseenter="hovered = true"
-             @mouseleave="hovered=false, dropdownVisible = false">
-          <div @click="toggleDropdown" class="max-w-full overflow-hidden rounded-lg bg-gray-100">
-            <img class="max-h-80 max-w-full cursor-pointer object-contain"
-                 v-if="personImageSrc && !profileImageFailed"
-                 :key="personImageSrc"
-                 :src="personImageSrc"
-                 @error="onProfileImageError">
-            <img class="max-h-80 max-w-full cursor-pointer object-contain"
-                 v-else
-                 src="@/assets/default-user-profile.png">
-          </div>
-          <div v-if="dropdownVisible" class="absolute top-0 right-0 z-20 mt-2">
-            <ul class="custom-hover bg-white border rounded shadow-lg">
-              <li v-if="personImageSrc && !profileImageFailed">
-                <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewProfileImage">View Profile Image</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-200" @click.prevent="viewUploadProfileImage">Choose Profile Image</a>
-              </li>
-              <li v-if="canCropFromHousehold">
-                <a href="#" class="block whitespace-nowrap px-4 py-2 hover:bg-gray-200" @click.prevent="cropFromHousehold">From household photo</a>
-              </li>
-            </ul>
-          </div>
-        </div>
         <div v-if="person" class="rounded-lg bg-white relative overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
           <div class="flex items-center gap-2 app-panel-pad py-6 sm:py-8">
             <router-link v-if="person.households?.[0]" class="grow" :to="{name: 'household', params: {id: person.households[0].id} }">
@@ -605,7 +598,9 @@ const handleImageUploadFailed = () => {
             </button>
           </div>
           <p v-if="!person.households?.[0]" class="app-panel-pad pb-6 text-sm text-gray-500">This person is not in a household yet. Adding a family member starts one, with this person as the leader.</p>
-          <img v-if="person.households?.[0]" class="w-full rounded-lg object-contain" :src="getHouseholdImageUrl(person.households[0])">
+          <div v-if="householdImageSrc" class="px-4 pb-3 sm:px-6">
+            <CachedImage class="mx-auto max-h-72 w-full rounded-lg object-contain" :src="householdImageSrc" alt="Household photo" />
+          </div>
           <div>
             <template v-if="!isLoadingPerson && person">
               <template v-if="person && person.households && person.households[0]">
@@ -613,31 +608,28 @@ const handleImageUploadFailed = () => {
                   <!--each householdPerson in person.householdsArray[0].people-->
                   <div>
                     <div v-for="householdPerson in person.households[0].people" :key="householdPerson.id">
-                      <div class="flex shrink items-center p-4 gap-3 odd:bg-gray-50 even:bg-white">
-                        <UserProfilePopup
-                            :person="householdPerson"
-                            :includeName="true">
-                          <template v-slot:default="{ getPersonImageUrl }">
-                              <img class="rounded-lg" v-if="getPersonImageUrl(householdPerson)" :src="getPersonImageUrl(householdPerson)" width="82">
-                              <img class="rounded-lg" v-else src="@/assets/default-user-profile.png" width="82">
-                          </template>
-                        </UserProfilePopup>
-                        <div class="flex flex-col">
-                          <div class="inline-flex items-center" title="Household leader">
-                            <router-link  class="mr-2" :to="{name: 'person', params: {id: householdPerson.id} }">{{ householdPerson.firstName + " " + householdPerson.lastName }}</router-link>
+                      <div class="flex items-start gap-3 p-4 odd:bg-gray-50 even:bg-white">
+                        <div class="flex min-w-0 flex-col">
+                          <div class="inline-flex min-w-0 items-center gap-2" title="Household leader">
+                            <UserProfilePopup class="min-w-0" :person="householdPerson">
+                              <span class="inline-flex min-w-0 items-center gap-2">
+                                <PersonAvatar :person="householdPerson" size="md" />
+                                <span class="truncate font-medium text-gray-800">{{ householdPerson.firstName + " " + householdPerson.lastName }}</span>
+                              </span>
+                            </UserProfilePopup>
                             <svg v-if="householdPerson.id == person.households[0].leader.id" class="text-sky-500" style="width:16px;height:16px" viewBox="0 0 24 24">
                               <path fill="currentColor" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"></path>
                             </svg>
                             <button v-else type="button" class="text-xs text-gray-400 hover:text-red-600" @click="removeHouseholdMember(householdPerson.id, householdPerson.firstName + ' ' + householdPerson.lastName)">Remove</button>
                           </div>
-                          <div class="text-sm text-gray-400"><p v-if="householdPerson.gender" style="display:inline">{{ householdPerson.gender }} </p><p v-if="householdPerson.dateOfBirth" style="display:inline"> ({{ $filters.durationInYearsOrMonths(householdPerson.dateOfBirth) }} old)</p></div>
-                          <div v-if="householdPerson.mobileNumber" class="inline-flex items-center">
+                          <div class="pl-11 text-sm text-gray-400"><p v-if="householdPerson.gender" style="display:inline">{{ householdPerson.gender }} </p><p v-if="householdPerson.dateOfBirth" style="display:inline"> ({{ $filters.durationInYearsOrMonths(householdPerson.dateOfBirth) }} old)</p></div>
+                          <div v-if="householdPerson.mobileNumber" class="inline-flex items-center pl-11">
                             <svg class="mr-1 text-gray-400" style="width:14px;height:14px" viewBox="0 0 24 24">
                               <path fill="currentColor" d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"></path>
                             </svg>
                             <div class="text-sm text-gray-400">{{householdPerson.mobileNumber}}</div>
                           </div>
-                          <div v-if="householdPerson.email" class="inline-flex items-center">
+                          <div v-if="householdPerson.email" class="inline-flex items-center pl-11">
                             <svg class="mr-1 text-gray-400" style="width:14px;height:14px" viewBox="0 0 24 24">
                               <path fill="currentColor" d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path>
                             </svg>
@@ -680,7 +672,7 @@ const handleImageUploadFailed = () => {
     <div class="bg-white p-4 rounded-lg shadow-lg relative w-full max-w-3xl overflow-hidden">
       <button @click="closeProfileImageView" class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl">×</button>
       <div class="flex items-center justify-center">
-        <img :src="personImageSrc" class="w-auto reduce-height" alt="Profile Image">
+        <CachedImage :src="personImageSrc" class="w-auto reduce-height" alt="Profile Image" />
       </div>
     </div>
   </div>
