@@ -6,6 +6,8 @@ import {onBeforeRouteUpdate, useRouter} from 'vue-router'
 import { useRepo } from 'pinia-orm'
 
 import { getHouseholdImageUrl } from '@/imageUtils';
+import CachedImage from '@/components/CachedImage.vue'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 
 import Button from '@/components/Forms/Button.vue'
 import Label from '@/components/Forms/Label.vue'
@@ -268,9 +270,9 @@ const redirectToPersonPage = (member) =>  {
                 </td>
                 <td>
                   <div class="flex items-center gap-2.5 leading-none">
-                    <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 ring-1 ring-inset ring-gray-200">
-                      <img class="h-full w-full object-cover" v-if="household && household.householdImage" :src="getHouseholdImageUrl(household)" alt="">
-                      <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" alt="">
+                    <span class="relative inline-flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-1 ring-inset ring-gray-200">
+                      <img class="h-full w-full object-cover" src="@/assets/default-user-profile.png" alt="">
+                      <CachedImage v-if="getHouseholdImageUrl(household)" class="absolute inset-0 h-full w-full object-cover" :src="getHouseholdImageUrl(household)" alt="" />
                     </span>
                     <router-link class="truncate text-sm font-medium leading-none text-gray-900 no-underline hover:text-sky-700" :to="{ name: 'household', params: { id: household.id } }">{{ household.leader.lastName }}</router-link>
                   </div>
@@ -285,11 +287,8 @@ const redirectToPersonPage = (member) =>  {
                   <div class="flex flex-wrap items-center gap-1">
                     <div v-for="member in household.people" :key="member.id" class="inline-flex" @click="redirectToPersonPage(member)">
                       <UserProfilePopup :person="member">
-                        <template v-slot:default="{ getPersonImageUrl }">
-                          <span class="inline-flex h-7 w-7 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-gray-100 ring-2 ring-white">
-                            <img class="h-full w-full object-cover" v-if="getPersonImageUrl(member)" :src="getPersonImageUrl(member)" :title="member.firstName" alt="">
-                            <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" :title="member.firstName" alt="">
-                          </span>
+                        <template #default>
+                          <PersonAvatar :person="member" />
                         </template>
                       </UserProfilePopup>
                     </div>

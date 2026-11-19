@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import { ref, reactive, inject, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepo } from 'pinia-orm'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 import UserProfilePopup from '../../components/people/UserProfilePopup.vue';
 
 import Button from '@/components/Forms/Button.vue'
@@ -12,7 +13,6 @@ import Input from '@/components/Forms/Input.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 import Person from '@/models/Person'
-import defaultAvatar from '@/assets/default-user-profile.png'
 import Paginator from "@/components/Paginator.vue";
 
 const axios = inject<AxiosInstance>('axios')
@@ -54,12 +54,6 @@ const people = computed(() => {
 })
 
 const compactDate = (value?: string | null) => (value ? dayjs(value).format("D MMM YYYY") : '')
-
-const useDefaultAvatar = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  if (img.src.endsWith(defaultAvatar)) return
-  img.src = defaultAvatar
-}
 
 const loadPeople = (currentPage, itemsPerPage) => {
   isLoadingPeople.value = true
@@ -335,12 +329,9 @@ const createPerson = () => {
                   <UserProfilePopup
                       :person="person"
                       :includeName="true">
-                    <template v-slot:default="{ getPersonImageUrl }">
+                    <template v-slot:default>
                       <span class="flex items-center gap-2.5 leading-none">
-                        <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 ring-1 ring-inset ring-gray-200">
-                          <img class="h-full w-full object-cover" v-if="getPersonImageUrl(person)" :src="getPersonImageUrl(person)" alt="" @error="useDefaultAvatar">
-                          <img class="h-full w-full object-cover" v-else src="@/assets/default-user-profile.png" alt="">
-                        </span>
+                        <PersonAvatar :person="person" />
                         <span class="min-w-0">
                           <span class="block truncate text-sm font-medium leading-none text-gray-900">{{ person.preferredName || person.firstName }}</span>
                           <span v-if="person.preferredName && person.preferredName !== person.firstName" class="mt-0.5 block truncate text-xs leading-none text-gray-400">{{ person.firstName }}</span>

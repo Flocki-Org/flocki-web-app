@@ -3,7 +3,9 @@ import type { AxiosInstance } from 'axios'
 import { inject, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from '@/components/Forms/Button.vue'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 import PersonSearch, { type PersonHit } from '@/components/people/PersonSearch.vue'
+import UserProfilePopup from '@/components/people/UserProfilePopup.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 
@@ -129,9 +131,14 @@ const createMinistry = async () => {
                   <p v-if="ministry.leaderRole?.name" class="mt-0.5 text-xs text-gray-400">{{ ministry.leaderRole.name }}</p>
                 </td>
                 <td class="text-gray-600">
-                  <template v-if="ministry.leaders?.length">
-                    {{ ministry.leaders.map((person) => `${person.firstName} ${person.lastName}`).join(', ') }}
-                  </template>
+                  <div v-if="ministry.leaders?.length" class="flex flex-col gap-1.5">
+                    <UserProfilePopup v-for="person in ministry.leaders" :key="person.personId" :person="{ ...person, id: person.personId }">
+                      <span class="inline-flex min-w-0 items-center gap-2">
+                        <PersonAvatar :person="person" />
+                        <span class="truncate text-sm font-medium text-gray-800">{{ person.firstName }} {{ person.lastName }}</span>
+                      </span>
+                    </UserProfilePopup>
+                  </div>
                 </td>
                 <td class="text-gray-600">{{ ministry.groupCount }}</td>
               </tr>
@@ -156,6 +163,7 @@ const createMinistry = async () => {
       <div class="text-sm">
         <span class="app-label">Leader</span>
         <div v-if="leader" class="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-2">
+          <PersonAvatar :person="leader" />
           <span class="min-w-0 grow text-gray-800">{{ leader.firstName }} {{ leader.lastName }}</span>
           <button type="button" class="text-sm text-gray-500 hover:text-gray-800" @click="leader = null">Change</button>
         </div>

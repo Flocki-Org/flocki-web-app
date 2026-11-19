@@ -3,7 +3,9 @@ import type { AxiosInstance } from 'axios'
 import { inject, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import Button from '@/components/Forms/Button.vue'
+import PersonAvatar from '@/components/people/PersonAvatar.vue'
 import PersonSearch, { type PersonHit } from '@/components/people/PersonSearch.vue'
+import UserProfilePopup from '@/components/people/UserProfilePopup.vue'
 import Dialog from '@/components/Widgets/Dialog.vue'
 import Toaster from '@/components/Widgets/Toaster.vue'
 
@@ -231,10 +233,15 @@ const unassignGroup = async (groupId: number, name: string) => {
                 </div>
                 <button type="button" class="text-sm text-gray-400 hover:text-red-600" @click="unassignGroup(group.id, group.name)">Remove</button>
               </div>
-              <ul v-if="group.members?.length" class="mt-3 space-y-1">
-                <li v-for="person in group.members" :key="person.personId" class="text-sm">
-                  <router-link class="no-underline" :to="{ name: 'person', params: { id: person.personId } }">{{ person.firstName }} {{ person.lastName }}</router-link>
-                  <span v-if="person.role" class="text-gray-400"> · {{ person.role }}</span>
+              <ul v-if="group.members?.length" class="mt-3 space-y-1.5">
+                <li v-for="person in group.members" :key="person.personId" class="flex items-center gap-2">
+                  <UserProfilePopup class="min-w-0 grow" :person="{ ...person, id: person.personId }">
+                    <span class="inline-flex min-w-0 items-center gap-2">
+                      <PersonAvatar :person="person" />
+                      <span class="truncate text-sm font-medium text-gray-800">{{ person.firstName }} {{ person.lastName }}</span>
+                    </span>
+                  </UserProfilePopup>
+                  <span v-if="person.role" class="shrink-0 text-xs text-gray-400">{{ person.role }}</span>
                 </li>
               </ul>
               <p v-else class="mt-2 text-sm text-gray-400">No people in this group yet.</p>
@@ -253,7 +260,12 @@ const unassignGroup = async (groupId: number, name: string) => {
           </form>
           <ul class="mt-4 space-y-2">
             <li v-for="person in ministry.leaders" :key="person.personId" class="flex items-center gap-2 text-sm">
-              <router-link class="min-w-0 grow no-underline" :to="{ name: 'person', params: { id: person.personId } }">{{ person.firstName }} {{ person.lastName }}</router-link>
+              <UserProfilePopup class="min-w-0 grow" :person="{ ...person, id: person.personId }">
+                <span class="inline-flex min-w-0 items-center gap-2">
+                  <PersonAvatar :person="person" />
+                  <span class="truncate font-medium text-gray-800">{{ person.firstName }} {{ person.lastName }}</span>
+                </span>
+              </UserProfilePopup>
               <button type="button" class="text-gray-400 hover:text-red-600" @click="removeLeader(person.personId, `${person.firstName} ${person.lastName}`)">Remove</button>
             </li>
           </ul>
